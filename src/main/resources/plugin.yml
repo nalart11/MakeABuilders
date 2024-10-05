@@ -1,0 +1,29 @@
+name: MakeABuilders
+version: 1.0
+main: org.MakeACakeStudios.MakeABuilders
+commands:
+  msg:
+    description: Отправить личное сообщение игроку.
+    usage: /msg <игрок> <сообщение>
+  r:
+    description: Ответить на последнее сообщение.
+    usage: /r <сообщение>
+  msgs:
+    description: Изменение звука сообщений.
+    usage: /msgs <звук>
+  rename:
+    description: Изменяет название предмета в руке.
+    usage: /rename <новое_название>
+    permission: MakeABuilders.rename
+  goto:
+    description: Телепортация игрока к заданным координатам.
+    usage: /goto <world> <x> <y> <z>
+    permission: MakeABuilders.goto
+  back:
+    description: Возвращение игрока.
+    usage: /back
+    permission: MakeABuilders.back
+  enchant:
+    description: Добавляет зачарования предмету в руке.
+    usage: /enchant <зачарование> <уровень>
+    permission: MakeABuilders.enchant

@@ -1,0 +1,21 @@
+player-sounds: {}
+Messages:
+  Join:
+    - "<blue>[<green>!</green>] <yellow><player> влетел на сервер!"
+    - "<blue>[<green>!</green>] <yellow><player> сломал 4-ю стену!"
+    - "<blue>[<green>!</green>] <yellow><player> купил вертолёт и прилетел к нам!"
+    - "<blue>[<green>!</green>] <yellow><player> купил проходку на MakeABuilders!"
+    - "<blue>[<green>!</green>] <yellow><player> عاد إلينا!"
+  Quit:
+    - "<blue>[<red>!</red>] <yellow><player> превратился в ведьму и улетел на метле!"
+    - "<blue>[<red>!</red>] <yellow><player> покинул сервер!"
+    - "<blue>[<red>!</red>] <yellow><player> вылетел как пробка!"
+    - "<blue>[<red>!</red>] <yellow><player> ушёл в закат!"
+    - "<blue>[<red>!</red>] <yellow><player> нашёл выход из <b>САРАЯ</b>!"
+    - "<blue>[<red>!</red>] <yellow><player> провалился сквозь землю!"
+    - "<blue>[<red>!</red>] <yellow><player> ушёл в школу!"
+    - "<blue>[<red>!</red>] <yellow><player> нашёл потайной ход!"
+    - "<blue>[<red>!</red>] <yellow><player> caduto in un buco nero!"
+ServerName: "MakeABuilders"
+Signature: "Подпись"
+AdditionalSignature: "Дополнительная подпись"
