@@ -7,6 +7,8 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.storage.PlayerNameStorage;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,18 +18,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class ChatHandler implements Listener {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final FileConfiguration config;
+    private final MakeABuilders plugin;
+    private final Map<String, List<String>> messages = new HashMap<>();
+    private final PlayerNameStorage playerNameStorage;
 
     public ChatHandler(MakeABuilders makeABuilders) {
-        this.config = makeABuilders.getConfig(); // Инициализируем config с помощью метода getConfig() плагина
+        this.config = makeABuilders.getConfig(); // Инициализируем config
+        this.plugin = makeABuilders; // Присваиваем экземпляр основного класса
+        this.playerNameStorage = new PlayerNameStorage(plugin);
     }
 
     // Получение случайного сообщения для события
@@ -43,31 +47,37 @@ public class ChatHandler implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+
+        // Получаем префикс и суффикс из хранилища
+        String prefix = playerNameStorage.getPlayerPrefix(player);
+        String suffix = playerNameStorage.getPlayerSuffix(player);
         List<String> joinMessages = config.getStringList("Messages.Join");
         String rawMessage = getRandomMessage(joinMessages);
 
         if (rawMessage != null) {
-            String prefix = getPlayerPrefix(player);
-            String suffix = getPlayerSuffix(player);
 
             // Заменяем <player> на префикс, имя игрока и суффикс
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component joinMessage = miniMessage.deserialize(parsedMessage);
             event.joinMessage(joinMessage); // Устанавливаем сообщение о входе
+
+            // Получаем сообщения для игрока
+            List<String[]> playerMessages = plugin.getMailStorage().getMessages(player.getName());
+            if (!playerMessages.isEmpty()) {
+                player.sendMessage(miniMessage.deserialize("<green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщений.</green>"));
+            }
         }
     }
 
-    // Обработчик события выхода игрока
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        String prefix = playerNameStorage.getPlayerPrefix(player);
+        String suffix = playerNameStorage.getPlayerSuffix(player);
         List<String> quitMessages = config.getStringList("Messages.Quit");
         String rawMessage = getRandomMessage(quitMessages);
 
         if (rawMessage != null) {
-            String prefix = getPlayerPrefix(player);
-            String suffix = getPlayerSuffix(player);
-
             // Заменяем <player> на префикс, имя игрока и суффикс
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component quitMessage = miniMessage.deserialize(parsedMessage);
@@ -75,71 +85,18 @@ public class ChatHandler implements Listener {
         }
     }
 
+    public Map<String, List<String>> getMessages() {
+        return messages;
+    }
+
     private static final Map<String, Integer> groupWeights = new HashMap<>();
 
     static {
-        // Задаем веса для каждой группы
         groupWeights.put("iam", 5);
         groupWeights.put("javadper", 4);
         groupWeights.put("admin", 3);
         groupWeights.put("developer", 2);
         groupWeights.put("moderator", 1);
-    }
-
-    // Метод для получения префикса на основе группы игрока
-    public String getPlayerPrefix(Player player) {
-        User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
-        String highestGroup = "default";
-        int highestWeight = 0;
-
-        if (user != null) {
-            for (Node node : user.getNodes()) {
-                if (node instanceof InheritanceNode) {
-                    InheritanceNode inheritanceNode = (InheritanceNode) node;
-                    String groupName = inheritanceNode.getGroupName();
-                    // Проверяем, есть ли группа в мапе и ее вес
-                    if (groupWeights.containsKey(groupName) && groupWeights.get(groupName) > highestWeight) {
-                        highestWeight = groupWeights.get(groupName);
-                        highestGroup = groupName; // Запоминаем группу с наибольшим весом
-                    }
-                }
-            }
-        }
-
-        // Возвращаем префикс на основе группы с наибольшим весом
-        switch (highestGroup) {
-            case "iam":
-                return "<yellow>\uD83D\uDC51</yellow> <gradient:#ae00cb:#fc002d>";
-            case "javadper":
-                return "<blue>\uD83D\uDEE0</blue> <gradient:#E0E0E0:#808080>";
-            case "admin":
-                return "<red>\uD83D\uDEE1</red> <gradient:#FF2323:#FF7878>";
-            case "developer":
-                return "<blue>\uD83D\uDEE0</blue> <gradient:#141378:#97ABFF>";
-            case "moderator":
-                return "<red>\uD83D\uDEE1</red> <gradient:#23DBFF:#C8E9FF>";
-            default:
-                return "";
-        }
-    }
-
-
-    // Метод для получения суффикса на основе группы игрока
-    public String getPlayerSuffix(Player player) {
-        User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
-        if (user != null) {
-            // Получаем все узлы наследования игрока
-            for (Node node : user.getNodes()) {
-                if (node instanceof InheritanceNode) {
-                    InheritanceNode inheritanceNode = (InheritanceNode) node;
-                    String groupName = inheritanceNode.getGroupName();
-                    if (!groupName.equals("default")) {
-                        return "</gradient>";
-                    }
-                }
-            }
-        }
-        return "";
     }
 
     @EventHandler
@@ -149,6 +106,33 @@ public class ChatHandler implements Listener {
         String message = event.getMessage();
 
         System.out.println(playerName + " → " + message);
+
+        if (message.contains("@")) {
+            String[] words = message.split(" ");
+            for (String word : words) {
+                if (word.startsWith("@")) {
+                    String mentionedPlayerName = word.substring(1); // Получаем ник упомянутого игрока
+                    Player mentionedPlayer = Bukkit.getPlayer(mentionedPlayerName);
+
+                    if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
+                        // Получаем звук для упомянутого игрока
+                        Sound notificationSound = plugin.getPlayerSound(mentionedPlayer);
+                        // Воспроизводим звук для упомянутого игрока
+                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
+
+                        // Получаем префикс и суффикс упомянутого игрока
+                        String mentionedPlayerPrefix = playerNameStorage.getPlayerPrefix(mentionedPlayer);
+                        String mentionedPlayerSuffix = playerNameStorage.getPlayerSuffix(mentionedPlayer);
+
+                        // Форматируем упоминание
+                        String formattedMention = "<yellow>@</yellow>" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix;
+
+                        // Заменяем упоминание в сообщении
+                        message = message.replace(word, formattedMention);
+                    }
+                }
+            }
+        }
 
         if (message.contains(":loc:")) {
             int x = player.getLocation().getBlockX();
@@ -160,13 +144,13 @@ public class ChatHandler implements Listener {
             String color;
             switch (worldName) {
                 case "world":
-                    color = "<green>";
+                    color = "<gradient:#00FF1A:#7EFF91>";
                     break;
                 case "world_nether":
-                    color = "<red>";
+                    color = "<gradient:#FF0000:#FF7E7E>";
                     break;
                 case "world_the_end":
-                    color = "<light_purple>";
+                    color = "<gradient:#ED00FF:#DE7EFF>";
                     break;
                 default:
                     color = "<white>";
@@ -177,9 +161,46 @@ public class ChatHandler implements Listener {
 
             message = message.replace(":loc:", location);
         }
+        if (message.contains(":cry:")) {
+            message = message.replace(":cry:", "<yellow>☹</yellow><aqua>,</aqua>");
+        }
+        if (message.contains(":skull:")) {
+            message = message.replace(":skull:", "☠");
+        }
+        if (message.contains(":skulley:")) {
+            message = message.replace(":skulley:", "<red>☠</red>");
+        }
+        if (message.contains("<3") || message.contains(":heart:")) {
+            message = message.replace("<3", "<red>❤</red>")
+                    .replace(":heart:", "<red>❤</red>");
+        }
+        if (message.contains(":fire:")) {
+            message = message.replace(":fire:", "<color:#FF7800>\uD83D\uDD25</color>");
+        }
+        if (message.contains(":star:")) {
+            message = message.replace(":star:", "<yellow>★</yellow>");
+        }
+        if (message.contains(":stop:")) {
+            message = message.replace(":stop:", "<red>⚠</red>");
+        }
+        if (message.contains(":sun:")) {
+            message = message.replace(":sun:", "<yellow>☀</yellow>");
+        }
+        if (message.contains(":mail:")) {
+            message = message.replace(":mail:", "✉");
+        }
+        if (message.contains(":happy:")) {
+            message = message.replace(":happy:", "☺");
+        }
+        if (message.contains(":sad:")) {
+            message = message.replace(":sad:", "☹");
+        }
+        if (message.contains(":umbrella:")) {
+            message = message.replace(":umbrella:", "☂");
+        }
 
-        String prefix = getPlayerPrefix(player);
-        String suffix = getPlayerSuffix(player);
+        String prefix = playerNameStorage.getPlayerPrefix(player);
+        String suffix = playerNameStorage.getPlayerSuffix(player);
 
         String formattedMessage = prefix + playerName + suffix + " > " + message;
 

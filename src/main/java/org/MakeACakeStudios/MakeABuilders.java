@@ -1,10 +1,12 @@
 package org.MakeACakeStudios;
 
-import org.MakeACakeStudios.chat.ChatHandler;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.tab.TabList;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.MakeACakeStudios.chat.ChatHandler;
+import org.MakeACakeStudios.storage.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,24 +27,35 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private HashMap<Player, List<Location>> locationHistory = new HashMap<>();
 
     private FileConfiguration config;
-    private ChatHandler chatHandler; // Объявите экземпляр ChatHandler
+    private ChatHandler chatHandler;
     private TabList tabList;
+    private MailStorage mailStorage;
+    private PlayerNameStorage playerNameStorage;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         config = getConfig();
+        playerNameStorage = new PlayerNameStorage(this);
+        mailStorage = new MailStorage();
         chatHandler = new ChatHandler(this); // Инициализируйте экземпляр ChatHandler
         tabList = new TabList(this); // Инициализируем TabList
         getServer().getPluginManager().registerEvents(chatHandler, this); // Используйте chatHandler
         getServer().getPluginManager().registerEvents(this, this);
         this.getCommand("goto").setExecutor(new TeleportCommand(this));
         this.getCommand("back").setExecutor(new BackCommand(this));
-        this.getCommand("msg").setExecutor(new MessageCommand(this));
-        this.getCommand("r").setExecutor(new ReplyCommand(this));
-        this.getCommand("msgs").setExecutor(new MessageSoundCommand(this));
+        this.getCommand("message").setExecutor(new MessageCommand(this));
+        this.getCommand("reply").setExecutor(new ReplyCommand(this));
+        this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
-        this.getCommand("enchant").setExecutor(new EnchantCommand(this));
+//        this.getCommand("enchant").setExecutor(new EnchantCommand(this));
+        getCommand("mail").setExecutor(new MailCommand(this));
+        getCommand("mailcheck").setExecutor(new MailCommand(this));
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            loadPlayerSound(player);
+        }
+
         getLogger().info("MakeABuilders плагин активирован!");
     }
 
@@ -61,6 +74,14 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         savePlayerSound(player);
+    }
+
+    public MailStorage getMailStorage() {
+        return mailStorage;
+    }
+
+    public PlayerNameStorage getPlayerNameStorage() {
+        return playerNameStorage;
     }
 
     public void addLocationToHistory(Player player, Location location) {
@@ -89,12 +110,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
     // Используйте chatHandler для получения префикса игрока
     public String getPlayerPrefix(Player player) {
-        return chatHandler.getPlayerPrefix(player); // Замените на вызов метода chatHandler
+        return playerNameStorage.getPlayerPrefix(player); // Замените на вызов метода chatHandler
     }
 
     // Используйте chatHandler для получения суффикса игрока
     public String getPlayerSuffix(Player player) {
-        return chatHandler.getPlayerSuffix(player); // Замените на вызов метода chatHandler
+        return playerNameStorage.getPlayerSuffix(player); // Замените на вызов метода chatHandler
     }
 
     public void setPlayerSound(Player player, Sound sound) {

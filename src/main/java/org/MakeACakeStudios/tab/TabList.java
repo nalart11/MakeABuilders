@@ -30,7 +30,7 @@ public class TabList {
     }
 
     private void updateTab(Player player) {
-        String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABu</gradient><gradient:#FCBDBD:#FCBDBD>ilders</gradient></b>"; // Замените на название вашего сервера
+        String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></b>"; // Замените на название вашего сервера
         String serverTagline = "<i>Делаем здесь что то every day...</i>";
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {

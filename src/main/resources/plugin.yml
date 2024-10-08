@@ -1,16 +1,19 @@
 name: MakeABuilders
-version: 1.0
+version: b0.2
 main: org.MakeACakeStudios.MakeABuilders
 commands:
-  msg:
+  message:
     description: Отправить личное сообщение игроку.
     usage: /msg <игрок> <сообщение>
-  r:
+    aliases: [msg]
+  reply:
     description: Ответить на последнее сообщение.
     usage: /r <сообщение>
-  msgs:
+    aliases: [r]
+  message-sound:
     description: Изменение звука сообщений.
     usage: /msgs <звук>
+    aliases: [msgs, msgsound]
   rename:
     description: Изменяет название предмета в руке.
     usage: /rename <новое_название>
@@ -23,7 +26,15 @@ commands:
     description: Возвращение игрока.
     usage: /back
     permission: MakeABuilders.back
-  enchant:
-    description: Добавляет зачарования предмету в руке.
-    usage: /enchant <зачарование> <уровень>
-    permission: MakeABuilders.enchant
+#  enchant:
+#    description: Добавляет зачарования предмету в руке.
+#    usage: /enchant <зачарование> <уровень>
+#    permission: MakeABuilders.enchant
+  mail:
+    description: Отправить сообщение игроку оффлайн.
+    usage: /mail <игрок> <сообщение>
+    aliases: [m]
+  mailcheck:
+    description: Проверить непрочитанные сообщения.
+    usage: /mailcheck
+    aliases: [mc, mcheck]
