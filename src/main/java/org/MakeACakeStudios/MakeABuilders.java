@@ -2,6 +2,7 @@ package org.MakeACakeStudios;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.commands.*;
+import org.MakeACakeStudios.motd.DynamicMotd;
 import org.MakeACakeStudios.other.EmptyTabCompleter;
 import org.MakeACakeStudios.tab.TabList;
 import org.bukkit.Bukkit;
@@ -34,6 +35,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private TabList tabList;
     private MailStorage mailStorage;
     private PlayerNameStorage playerNameStorage;
+    private DynamicMotd dynamicMotd;
 
     @Override
     public void onEnable() {
@@ -42,9 +44,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         playerNameStorage = new PlayerNameStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
         mailStorage = new MailStorage();
-        chatHandler = new ChatHandler(this); // Инициализируйте экземпляр ChatHandler
+        chatHandler = new ChatHandler(this);
         tabList = new TabList(this); // Инициализируем TabList
-        getServer().getPluginManager().registerEvents(chatHandler, this); // Используйте chatHandler
+        dynamicMotd = new DynamicMotd(this);
+        getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
+        getServer().getPluginManager().registerEvents(chatHandler, this);
         getServer().getPluginManager().registerEvents(this, this);
         this.getCommand("goto").setExecutor(new TeleportCommand(this));
         this.getCommand("back").setExecutor(new BackCommand(this));
@@ -104,7 +108,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public Location getLastLocationInHistory(Player player) {
         List<Location> history = getLocationHistory(player);
         if (!history.isEmpty()) {
-            return history.get(history.size() - 1); // Последняя локация
+            return history.get(history.size() - 1);
         }
         return null;
     }
