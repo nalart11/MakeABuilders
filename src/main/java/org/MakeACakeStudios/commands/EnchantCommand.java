@@ -66,7 +66,6 @@
 //        String prefix = plugin.getPlayerPrefix(target);
 //        String suffix = plugin.getPlayerSuffix(target);
 //
-//        // Форматируем сообщение с использованием MiniMessage
 //        String enchantmentMessage = String.format("Зачарование <green>%s</green> с уровнем <gold>%d</gold> наложено на <aqua>%s</aqua> игроку %s%s%s.",
 //                enchantment.getKey().getKey(),
 //                level,
@@ -76,10 +75,8 @@
 //                suffix
 //        );
 //
-//        // Отправляем сообщение отправителю только если это не тот же игрок
 //        sender.sendMessage(miniMessage.deserialize(enchantmentMessage));
 //        if (sender != target) {
-//            // Отправляем сообщение только целевому игроку если это не отправитель
 //            target.sendMessage(miniMessage.deserialize(enchantmentMessage));
 //        }
 //

@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -20,9 +21,11 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
+    private final TagFormatter tagFormatter;
 
     public MessageCommand(MakeABuilders plugin) {
         this.plugin = plugin;
+        this.tagFormatter = new TagFormatter();
     }
 
     @Override
@@ -55,10 +58,11 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
             message.append(args[i]).append(" ");
         }
 
-        String formattedMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
-                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + message.toString().trim() + "</gray>";
+        String formattedMessage = tagFormatter.format(message.toString().trim(), playerSender);
+        String finalMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
+                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + formattedMessage + "</gray>";
 
-        Component parsedMessage = miniMessage.deserialize(formattedMessage);
+        Component parsedMessage = miniMessage.deserialize(finalMessage);
 
         target.sendMessage(parsedMessage);
         playerSender.sendMessage(parsedMessage);

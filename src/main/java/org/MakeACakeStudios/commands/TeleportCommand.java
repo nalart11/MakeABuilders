@@ -42,7 +42,6 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
             World world = plugin.getServer().getWorld(worldName);
             if (world != null) {
-                // Сохраняем текущее местоположение игрока в историю
                 plugin.addLocationToHistory(player, player.getLocation());
                 player.teleport(new Location(world, x, y, z));
                 player.sendMessage("§aВы были телепортированы в мир " + worldName);

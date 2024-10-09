@@ -62,7 +62,6 @@ public class MessageSoundCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            // Возвращаем список доступных звуков, фильтруя по начальной строке
             List<String> completions = new ArrayList<>();
             String currentInput = args[0].toLowerCase();
             for (String key : soundMap.keySet()) {
@@ -72,6 +71,6 @@ public class MessageSoundCommand implements CommandExecutor, TabCompleter {
             }
             return completions;
         }
-        return null;
+        return new ArrayList<>();
     }
 }

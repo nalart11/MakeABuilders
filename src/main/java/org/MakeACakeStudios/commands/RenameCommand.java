@@ -2,8 +2,6 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,15 +22,15 @@ public class RenameCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Эту команду может использовать только игрок.");
+            sender.sendMessage(miniMessage.deserialize("Эту команду может использовать только игрок."));
             return true;
         }
 
         Player player = (Player) sender;
 
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType() == Material.AIR) {
-            player.sendMessage(ChatColor.RED + "У вас в руке должен быть предмет.");
+        if (player.getInventory().getItem(player.getActiveItemHand()) == null || player.getInventory().getItem(player.getActiveItemHand()).isEmpty()) {
+            player.sendMessage(miniMessage.deserialize("<red>Вы должны держать предмет в руке, чтобы его переименовать.</red>"));
             return true;
         }
 
@@ -48,17 +46,23 @@ public class RenameCommand implements CommandExecutor, TabCompleter {
             meta.displayName(parsedName);
             item.setItemMeta(meta);
 
-            player.sendMessage(Component.text(ChatColor.GREEN + "Название предмета изменено на: ").append(item.displayName()));
+            player.sendMessage(miniMessage.deserialize("<green>Название предмета изменено на: </green>").append(item.displayName()));
 
             return true;
         }
 
         if (args.length > 2 && args[0].equalsIgnoreCase("lore")) {
             int lineIndex;
+
             try {
                 lineIndex = Integer.parseInt(args[1]) - 1;
             } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "Номер строки должен быть числом.");
+                player.sendMessage(miniMessage.deserialize("<red>Номер строки должен быть числом.</red>"));
+                return true;
+            }
+
+            if (lineIndex < 0 || lineIndex >= 11) {
+                player.sendMessage(miniMessage.deserialize("<red>Номер строки должен быть от 1 до 11.</red>"));
                 return true;
             }
 
@@ -81,12 +85,12 @@ public class RenameCommand implements CommandExecutor, TabCompleter {
             meta.lore(lore);
             item.setItemMeta(meta);
 
-            player.sendMessage(Component.text(ChatColor.GREEN + "Лор предмета изменён на: ").append(item.displayName()));
+            player.sendMessage(miniMessage.deserialize("<green>Лор предмета изменён на: </green>").append(item.displayName()));
 
             return true;
         }
 
-        player.sendMessage(ChatColor.RED + "Использование: /rename <name/lore> <аргументы>");
+        player.sendMessage(miniMessage.deserialize("<red>Использование: /rename <name/lore> <аргументы></red>"));
         return true;
     }
 

@@ -1,12 +1,15 @@
 package org.MakeACakeStudios;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.commands.*;
+import org.MakeACakeStudios.other.EmptyTabCompleter;
 import org.MakeACakeStudios.tab.TabList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.MakeACakeStudios.chat.ChatHandler;
 import org.MakeACakeStudios.storage.*;
+import org.MakeACakeStudios.other.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -37,6 +40,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         saveDefaultConfig();
         config = getConfig();
         playerNameStorage = new PlayerNameStorage(this);
+        MiniMessage miniMessage = MiniMessage.miniMessage();
         mailStorage = new MailStorage();
         chatHandler = new ChatHandler(this); // Инициализируйте экземпляр ChatHandler
         tabList = new TabList(this); // Инициализируем TabList
@@ -48,9 +52,14 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("reply").setExecutor(new ReplyCommand(this));
         this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
+        this.getCommand("shrug").setExecutor(new ShrugCommand(playerNameStorage, miniMessage));
 //        this.getCommand("enchant").setExecutor(new EnchantCommand(this));
         getCommand("mail").setExecutor(new MailCommand(this));
         getCommand("mailcheck").setExecutor(new MailCommand(this));
+
+        this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("shrug").setTabCompleter(new EmptyTabCompleter());
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);
@@ -103,19 +112,17 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public Location getFirstLocationInHistory(Player player) {
         List<Location> history = getLocationHistory(player);
         if (!history.isEmpty()) {
-            return history.get(0); // Первая локация
+            return history.get(0);
         }
         return null;
     }
 
-    // Используйте chatHandler для получения префикса игрока
     public String getPlayerPrefix(Player player) {
-        return playerNameStorage.getPlayerPrefix(player); // Замените на вызов метода chatHandler
+        return playerNameStorage.getPlayerPrefix(player);
     }
 
-    // Используйте chatHandler для получения суффикса игрока
     public String getPlayerSuffix(Player player) {
-        return playerNameStorage.getPlayerSuffix(player); // Замените на вызов метода chatHandler
+        return playerNameStorage.getPlayerSuffix(player);
     }
 
     public void setPlayerSound(Player player, Sound sound) {

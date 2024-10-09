@@ -6,11 +6,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.List;
 
 public class BackCommand implements CommandExecutor {
     private final MakeABuilders plugin;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public BackCommand(MakeABuilders plugin) {
         this.plugin = plugin;
@@ -23,7 +26,7 @@ public class BackCommand implements CommandExecutor {
             List<Location> history = plugin.getLocationHistory(player);
 
             if (history.isEmpty()) {
-                player.sendMessage("§cНет сохранённых мест для возврата.");
+                player.sendMessage(miniMessage.deserialize("<red>Нет сохранённых мест для возврата.</red>"));
                 return true;
             }
 
@@ -32,7 +35,7 @@ public class BackCommand implements CommandExecutor {
                 targetLocation = plugin.getFirstLocationInHistory(player);
             } else {
                 targetLocation = plugin.getLastLocationInHistory(player);
-                history.remove(history.size() - 1); // Удаляем последнюю точку
+                history.remove(history.size() - 1);
             }
 
             if (targetLocation != null) {

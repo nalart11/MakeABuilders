@@ -26,11 +26,11 @@ public class TabList {
                     updateTab(player);
                 }
             }
-        }.runTaskTimer(plugin, 0, 10); // Обновляем каждую секунду
+        }.runTaskTimer(plugin, 0, 10);
     }
 
     private void updateTab(Player player) {
-        String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></b>"; // Замените на название вашего сервера
+        String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></b>";
         String serverTagline = "<i>Делаем здесь что то every day...</i>";
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -44,12 +44,10 @@ public class TabList {
             onlinePlayer.setPlayerListName(legacyName);
         }
 
-        // Пинг, TPS и MSPT
-        int ping = player.getPing(); // Получаем пинг игрока
-        double tpsValue = getServerTPS(); // Получаем TPS сервера
-//        double msptValue = getMSPT(); // Получаем MSPT сервера
+        int ping = player.getPing();
+        double tpsValue = getServerTPS();
+//        double msptValue = getMSPT();
 
-        // Определяем цвет пинга
         String pingColor;
         if (ping > 250) {
             pingColor = "<gradient:#FF0000:#FF7E7E>";
@@ -59,7 +57,6 @@ public class TabList {
             pingColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-        // Определяем цвет TPS
         String tpsColor;
         if (tpsValue < 15) {
             tpsColor = "<gradient:#FF0000:#FF7E7E>";
@@ -69,7 +66,6 @@ public class TabList {
             tpsColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-        // Определяем цвет MSPT
 //        String msptColor;
 //        if (msptValue > 45) {
 //            msptColor = "<gradient:#FF0000:#FF7E7E>";
@@ -81,13 +77,13 @@ public class TabList {
 
         String additionalTagline = "<i>/goto существует...</i>";
 
-        Component header = miniMessage.deserialize(serverName + "\n" +
-                "<gray>" + serverTagline + "</gray>\n");
+        Component header = miniMessage.deserialize("\n" + serverName + "\n" +
+                "<gray>   " + serverTagline + "   </gray>\n");
         Component footer = miniMessage.deserialize("\n" +
                 "<gray>Пинг</gray><yellow>:</yellow> " + pingColor + ping + "<reset> | " +
                  "<gray>TPS</gray><yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>"+ /*" | " +
                  "<gray>Mspt</gray><yellow>:</yellow> " + msptColor + String.format("%.2f", msptValue) + "<reset>" + */"\n" +
-                "<gray>" + additionalTagline + "</gray>");
+                "<gray>" + additionalTagline + "</gray>" + "\n");
 
         player.sendPlayerListHeaderAndFooter(header, footer);
     }

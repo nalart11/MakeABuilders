@@ -37,7 +37,6 @@ public class PlayerNameStorage {
 
     public String getPlayerPrefix(Player player) {
 
-        // В противном случае получаем префикс из LuckPerms
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
         String highestGroup = "default";
         int highestWeight = 0;
@@ -58,7 +57,7 @@ public class PlayerNameStorage {
         String prefix;
         switch (highestGroup) {
             case "iam":
-                prefix = "<yellow>\uD83D\uDC51</yellow> <gradient:#ae00cb:#fc002d>";
+                prefix = "<yellow>\uD83D\uDC51</yellow> <gradient:#DEA903:#FFEDB5>";
                 break;
             case "javadper":
                 prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#E0E0E0:#808080>";
@@ -67,13 +66,13 @@ public class PlayerNameStorage {
                 prefix = "<light_purple>\uD83D\uDC08</light_purple> <gradient:#DD00CC:#FFC8F6>";
                 break;
             case "admin":
-                prefix = "<blue>✘</blue> <gradient:#FF2323:#FF7878>";
+                prefix = "<blue>\uD83D\uDDE1</blue> <gradient:#FF2323:#FF7878>";
                 break;
             case "developer":
                 prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#141378:#97ABFF>";
                 break;
             case "moderator":
-                prefix = "<blue>✘</blue> <gradient:#23DBFF:#C8E9FF>";
+                prefix = "<red>\uD83D\uDD31</red> <gradient:#23DBFF:#C8E9FF>";
                 break;
             case "sponsor":
                 prefix = "<gold>$</gold> <gradient:#00A53E:#C8FFD4>";
@@ -82,7 +81,6 @@ public class PlayerNameStorage {
                 prefix = "";
         }
 
-        // Сохраняем префикс в файле
         setPlayerPrefix(player.getName(), prefix);
         return prefix;
     }
@@ -118,22 +116,18 @@ public class PlayerNameStorage {
     }
 
     public String getPlayerPrefixByName(String playerName) {
-        // Проверяем, если данные для игрока сохранены в файле
         if (config.contains("players." + playerName + ".prefix")) {
             return config.getString("players." + playerName + ".prefix");
         }
 
-        // В противном случае возвращаем пустой префикс (или другой стандартный)
         return "";
     }
 
     public String getPlayerSuffixByName(String playerName) {
-        // Проверяем, если данные для игрока сохранены в файле
         if (config.contains("players." + playerName + ".suffix")) {
             return config.getString("players." + playerName + ".suffix");
         }
 
-        // В противном случае возвращаем пустой суффикс (или другой стандартный)
         return "";
     }
 

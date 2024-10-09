@@ -2,6 +2,7 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,12 +16,13 @@ public class MailCommand implements CommandExecutor {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
+    private final TagFormatter tagFormatter;
 
     public MailCommand(MakeABuilders plugin) {
         this.plugin = plugin;
+        this.tagFormatter = new TagFormatter();
     }
 
-    // Метод для обработки команд
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("mail")) {
@@ -34,28 +36,24 @@ public class MailCommand implements CommandExecutor {
 
                 String recipientName = args[0];
                 String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                message = tagFormatter.format(message, player);
 
-                // Получаем префикс и суффикс отправителя
                 String senderPrefix = plugin.getPlayerPrefix(player);
                 String senderSuffix = plugin.getPlayerSuffix(player);
 
-                // Ищем игрока по имени
                 Player recipientPlayer = Bukkit.getPlayer(recipientName);
 
                 String recipientPrefix;
                 String recipientSuffix;
 
                 if (recipientPlayer != null) {
-                    // Игрок в сети, получаем префикс и суффикс напрямую
                     recipientPrefix = plugin.getPlayerPrefix(recipientPlayer);
                     recipientSuffix = plugin.getPlayerSuffix(recipientPlayer);
                 } else {
-                    // Игрок не в сети, получаем префикс и суффикс из хранилища
                     recipientPrefix = plugin.getPlayerNameStorage().getPlayerPrefixByName(recipientName);
                     recipientSuffix = plugin.getPlayerNameStorage().getPlayerSuffixByName(recipientName);
                 }
 
-                // Отправка сообщения с префиксом отправителя
                 plugin.getMailStorage().addMessage(recipientName, senderPrefix, player.getName(), senderSuffix, message);
                 player.sendMessage(miniMessage.deserialize("<green>Сообщение отправлено игроку " + recipientPrefix + recipientName + recipientSuffix + "</green>."));
                 return true;
@@ -78,12 +76,11 @@ public class MailCommand implements CommandExecutor {
                 player.sendMessage(miniMessage.deserialize("<yellow>Ваши непрочитанные сообщения:</yellow>"));
                 player.sendMessage("");
                 for (String[] messageData : playerMessages) {
-                    String senderPrefix = messageData[0]; // Получаем префикс отправителя
-                    String senderName = messageData[1];   // Получаем имя отправителя
+                    String senderPrefix = messageData[0];
+                    String senderName = messageData[1];
                     String senderSuffix = messageData[2];
-                    String message = messageData[3];      // Получаем само сообщение
+                    String message = messageData[3];
 
-                    // Форматируем и выводим сообщение, используя префикс отправителя
                     player.sendMessage(miniMessage.deserialize("<gray><------------------></gray>"));
                     player.sendMessage(miniMessage.deserialize("<yellow>Отправитель:</yellow> " + senderPrefix + senderName + senderSuffix));
                     player.sendMessage(miniMessage.deserialize("<green>Сообщение:</green> " + message));
@@ -91,7 +88,6 @@ public class MailCommand implements CommandExecutor {
                     player.sendMessage("");
                 }
 
-                // Удаляем сообщения после прочтения
                 plugin.getMailStorage().clearMessages(player.getName());
                 return true;
             } else {

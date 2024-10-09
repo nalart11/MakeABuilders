@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -13,16 +14,17 @@ public class ReplyCommand implements CommandExecutor {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
+    private final TagFormatter tagFormatter;
 
     public ReplyCommand(MakeABuilders plugin) {
         this.plugin = plugin;
+        this.tagFormatter = new TagFormatter();
     }
 
     private String getPlayerPrefix(Player player) {
         return plugin.getPlayerPrefix(player);
     }
 
-    // Получаем суффикс игрока из LuckPerms
     private String getPlayerSuffix(Player player) {
         return plugin.getPlayerSuffix(player);
     }
@@ -36,7 +38,6 @@ public class ReplyCommand implements CommandExecutor {
 
         Player playerSender = (Player) sender;
 
-        // Получаем последнего отправителя
         Player target = plugin.getLastMessaged(playerSender);
         if (target == null) {
             playerSender.sendMessage("§cНет игрока, которому можно ответить.");
@@ -58,10 +59,11 @@ public class ReplyCommand implements CommandExecutor {
         String targetPrefix = getPlayerPrefix(target);
         String targetSuffix = getPlayerSuffix(target);
 
-        String formattedMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
-                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + message.toString().trim() + "</gray>";
+        String formattedMessage = tagFormatter.format(message.toString().trim(), playerSender);
+        String finalMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
+                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + formattedMessage + "</gray>";
 
-        Component parsedMessage = miniMessage.deserialize(formattedMessage);
+        Component parsedMessage = miniMessage.deserialize(finalMessage);
 
         target.sendMessage(parsedMessage);
         playerSender.sendMessage(parsedMessage);
