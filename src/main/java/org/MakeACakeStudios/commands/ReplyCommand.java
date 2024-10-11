@@ -40,12 +40,12 @@ public class ReplyCommand implements CommandExecutor {
 
         Player target = plugin.getLastMessaged(playerSender);
         if (target == null) {
-            playerSender.sendMessage("§cНет игрока, которому можно ответить.");
+            playerSender.sendMessage(miniMessage.deserialize("<red>Нет игрока, которому можно ответить.</red>"));
             return true;
         }
 
         if (args.length < 1) {
-            playerSender.sendMessage("Использование: /r §e<сообщение>");
+            playerSender.sendMessage(miniMessage.deserialize("<red>Использование: /r <сообщение></red>"));
             return true;
         }
 

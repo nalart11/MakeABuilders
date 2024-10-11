@@ -90,7 +90,11 @@ public class TabList {
 
     private double getServerTPS() {
         double[] tps = Bukkit.getServer().getTPS();
-        return tps[0];
+        if (tps[0] > 20.0) {
+            return 20.0;
+        } else {
+            return tps[0];
+        }
     }
 
 //    private double getMSPT() {

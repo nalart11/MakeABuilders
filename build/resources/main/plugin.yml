@@ -5,7 +5,7 @@ commands:
   message:
     description: Отправить личное сообщение игроку.
     usage: /msg <игрок> <сообщение>
-    aliases: [msg]
+    aliases: [msg, tell]
   reply:
     description: Ответить на последнее сообщение.
     usage: /r <сообщение>
@@ -42,3 +42,25 @@ commands:
     description: Смаг
     usage: /shrug
     aliases: [smugshrug]
+  tableflip:
+    description: Стол падать
+    usage: /tableflip
+  unflip:
+    description: Стол перевернуться
+    usage: /unflip
+  item:
+    description: idk
+    usage: /item
+  announce:
+    description: Отправить срочное оповещение всем игрокам.
+    usage: /announce <сообщение>
+    permission: MakeABuilders.announce
+    aliases: [an, ann]
+  mute:
+    description: Замьютить человека.
+    usage: /mute <nickname> <time> [reason]
+    permission: MakeABuilders.mute
+  unmute:
+    description: Размутить человека.
+    usage: /unmute <nickname>
+    permission: MakeABuilders.unmute

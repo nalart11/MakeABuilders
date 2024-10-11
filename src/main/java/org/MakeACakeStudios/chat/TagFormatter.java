@@ -35,7 +35,7 @@ public class TagFormatter {
                     color = "<gradient:#ED00FF:#DE7EFF>";
                     break;
                 default:
-                    color = "<white>";
+                    color = "<gradient:#FFFFFF:#FFFFFF>";
             }
 
             String location = color + "<click:run_command:'/goto " + worldName + " " + x + " " + y + " " + z + "'>["

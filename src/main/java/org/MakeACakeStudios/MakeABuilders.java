@@ -36,6 +36,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private MailStorage mailStorage;
     private PlayerNameStorage playerNameStorage;
     private DynamicMotd dynamicMotd;
+    private MuteCommand muteCommand;
 
     @Override
     public void onEnable() {
@@ -47,6 +48,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         chatHandler = new ChatHandler(this);
         tabList = new TabList(this); // Инициализируем TabList
         dynamicMotd = new DynamicMotd(this);
+        muteCommand = new MuteCommand(this, playerNameStorage);
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
         getServer().getPluginManager().registerEvents(this, this);
@@ -56,14 +58,23 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("reply").setExecutor(new ReplyCommand(this));
         this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
-        this.getCommand("shrug").setExecutor(new ShrugCommand(playerNameStorage, miniMessage));
+        this.getCommand("shrug").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
+        this.getCommand("tableflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
+        this.getCommand("unflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
+        this.getCommand("announce").setExecutor(new AnnounceCommand(this));
 //        this.getCommand("enchant").setExecutor(new EnchantCommand(this));
         getCommand("mail").setExecutor(new MailCommand(this));
         getCommand("mailcheck").setExecutor(new MailCommand(this));
+        this.getCommand("mute").setExecutor(new MuteCommand(this, playerNameStorage));
+        this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("shrug").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("tableflip").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("unflip").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
+
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);

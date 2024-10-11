@@ -8,6 +8,7 @@ import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.commands.MuteCommand;
 import org.MakeACakeStudios.storage.PlayerNameStorage;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,6 +50,8 @@ public class ChatHandler implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
+        player.sendMessage(miniMessage.deserialize("<gradient:#FF3D4D:#FCBDBD>С возвращением!</gradient>"));
+
         String prefix = playerNameStorage.getPlayerPrefix(player);
         String suffix = playerNameStorage.getPlayerSuffix(player);
         List<String> joinMessages = config.getStringList("Messages.Join");
@@ -61,6 +64,8 @@ public class ChatHandler implements Listener {
 
             List<String[]> playerMessages = plugin.getMailStorage().getMessages(player.getName());
             if (!playerMessages.isEmpty()) {
+                Sound selectedSound = plugin.getPlayerSound(player);
+                player.playSound(player.getLocation(), selectedSound, 1.0F, 1.0F);
                 player.sendMessage(miniMessage.deserialize("<green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщений.</green>"));
             }
         }
@@ -103,6 +108,14 @@ public class ChatHandler implements Listener {
         String playerName = player.getDisplayName();
         String message = event.getMessage();
 
+        MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
+        if (muteCommand.isMuted(player)) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
+            player.sendMessage(miniMessage.deserialize("<red>Вы замьючены и не можете отправлять сообщения.</red>"));
+            event.setCancelled(true);
+            return;
+        }
+
         System.out.println(playerName + " → " + message);
 
         if (message.contains("@")) {
@@ -119,7 +132,7 @@ public class ChatHandler implements Listener {
                         String mentionedPlayerPrefix = playerNameStorage.getPlayerPrefix(mentionedPlayer);
                         String mentionedPlayerSuffix = playerNameStorage.getPlayerSuffix(mentionedPlayer);
 
-                        String formattedMention = "<yellow>@</yellow>" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix;
+                        String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
 
                         message = message.replace(word, formattedMention);
                     }

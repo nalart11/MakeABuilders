@@ -40,9 +40,9 @@ public class BackCommand implements CommandExecutor {
 
             if (targetLocation != null) {
                 player.teleport(targetLocation);
-                player.sendMessage("§aВы вернулись на своё " + (args.length > 0 && args[0].equalsIgnoreCase("first") ? "самое первое" : "предыдущее") + " место.");
+                player.sendMessage(miniMessage.deserialize("<green>Вы вернулись на своё " + (args.length > 0 && args[0].equalsIgnoreCase("first") ? "самое первое" : "предыдущее") + " место.</green>"));
             } else {
-                player.sendMessage("§cНет сохранённого местоположения для возврата.");
+                player.sendMessage(miniMessage.deserialize("<red>Нет сохранённого местоположения для возврата.</red>"));
             }
             return true;
         }

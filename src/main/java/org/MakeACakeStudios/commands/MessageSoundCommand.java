@@ -29,6 +29,10 @@ public class MessageSoundCommand implements CommandExecutor, TabCompleter {
         soundMap.put("cow_bell", Sound.BLOCK_NOTE_BLOCK_COW_BELL);
         soundMap.put("wolf", Sound.ENTITY_WOLF_AMBIENT);
         soundMap.put("villager", Sound.ENTITY_VILLAGER_TRADE);
+        soundMap.put("wither", Sound.ENTITY_WITHER_SPAWN);
+        soundMap.put("warden", Sound.ENTITY_WARDEN_LISTENING);
+        soundMap.put("arrow", Sound.ENTITY_ARROW_HIT_PLAYER);
+        soundMap.put("donkey", Sound.ENTITY_DONKEY_AMBIENT);
     }
 
     @Override

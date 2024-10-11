@@ -8,15 +8,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Player;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TeleportCommand implements CommandExecutor, TabCompleter {
     private final MakeABuilders plugin;
+    private final MiniMessage miniMessage;
 
     public TeleportCommand(MakeABuilders plugin) {
         this.plugin = plugin;
+        this.miniMessage = MiniMessage.miniMessage();
     }
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -32,11 +36,11 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
                     y = Integer.parseInt(args[2]);
                     z = Integer.parseInt(args[3]);
                 } catch (NumberFormatException e) {
-                    player.sendMessage("§4Координаты должны быть числами.");
+                    player.sendMessage(miniMessage.deserialize("<red>Координаты должны быть числами.</red>"));
                     return true;
                 }
             } else if (args.length != 1) {
-                player.sendMessage("Использование: /goto §d<world> §c[x] §a[y] §3[z]");
+                player.sendMessage(miniMessage.deserialize("<red>Использование: /goto <world> [x] [y] [z]</red>"));
                 return true;
             }
 
@@ -44,9 +48,9 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             if (world != null) {
                 plugin.addLocationToHistory(player, player.getLocation());
                 player.teleport(new Location(world, x, y, z));
-                player.sendMessage("§aВы были телепортированы в мир " + worldName);
+                player.sendMessage(miniMessage.deserialize("<green>Вы были телепортированы в мир " + worldName + "</green>"));
             } else {
-                player.sendMessage("§4Мир не найден.");
+                player.sendMessage(miniMessage.deserialize("<red>Мир не найден.</red>"));
                 return true;
             }
 

@@ -36,13 +36,13 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 2) {
-            sender.sendMessage("Использование: /msg §c<игрок> §e<сообщение>");
+            sender.sendMessage(miniMessage.deserialize("<red>Использование: /msg <игрок> <сообщение></red>"));
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            sender.sendMessage("§cИгрок не найден!");
+            sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден!</red>"));
             return true;
         }
 
