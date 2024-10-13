@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -15,9 +16,11 @@ public class AnnounceCommand implements CommandExecutor {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
+    private final TagFormatter tagFormatter;
     
     public AnnounceCommand(MakeABuilders plugin) {
         this.plugin = plugin;
+        this.tagFormatter = new TagFormatter();
     }
 
     @Override
@@ -27,7 +30,19 @@ public class AnnounceCommand implements CommandExecutor {
             return false;
         }
 
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
+
+            if (muteCommand.isMuted(player)) {
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
+                player.sendMessage(miniMessage.deserialize("<red>Вы замьючены и не можете отправлять сообщения.</red>"));
+                return true;
+            }
+        }
+
         String message = String.join(" ", args);
+        message = tagFormatter.format(message, (Player) sender);
 
         String senderDisplayName;
         if (sender instanceof Player) {

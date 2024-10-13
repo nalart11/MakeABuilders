@@ -12,6 +12,7 @@ public class TagFormatter {
         message = replaceEmojis(message);
         message = replaceLinks(message);
         message = replaceTextFormatting(message);
+        message = replaceBackSlashes(message);  // Добавлено для замены слешей
 
         return message;
     }
@@ -67,7 +68,6 @@ public class TagFormatter {
                 .replace(":accept:", "<green>✔</green>");
     }
 
-    // Новая функция для обработки ссылок
     private String replaceLinks(String message) {
         if (message.contains("http://") || message.contains("https://")) {
             String[] words = message.split(" ");
@@ -87,8 +87,12 @@ public class TagFormatter {
         message = message.replaceAll("\\*(.*?)\\*", "<i>$1</i>"); // *фраза*
         message = message.replaceAll("~(.*?)~", "<st>$1</st>"); // ~фраза~
         message = message.replaceAll("_(.*?)_", "<u>$1</u>"); // _фраза_
-//        message = message.replaceAll("\\|\\|(.*?)\\|\\|", "<obf>$1<obf>"); // ||фраза||
 
         return message;
+    }
+
+
+    private String replaceBackSlashes(String message) {
+        return message.replace("\\", "\\\\");
     }
 }

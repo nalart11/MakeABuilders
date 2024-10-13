@@ -27,27 +27,31 @@ public class SmugCommand implements CommandExecutor {
             String prefix = playerNameStorage.getPlayerPrefix(player);
             String suffix = playerNameStorage.getPlayerSuffix(player);
 
+            String userInput = String.join(" ", args); // Соединяем аргументы в одну строку
+
             if (command.getName().equalsIgnoreCase("shrug")) {
-                String shrugMessage = "¯\\_(ツ)_/¯";
+                String shrugMessage = "¯\\_(ツ)_/¯ " + userInput; // Добавляем аргументы к эмодзи
                 sendFormattedMessage(playerName, prefix, suffix, shrugMessage);
             }
 
             if (command.getName().equalsIgnoreCase("tableflip")) {
-                String tableFlipMessage = "<red>(╯°□°)╯︵ ┻━┻</red>";
+                String tableFlipMessage = "<red>(╯°□°)╯︵ ┻━┻</red> " + userInput;
                 sendFormattedMessage(playerName, prefix, suffix, tableFlipMessage);
             }
 
             if (command.getName().equalsIgnoreCase("unflip")) {
-                String unFlipMessage = "┬─┬ノ( º _ ºノ)";
+                String unFlipMessage = "┬─┬ノ( º _ ºノ) " + userInput;
                 sendFormattedMessage(playerName, prefix, suffix, unFlipMessage);
             }
         } else {
+            String userInput = String.join(" ", args);
+
             if (command.getName().equalsIgnoreCase("shrug")) {
-                sender.sendMessage("¯\\_(ツ)_/¯");
+                sender.sendMessage("¯\\_(ツ)_/¯ " + userInput);
             } else if (command.getName().equalsIgnoreCase("tableflip")) {
-                sender.sendMessage("(╯°□°)╯︵ ┻━┻");
+                sender.sendMessage("(╯°□°)╯︵ ┻━┻ " + userInput);
             } else if (command.getName().equalsIgnoreCase("unflip")) {
-                sender.sendMessage("┬─┬ノ( º _ ºノ)");
+                sender.sendMessage("┬─┬ノ( º _ ºノ) " + userInput);
             }
         }
         return true;

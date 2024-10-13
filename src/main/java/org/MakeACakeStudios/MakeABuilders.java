@@ -74,6 +74,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("tableflip").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("unflip").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
+        this.getCommand("unmute").setTabCompleter(new UnmuteTabCompleter());
 
 
         for (Player player : Bukkit.getOnlinePlayers()) {

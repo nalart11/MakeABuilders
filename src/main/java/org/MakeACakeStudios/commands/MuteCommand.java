@@ -1,34 +1,36 @@
 package org.MakeACakeStudios.commands;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.MakeACakeStudios.storage.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class MuteCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
-    private final Map<UUID, Long> mutedPlayers = new HashMap<>(); // Храним муты: ID игрока и время окончания мута
     private final PlayerNameStorage playerNameStorage;
     private final MiniMessage miniMessage;
+    private final NamespacedKey muteKey;
+    private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
 
     public MuteCommand(MakeABuilders plugin, PlayerNameStorage playerNameStorage) {
         this.plugin = plugin;
         this.playerNameStorage = playerNameStorage;
         this.miniMessage = MiniMessage.miniMessage();
+        // Создаем ключ для хранения данных мута
+        this.muteKey = new NamespacedKey(plugin, "mute_time");
         startMuteCheckTask(); // Запускаем проверку мута
     }
 
@@ -36,26 +38,20 @@ public class MuteCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
             sender.sendMessage(miniMessage.deserialize("<red>Используйте: /mute <ник> <время> [причина]</red>"));
-            return false;
+            return true;
         }
 
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
             sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден.</red>"));
-            return false;
+            return true;
         }
-//        if (target.equals("Nalart11_")) {
-//            sender.sendMessage(miniMessage.deserialize("<red>Вы не можете замутить этого игрока.</red>"));
-//            return false;
-//        } else {
-//            System.out.println("idk why but it's not workin'");
-//        }
 
         String timeString = args[1];
         long muteDuration = parseTimeString(timeString);
         if (muteDuration == -1) {
             sender.sendMessage(miniMessage.deserialize("<red>Неправильный формат времени. Пример: 10s, 5m, 2h, Fv (навсегда)</red>"));
-            return false;
+            return true;
         }
 
         String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "Не указано";
@@ -65,11 +61,13 @@ public class MuteCommand implements CommandExecutor {
         String prefix = playerNameStorage.getPlayerPrefix(target);
         String suffix = playerNameStorage.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
+
         if (timeString.equals("Fv")) {
             sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>"));
         } else {
             sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>"));
         }
+
         return true;
     }
 
@@ -105,7 +103,10 @@ public class MuteCommand implements CommandExecutor {
 
     private void mutePlayer(Player player, long duration, String reason) {
         long muteEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
-        mutedPlayers.put(player.getUniqueId(), muteEndTime);
+
+        // Сохраняем время окончания мута в PersistentDataContainer игрока
+        PersistentDataContainer dataContainer = player.getPersistentDataContainer();
+        dataContainer.set(muteKey, PersistentDataType.LONG, muteEndTime);
 
         String message = duration == Long.MAX_VALUE
                 ? "<red>Вы были замьючены навсегда по причине: </red><gold>" + reason + "</gold>"
@@ -116,16 +117,22 @@ public class MuteCommand implements CommandExecutor {
     }
 
     public boolean isMuted(Player player) {
-        return mutedPlayers.containsKey(player.getUniqueId()) && mutedPlayers.get(player.getUniqueId()) > System.currentTimeMillis();
+        PersistentDataContainer dataContainer = player.getPersistentDataContainer();
+        if (dataContainer.has(muteKey, PersistentDataType.LONG)) {
+            long muteEndTime = dataContainer.get(muteKey, PersistentDataType.LONG);
+            return muteEndTime > System.currentTimeMillis();
+        }
+        return false;
     }
 
     public void unmutePlayer(Player player) {
-        mutedPlayers.remove(player.getUniqueId());
+        PersistentDataContainer dataContainer = player.getPersistentDataContainer();
+        dataContainer.remove(muteKey); // Удаляем данные о мутах
     }
 
     public void checkMutedPlayers() {
-        long currentTime = System.currentTimeMillis();
-        mutedPlayers.entrySet().removeIf(entry -> entry.getValue() <= currentTime && entry.getValue() != Long.MAX_VALUE);
+        // В этом случае проверка мута в PersistentDataContainer на уровне игрока не требует явного удаления устаревших данных.
+        // Просто проверяем при каждой команде или событии.
     }
 
     private void startMuteCheckTask() {
