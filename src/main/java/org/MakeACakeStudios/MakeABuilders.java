@@ -11,6 +11,7 @@ import org.bukkit.Sound;
 import org.MakeACakeStudios.chat.ChatHandler;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +19,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private final HashMap<Player, Player> lastMessaged = new HashMap<>();
     private final HashMap<Player, Sound> playerSounds = new HashMap<>();
     private HashMap<Player, List<Location>> locationHistory = new HashMap<>();
+    private static LegacyPaperCommandManager <CommandSender> manager;
 
     private FileConfiguration config;
     private ChatHandler chatHandler;
@@ -46,7 +50,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         MiniMessage miniMessage = MiniMessage.miniMessage();
         mailStorage = new MailStorage();
         chatHandler = new ChatHandler(this);
-        tabList = new TabList(this); // Инициализируем TabList
+        tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
         muteCommand = new MuteCommand(this, playerNameStorage);
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
@@ -76,7 +80,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
         this.getCommand("unmute").setTabCompleter(new UnmuteTabCompleter());
-
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);
