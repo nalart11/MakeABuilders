@@ -122,9 +122,12 @@ public class ChatHandler implements Listener {
             String[] words = message.split(" ");
             for (String word : words) {
                 if (word.startsWith("@")) {
-                    String mentionedPlayerName = word.substring(1); // Получаем ник упомянутого игрока
-                    Player mentionedPlayer = Bukkit.getPlayer(mentionedPlayerName);
+                    String mentionedPlayerName = word.substring(1);  // Получаем часть после '@'
 
+                    // Проверяем строгое совпадение с именем игрока
+                    Player mentionedPlayer = Bukkit.getPlayerExact(mentionedPlayerName);
+
+                    // Убедимся, что игрок существует и онлайн
                     if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
                         Sound notificationSound = plugin.getPlayerSound(mentionedPlayer);
                         mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
@@ -134,6 +137,10 @@ public class ChatHandler implements Listener {
 
                         String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
 
+                        // Заменяем упоминание только если оно строго соответствует полному нику игрока
+                        message = message.replace(word, formattedMention);
+                    } else {
+                        String formattedMention = "<yellow>@" + mentionedPlayerName + "</yellow>";
                         message = message.replace(word, formattedMention);
                     }
                 }
