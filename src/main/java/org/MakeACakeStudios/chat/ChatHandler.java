@@ -95,7 +95,7 @@ public class ChatHandler implements Listener {
     static {
         groupWeights.put("iam", 5);
         groupWeights.put("javadper", 4);
-        groupWeights.put("yosya", 5);
+        groupWeights.put("yosya", 4);
         groupWeights.put("admin", 3);
         groupWeights.put("developer", 2);
         groupWeights.put("moderator", 1);

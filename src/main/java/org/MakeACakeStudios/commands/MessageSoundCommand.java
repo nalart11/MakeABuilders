@@ -1,5 +1,6 @@
 package org.MakeACakeStudios.commands;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -17,6 +18,7 @@ public class MessageSoundCommand implements CommandExecutor, TabCompleter {
 
     private final MakeABuilders plugin;
     private final Map<String, Sound> soundMap = new HashMap<>();
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public MessageSoundCommand(MakeABuilders plugin) {
         this.plugin = plugin;
@@ -45,20 +47,63 @@ public class MessageSoundCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length != 1) {
-            player.sendMessage("Использование: /msgs <звук>");
+            Sound selectedSound = plugin.getPlayerSound(player);
+            String soundName;
+            switch (selectedSound) {
+                case ENTITY_CAT_AMBIENT:
+                    soundName = "cat";
+                    break;
+                case BLOCK_ANVIL_LAND:
+                    soundName = "anvil";
+                    break;
+                case BLOCK_NOTE_BLOCK_BELL:
+                    soundName = "bell";
+                    break;
+                case BLOCK_NOTE_BLOCK_CHIME:
+                    soundName = "chime";
+                    break;
+                case BLOCK_NOTE_BLOCK_XYLOPHONE:
+                    soundName = "xylophone";
+                    break;
+                case BLOCK_NOTE_BLOCK_COW_BELL:
+                    soundName = "cow_bell";
+                    break;
+                case ENTITY_WOLF_AMBIENT:
+                    soundName = "wolf";
+                    break;
+                case ENTITY_VILLAGER_TRADE:
+                    soundName = "villager";
+                    break;
+                case ENTITY_WITHER_SPAWN:
+                    soundName = "wither";
+                    break;
+                case ENTITY_WARDEN_LISTENING:
+                    soundName = "warden";
+                    break;
+                case ENTITY_ARROW_HIT_PLAYER:
+                    soundName = "arrow";
+                    break;
+                case ENTITY_DONKEY_AMBIENT:
+                    soundName = "donkey";
+                    break;
+                default:
+                    soundName = "bell";
+                    break;
+            }
+            player.sendMessage(miniMessage.deserialize("<yellow>Выбранный звук: </yellow><green>" + soundName + "</green>"));
             return true;
         }
 
         String soundKey = args[0].toLowerCase();
 
         if (!soundMap.containsKey(soundKey)) {
-            player.sendMessage("Недопустимый звук. Введите один из доступных звуков.");
+            player.sendMessage(miniMessage.deserialize("<red>Недопустимый звук. Введите один из доступных звуков.</red>"));
             return true;
         }
 
         Sound selectedSound = soundMap.get(soundKey);
         plugin.setPlayerSound(player, selectedSound);
-        player.sendMessage("Звук уведомлений изменён на: " + soundKey);
+        player.sendMessage(miniMessage.deserialize("<yellow>Звук уведомлений изменён на:</yellow><green> " + soundKey + "</green>"));
 
         return true;
     }

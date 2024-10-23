@@ -131,7 +131,6 @@ public class PlayerNameStorage {
         return "";
     }
 
-
     public void setPlayerPrefix(String playerName, String prefix) {
         config.set("players." + playerName + ".prefix", prefix);
         saveConfig();

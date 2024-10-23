@@ -19,8 +19,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.incendo.cloud.execution.ExecutionCoordinator;
-import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private final HashMap<Player, Player> lastMessaged = new HashMap<>();
     private final HashMap<Player, Sound> playerSounds = new HashMap<>();
     private HashMap<Player, List<Location>> locationHistory = new HashMap<>();
-    private static LegacyPaperCommandManager <CommandSender> manager;
 
     private FileConfiguration config;
     private ChatHandler chatHandler;

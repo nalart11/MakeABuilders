@@ -43,14 +43,12 @@ public class UnmuteCommand implements CommandExecutor {
         String suffix = playerNameStorage.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
-        // Проверяем, есть ли у игрока мут
         MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
         if (!muteCommand.isMuted(target)) {
             sender.sendMessage(miniMessage.deserialize("<red>✖ Игрок " + formattedName + " не замьючен.</red>"));
             return true;
         }
 
-        // Убираем мут
         muteCommand.unmutePlayer(target);
         sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был размьючен.</green>"));
         target.playSound(target.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);

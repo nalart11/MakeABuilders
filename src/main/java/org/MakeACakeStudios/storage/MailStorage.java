@@ -7,7 +7,7 @@ public class MailStorage {
 
     public void addMessage(String recipient, String senderPrefix, String sender, String senderSuffix , String message) {
         messages.putIfAbsent(recipient, new ArrayList<>());
-        messages.get(recipient).add(new String[]{senderPrefix, sender, senderSuffix, message}); // Сохраняем префикс отправителя, имя отправителя и сообщение
+        messages.get(recipient).add(new String[]{senderPrefix, sender, senderSuffix, message});
     }
 
     public List<String[]> getMessages(String recipient) {

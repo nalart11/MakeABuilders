@@ -12,7 +12,7 @@ public class TagFormatter {
         message = replaceEmojis(message);
         message = replaceLinks(message);
         message = replaceTextFormatting(message);
-        message = replaceBackSlashes(message);  // Добавлено для замены слешей
+        message = replaceBackSlashes(message);
 
         return message;
     }

@@ -48,14 +48,11 @@ commands:
   unflip:
     description: Стол перевернуться
     usage: /unflip
-  item:
-    description: idk
-    usage: /item
   announce:
     description: Отправить срочное оповещение всем игрокам.
     usage: /announce <сообщение>
     permission: MakeABuilders.announce
-    aliases: [an, ann]
+    aliases: [an]
   mute:
     description: Замьютить человека.
     usage: /mute <nickname> <time> [reason]

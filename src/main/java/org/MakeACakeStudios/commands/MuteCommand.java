@@ -2,7 +2,6 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.chat.TagFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -25,15 +24,14 @@ public class MuteCommand implements CommandExecutor {
     private final MiniMessage miniMessage;
     private final NamespacedKey muteKey;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
-    private final TagFormatter tagFormatter;
 
     public MuteCommand(MakeABuilders plugin, PlayerNameStorage playerNameStorage) {
         this.plugin = plugin;
         this.playerNameStorage = playerNameStorage;
         this.miniMessage = MiniMessage.miniMessage();
+        // Создаем ключ для хранения данных мута
         this.muteKey = new NamespacedKey(plugin, "mute_time");
-        this.tagFormatter = new TagFormatter();
-        startMuteCheckTask();
+        startMuteCheckTask(); // Запускаем проверку мута
     }
 
     @Override
@@ -65,13 +63,9 @@ public class MuteCommand implements CommandExecutor {
         String formattedName = prefix + target.getName() + suffix;
 
         if (timeString.equals("Fv")) {
-            String message = "<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>";
-            message = tagFormatter.format(message, (Player) sender);
-            sender.sendMessage(miniMessage.deserialize(message));
+            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>"));
         } else {
-            String message = "<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>";
-            message = tagFormatter.format(message, (Player) target);
-            target.sendMessage(miniMessage.deserialize(message));
+            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>"));
         }
 
         return true;
@@ -100,16 +94,17 @@ public class MuteCommand implements CommandExecutor {
                 case 'y':
                     return TimeUnit.DAYS.toMillis(time * 365);
                 default:
-                    return -1;
+                    return -1; // неправильный формат
             }
         } catch (NumberFormatException e) {
-            return -1;
+            return -1; // ошибка в формате
         }
     }
 
     private void mutePlayer(Player player, long duration, String reason) {
         long muteEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
 
+        // Сохраняем время окончания мута в PersistentDataContainer игрока
         PersistentDataContainer dataContainer = player.getPersistentDataContainer();
         dataContainer.set(muteKey, PersistentDataType.LONG, muteEndTime);
 
@@ -118,7 +113,6 @@ public class MuteCommand implements CommandExecutor {
                 : "<red>Вы были замьючены на " + (duration / 1000) + " секунд по причине:</red><gold> " + reason + "</gold>";
 
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-        message = tagFormatter.format(message, player);
         player.sendMessage(miniMessage.deserialize(message));
     }
 
@@ -133,13 +127,15 @@ public class MuteCommand implements CommandExecutor {
 
     public void unmutePlayer(Player player) {
         PersistentDataContainer dataContainer = player.getPersistentDataContainer();
-        dataContainer.remove(muteKey);
+        dataContainer.remove(muteKey); // Удаляем данные о мутах
     }
 
     public void checkMutedPlayers() {
+        // В этом случае проверка мута в PersistentDataContainer на уровне игрока не требует явного удаления устаревших данных.
+        // Просто проверяем при каждой команде или событии.
     }
 
     private void startMuteCheckTask() {
-        Bukkit.getScheduler().runTaskTimer(plugin, this::checkMutedPlayers, 0, 1200);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkMutedPlayers, 0, 1200); // Проверка каждые 60 секунд
     }
 }
