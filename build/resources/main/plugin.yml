@@ -1,5 +1,5 @@
 name: MakeABuilders
-version: b0.2
+version: b0.3
 main: org.MakeACakeStudios.MakeABuilders
 commands:
   message:
@@ -38,6 +38,10 @@ commands:
     description: Проверить непрочитанные сообщения.
     usage: /mailcheck
     aliases: [mc, mcheck]
+  mailread:
+    description: Проверить непрочитанные сообщения.
+    usage: /mailread <индекс>
+    aliases: [ mr ]
   shrug:
     description: Смаг
     usage: /shrug

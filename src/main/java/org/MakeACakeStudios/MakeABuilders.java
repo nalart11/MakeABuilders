@@ -21,6 +21,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,20 +42,30 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
 
+    private Connection connection;  // Для подключения к базе данных
+
+    public Connection getConnection() {
+        return connection;  // Add this method
+    }
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
         config = getConfig();
+        connectToDatabase();  // Подключение к базе данных
+
         playerNameStorage = new PlayerNameStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
-        mailStorage = new MailStorage();
+        mailStorage = new MailStorage(connection);  // Передаем подключение в MailStorage
         chatHandler = new ChatHandler(this);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
         muteCommand = new MuteCommand(this, playerNameStorage);
+
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
         getServer().getPluginManager().registerEvents(this, this);
+
         this.getCommand("goto").setExecutor(new TeleportCommand(this));
         this.getCommand("back").setExecutor(new BackCommand(this));
         this.getCommand("message").setExecutor(new MessageCommand(this));
@@ -63,9 +76,9 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("tableflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
         this.getCommand("unflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
         this.getCommand("announce").setExecutor(new AnnounceCommand(this));
-//        this.getCommand("enchant").setExecutor(new EnchantCommand(this));
-        getCommand("mail").setExecutor(new MailCommand(this));
-        getCommand("mailcheck").setExecutor(new MailCommand(this));
+        this.getCommand("mail").setExecutor(new MailCommand(this));
+        this.getCommand("mailcheck").setExecutor(new MailCommand(this));
+        this.getCommand("mailread").setExecutor(new MailCommand(this));
         this.getCommand("mute").setExecutor(new MuteCommand(this, playerNameStorage));
         this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
 
@@ -88,6 +101,41 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     @Override
     public void onDisable() {
         getLogger().info("MakeABuilders плагин деактивирован.");
+        disconnectFromDatabase();  // Отключение от базы данных
+    }
+
+    // Подключение к базе данных SQLite
+    private void connectToDatabase() {
+        try {
+            String url = "jdbc:sqlite:" + getDataFolder().getAbsolutePath() + "/mail.db";
+            connection = DriverManager.getConnection(url);
+            getLogger().info("Подключение к базе данных SQLite установлено.");
+
+            // Создание таблицы для писем, если её нет
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "recipient TEXT, " +
+                    "senderPrefix TEXT, " +
+                    "sender TEXT, " +
+                    "senderSuffix TEXT, " +
+                    "message TEXT)";
+            connection.createStatement().execute(createTableSQL);
+            getLogger().info("Таблица для хранения сообщений создана или уже существует.");
+        } catch (SQLException e) {
+            getLogger().severe("Ошибка при подключении к базе данных: " + e.getMessage());
+        }
+    }
+
+    // Отключение от базы данных
+    private void disconnectFromDatabase() {
+        if (connection != null) {
+            try {
+                connection.close();
+                getLogger().info("Подключение к базе данных закрыто.");
+            } catch (SQLException e) {
+                getLogger().severe("Ошибка при закрытии подключения к базе данных: " + e.getMessage());
+            }
+        }
     }
 
     @EventHandler

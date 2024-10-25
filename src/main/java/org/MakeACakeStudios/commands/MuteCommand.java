@@ -29,9 +29,7 @@ public class MuteCommand implements CommandExecutor {
         this.plugin = plugin;
         this.playerNameStorage = playerNameStorage;
         this.miniMessage = MiniMessage.miniMessage();
-        // Создаем ключ для хранения данных мута
         this.muteKey = new NamespacedKey(plugin, "mute_time");
-        startMuteCheckTask(); // Запускаем проверку мута
     }
 
     @Override

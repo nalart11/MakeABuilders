@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.MakeACakeStudios'
-version = 'b0.2'
+version = 'b0.3'
 
 repositories {
     mavenCentral()
@@ -25,6 +25,7 @@ dependencies {
     implementation 'net.kyori:adventure-platform-bukkit:4.1.2'
     implementation 'net.kyori:adventure-text-minimessage:4.11.0'
     implementation 'org.incendo:cloud-paper:2.0.0-beta.10'
+    implementation 'org.xerial:sqlite-jdbc:3.40.0.0'
 }
 
 
