@@ -46,15 +46,4 @@ public class MailStorage {
         }
         return messages;
     }
-
-    // Удаление всех сообщений для конкретного игрока
-    public void clearMessages(String recipient) {
-        String sql = "DELETE FROM mail_messages WHERE recipient = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, recipient);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 }
