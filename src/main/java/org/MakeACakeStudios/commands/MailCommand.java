@@ -94,12 +94,41 @@ public class MailCommand implements CommandExecutor {
             }
             return false;
         }
+
+        if (command.getName().equalsIgnoreCase("maildelete")) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+
+                if (args.length != 1) {
+                    player.sendMessage(miniMessage.deserialize("<red>Укажите ID сообщения для удаления: /maildelete <id></red>"));
+                    return true;
+                }
+
+                try {
+                    long messageId = Long.parseLong(args[0]);
+                    boolean success = mailStorage.deleteMessageById(messageId);
+
+                    if (success) {
+                        player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение удалено.</green>"));
+                    } else {
+                        player.sendMessage(miniMessage.deserialize("<red>Сообщение с таким ID не найдено.</red>"));
+                    }
+                } catch (NumberFormatException e) {
+                    player.sendMessage(miniMessage.deserialize("<red>Неправильный формат ID сообщения.</red>"));
+                }
+                return true;
+            } else {
+                sender.sendMessage("Эта команда доступна только игрокам.");
+                return true;
+            }
+        }
+
         return false;
     }
 
     private void sendFormattedMessageWithIndices(Player player, List<String[]> messages, int currentIndex) {
         String[] selectedMessage = messages.get(currentIndex);
-        sendFormattedMessage(player, selectedMessage);
+        sendFormattedMessage(player, selectedMessage, currentIndex);
 
         int messageCount = messages.size();
         if (messageCount > 1) { // Панель с индексами выводится только если сообщений больше одного
@@ -109,62 +138,63 @@ public class MailCommand implements CommandExecutor {
                 // Для первых двух сообщений показываем [1] [2] [3] ... [x]
                 for (int i = 1; i <= Math.min(3, messageCount); i++) {
                     if (i - 1 == currentIndex) {
-                        indices.append("<red>[")
+                        indices.append("<color:#fc8803>[")
                                 .append(i)
-                                .append("]</red> ");
+                                .append("]</color> ");
                     } else {
                         indices.append("<click:run_command:/mailread ")
                                 .append(i)
-                                .append("><green>[")
+                                .append("><yellow>[")
                                 .append(i)
-                                .append("]</green></click> ");
+                                .append("]</yellow></click> ");
                     }
                 }
                 if (messageCount > 3) {
                     indices.append("... ");
                     indices.append("<click:run_command:/mailread ")
                             .append(messageCount)
-                            .append("><green>[")
+                            .append("><yellow>[")
                             .append(messageCount)
-                            .append("]</green></click> ");
+                            .append("]</yellow></click> ");
                 }
-            } else if (currentIndex < messageCount - 1) {
-                // Для сообщений от 3-го до предпоследнего показываем [currentIndex - 1] [currentIndex] [currentIndex + 1] ... [x]
+            } else if (currentIndex < messageCount - 2) {
+                // Для сообщений от 3-го до предпоследнего показываем [1] ... [currentIndex] [currentIndex+1] [currentIndex+2] ... [x]
+                indices.append("<click:run_command:/mailread 1><yellow>[1]</yellow></click> ");
+                indices.append("... ");
                 indices.append("<click:run_command:/mailread ")
                         .append(currentIndex)
-                        .append("><green>[")
+                        .append("><yellow>[")
                         .append(currentIndex)
-                        .append("]</green></click> ");
-                indices.append("<red>[")
+                        .append("]</yellow></click> ");
+                indices.append("<color:#fc8803>[")
                         .append(currentIndex + 1)
-                        .append("]</red> ");
+                        .append("]</color> ");
                 indices.append("<click:run_command:/mailread ")
                         .append(currentIndex + 2)
-                        .append("><green>[")
+                        .append("><yellow>[")
                         .append(currentIndex + 2)
-                        .append("]</green></click> ");
-                if (currentIndex + 1 < messageCount - 1) {
-                    // Добавляем многоточие и последний индекс, если сообщений больше чем [currentIndex + 1]
-                    indices.append("... ");
-                    indices.append("<click:run_command:/mailread ")
-                            .append(messageCount)
-                            .append("><green>[")
-                            .append(messageCount)
-                            .append("]</green></click> ");
-                }
+                        .append("]</yellow></click> ");
+                indices.append("... ");
+                indices.append("<click:run_command:/mailread ")
+                        .append(messageCount)
+                        .append("><yellow>[")
+                        .append(messageCount)
+                        .append("]</yellow></click> ");
             } else {
-                // Для последнего сообщения показываем [x-2] [x-1] [x]
+                // Для последнего и предпоследнего сообщения показываем [1] ... [x-2] [x-1] [x]
+                indices.append("<click:run_command:/mailread 1><yellow>[1]</yellow></click> ");
+                indices.append("... ");
                 for (int i = messageCount - 2; i <= messageCount; i++) {
                     if (i == currentIndex + 1) {
-                        indices.append("<red>[")
+                        indices.append("<color:#fc8803>[")
                                 .append(i)
-                                .append("]</red> ");
+                                .append("]</color> ");
                     } else {
                         indices.append("<click:run_command:/mailread ")
                                 .append(i)
-                                .append("><green>[")
+                                .append("><yellow>[")
                                 .append(i)
-                                .append("]</green></click> ");
+                                .append("]</yellow></click> ");
                     }
                 }
             }
@@ -172,11 +202,20 @@ public class MailCommand implements CommandExecutor {
         }
     }
 
-    // Метод для форматирования сообщения
-    private void sendFormattedMessage(Player player, String[] messageData) {
+    // Метод для форматирования сообщения с кнопками [✔] и [✖]
+    private void sendFormattedMessage(Player player, String[] messageData, int currentIndex) {
+        String messageId = messageData[0];
+        String senderPrefix = messageData[1];
+        String sender = messageData[2];
+        String senderSuffix = messageData[3];
+        String message = messageData[4];
+
+        int nextIndex = currentIndex + 2; // Индекс для следующего сообщения (команда /mailread ожидает 1-based index)
         String formattedMessage = "<gray>--------------------------</gray>\n" +
-                "<green>Отправитель:</green> " + messageData[0] + messageData[1] + messageData[2] + "\n" +
-                "<green>Сообщение:</green> " + messageData[3] + "\n" +
+                "<green>Отправитель:</green> " + senderPrefix + sender + senderSuffix + "\n" +
+                "<green>Сообщение:</green> " + message + "\n" +
+                "<click:run_command:/mailread " + nextIndex + "><green>[✔]</green></click>  " +
+                "<click:run_command:/maildelete " + messageId + "><red>[✖]</red></click>\n" +
                 "<gray>--------------------------</gray>";
         player.sendMessage(miniMessage.deserialize(formattedMessage));
     }

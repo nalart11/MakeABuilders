@@ -42,6 +42,14 @@ commands:
     description: Проверить непрочитанные сообщения.
     usage: /mailread <индекс>
     aliases: [ mr ]
+  maildelete:
+    description: Удалить сообщение.
+    usage: /maildelete <индекс>
+    aliases: [ md ]
+  mkver:
+    description: Версия плагина.
+    usage: /version
+    aliases: [ mkbver, pluginver, pver ]
   shrug:
     description: Смаг
     usage: /shrug
