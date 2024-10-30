@@ -76,3 +76,6 @@ commands:
     description: Удалить сообщение в чате.
     usage: /delete id
     permission: MakeABuilders.delete
+  list:
+    description: Список игроков онлайн.
+    usage: /list
