@@ -14,7 +14,7 @@ public class VersionCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             player.sendMessage(miniMessage.deserialize("<gray>----------------</gray>\n\n" +
-                    "<gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient> <yellow>plugin</yellow>\n\n" +
+                    "<click:open_url:'https://github.com/nalart11/MakeABuilders/'><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></click> <yellow>plugin</yellow>\n\n" +
                     "<yellow>Version: </yellow> <green>beta 0.3</green>\n" +
                     "<yellow>Code name:</yellow> <green>Matcha</green>\n\n\n" +
                     "<gray>© 2024 MakeACake Studios Ltd.</gray>\n" +

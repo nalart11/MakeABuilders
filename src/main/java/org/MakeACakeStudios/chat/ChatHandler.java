@@ -102,56 +102,65 @@ public class ChatHandler implements Listener {
         groupWeights.put("sponsor", 0);
     }
 
+    private final Map<Integer, String> chatMessages = new HashMap<>();
+    private final Map<Integer, Player> messageOwners = new HashMap<>();
+    private int messageIdCounter = 0;
+
+    public void deleteMessage(int messageId) {
+        if (chatMessages.containsKey(messageId)) {
+            // Логируем удаление сообщения
+            plugin.getLogger().info("Deleting message with ID: " + messageId);
+
+            // Заменяем сообщение текстом "<сообщение удалено>"
+            chatMessages.put(messageId, "<gray><i><сообщение удалено></i></gray>");
+            reloadChat();
+        } else {
+            plugin.getLogger().info("Message with ID " + messageId + " does not exist.");
+        }
+    }
+
+    private void clearChat() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            for (int i = 0; i < 100; i++) {
+                player.sendMessage("");
+            }
+        }
+    }
+
+    private void reloadChat() {
+        clearChat(); // Очистка чата перед обновлением
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendMessage(miniMessage.deserialize("<gray>Чат обновлен</gray>"));
+            chatMessages.forEach((id, message) -> {
+                Component parsedMessage = miniMessage.deserialize(message);
+                player.sendMessage(parsedMessage);
+            });
+        }
+    }
+
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String playerName = player.getDisplayName();
         String message = event.getMessage();
 
-        MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
-        if (muteCommand.isMuted(player)) {
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
-            player.sendMessage(miniMessage.deserialize("<red>Вы замьючены и не можете отправлять сообщения.</red>"));
-            event.setCancelled(true);
-            return;
-        }
-
-        System.out.println(playerName + " → " + message);
-
-        if (message.contains("@")) {
-            String[] words = message.split(" ");
-            for (String word : words) {
-                if (word.startsWith("@")) {
-                    String mentionedPlayerName = word.substring(1);
-
-                    Player mentionedPlayer = Bukkit.getPlayerExact(mentionedPlayerName);
-
-                    if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
-                        Sound notificationSound = plugin.getPlayerSound(mentionedPlayer);
-                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
-
-                        String mentionedPlayerPrefix = playerNameStorage.getPlayerPrefix(mentionedPlayer);
-                        String mentionedPlayerSuffix = playerNameStorage.getPlayerSuffix(mentionedPlayer);
-
-                        String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
-
-                        message = message.replace(word, formattedMention);
-                    } else {
-                        String formattedMention = "<yellow>@" + mentionedPlayerName + "</yellow>";
-                        message = message.replace(word, formattedMention);
-                    }
-                }
-            }
-        }
-
+        // Генерация уникального идентификатора сообщения
+        int messageId = messageIdCounter++;
         String formattedMessage = tagFormatter.format(message, player);
 
+        // Добавляем кнопку удаления с `id` и показываем `id` в сообщении
         String prefix = playerNameStorage.getPlayerPrefix(player);
         String suffix = playerNameStorage.getPlayerSuffix(player);
+        String deleteButton = "<click:run_command:/delete " + messageId + "><red>[✖]</red></click> ";
+        String finalMessage = "<gray>[ID:" + messageId + "]</gray> " + deleteButton + prefix + playerName + suffix + " > " + formattedMessage;
 
-        String finalMessage = prefix + playerName + suffix + " > " + formattedMessage;
+        // Сохраняем сообщение с `id` в HashMap
+        chatMessages.put(messageId, finalMessage);
+        messageOwners.put(messageId, player);
+
+        // Отправка сообщения всем игрокам
         Component parsedMessage = miniMessage.deserialize(finalMessage);
-
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.sendMessage(parsedMessage);
         }

@@ -46,10 +46,9 @@ commands:
     description: Удалить сообщение.
     usage: /maildelete <индекс>
     aliases: [ md ]
-  mkver:
+  info:
     description: Версия плагина.
-    usage: /version
-    aliases: [ mkbver, pluginver, pver ]
+    usage: /info
   shrug:
     description: Смаг
     usage: /shrug
@@ -73,3 +72,7 @@ commands:
     description: Размутить человека.
     usage: /unmute <nickname>
     permission: MakeABuilders.unmute
+  delete:
+    description: Удалить сообщение в чате.
+    usage: /delete id
+    permission: MakeABuilders.delete

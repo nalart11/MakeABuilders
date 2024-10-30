@@ -82,7 +82,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("maildelete").setExecutor(new MailCommand(this));
         this.getCommand("mute").setExecutor(new MuteCommand(this, playerNameStorage));
         this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
-        this.getCommand("mkver").setExecutor(new VersionCommand());
+        this.getCommand("info").setExecutor(new VersionCommand());
+        this.getCommand("delete").setExecutor(new DeleteCommand(chatHandler));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
@@ -113,7 +114,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
             connection = DriverManager.getConnection(url);
             getLogger().info("Подключение к базе данных SQLite установлено.");
 
-            // Создание таблицы для писем, если её нет
             String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "recipient TEXT, " +
