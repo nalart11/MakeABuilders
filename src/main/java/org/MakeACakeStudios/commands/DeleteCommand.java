@@ -17,7 +17,7 @@ public class DeleteCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("Usage: /deleteMessage <id>");
+            sender.sendMessage("Usage: /delete <id>");
             return false;
         }
 

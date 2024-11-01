@@ -42,10 +42,6 @@ commands:
     description: Проверить непрочитанные сообщения.
     usage: /mailread <индекс>
     aliases: [ mr ]
-  maildelete:
-    description: Удалить сообщение.
-    usage: /maildelete <индекс>
-    aliases: [ md ]
   info:
     description: Версия плагина.
     usage: /info

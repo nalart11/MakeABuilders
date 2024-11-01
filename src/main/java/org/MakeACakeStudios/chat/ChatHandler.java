@@ -131,7 +131,6 @@ public class ChatHandler implements Listener {
         clearChat(); // Очистка чата перед обновлением
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(miniMessage.deserialize("<gray>Чат обновлен</gray>"));
             chatMessages.forEach((id, message) -> {
                 Component parsedMessage = miniMessage.deserialize(message);
                 player.sendMessage(parsedMessage);
@@ -144,6 +143,42 @@ public class ChatHandler implements Listener {
         Player player = event.getPlayer();
         String playerName = player.getDisplayName();
         String message = event.getMessage();
+
+        MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
+        if (muteCommand.isMuted(player)) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
+            player.sendMessage(miniMessage.deserialize("<red>Вы замьючены и не можете отправлять сообщения.</red>"));
+            event.setCancelled(true);
+            return;
+        }
+
+        System.out.println(playerName + " → " + message);
+
+        if (message.contains("@")) {
+            String[] words = message.split(" ");
+            for (String word : words) {
+                if (word.startsWith("@")) {
+                    String mentionedPlayerName = word.substring(1);
+
+                    Player mentionedPlayer = Bukkit.getPlayerExact(mentionedPlayerName);
+
+                    if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
+                        Sound notificationSound = plugin.getPlayerSound(mentionedPlayer);
+                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
+
+                        String mentionedPlayerPrefix = playerNameStorage.getPlayerPrefix(mentionedPlayer);
+                        String mentionedPlayerSuffix = playerNameStorage.getPlayerSuffix(mentionedPlayer);
+
+                        String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
+
+                        message = message.replace(word, formattedMention);
+                    } else {
+                        String formattedMention = "<yellow>@" + mentionedPlayerName + "</yellow>";
+                        message = message.replace(word, formattedMention);
+                    }
+                }
+            }
+        }
 
         // Генерация уникального идентификатора сообщения
         int messageId = messageIdCounter++;

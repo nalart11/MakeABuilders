@@ -79,7 +79,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mail").setExecutor(new MailCommand(this));
         this.getCommand("mailcheck").setExecutor(new MailCommand(this));
         this.getCommand("mailread").setExecutor(new MailCommand(this));
-        this.getCommand("maildelete").setExecutor(new MailCommand(this));
         this.getCommand("mute").setExecutor(new MuteCommand(this, playerNameStorage));
         this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
         this.getCommand("info").setExecutor(new VersionCommand());
@@ -121,7 +120,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                     "senderPrefix TEXT, " +
                     "sender TEXT, " +
                     "senderSuffix TEXT, " +
-                    "message TEXT)";
+                    "message TEXT, " +
+                    "is_read BOOLEAN DEFAULT 0)";
             connection.createStatement().execute(createTableSQL);
             getLogger().info("Таблица для хранения сообщений создана или уже существует.");
         } catch (SQLException e) {
@@ -151,6 +151,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         savePlayerSound(player);
+        boolean deleted = mailStorage.deleteReadMessages(player.getName());
+        if (deleted) {
+            getLogger().info("Прочитанные сообщения для игрока " + player.getName() + " удалены.");
+        }
     }
 
     public MailStorage getMailStorage() {

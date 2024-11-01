@@ -55,11 +55,15 @@ public class MailCommand implements CommandExecutor {
                 List<String[]> messages = mailStorage.getMessages(player.getName());
 
                 if (messages.isEmpty()) {
-                    player.sendMessage("У вас нет непрочитанных сообщений.");
+                    player.sendMessage("У вас нет сообщений.");
                 } else {
-                    player.sendMessage(miniMessage.deserialize("<yellow>Ваши непрочитанные сообщения:</yellow>"));
-                    // Отправляем первое сообщение
+                    player.sendMessage(miniMessage.deserialize("<yellow>Ваши сообщения:</yellow>"));
+
                     sendFormattedMessageWithIndices(player, messages, 0);
+
+                    String[] firstMessage = messages.get(0);
+                    long messageId = Long.parseLong(firstMessage[0]);
+                    mailStorage.markMessageAsRead(messageId);
                 }
                 return true;
             } else {
@@ -82,7 +86,11 @@ public class MailCommand implements CommandExecutor {
                     List<String[]> messages = mailStorage.getMessages(player.getName());
 
                     if (messageIndex >= 0 && messageIndex < messages.size()) {
-                        // Отображаем выбранное сообщение и обновляем индексы
+                        String[] selectedMessage = messages.get(messageIndex);
+                        long messageId = Long.parseLong(selectedMessage[0]);
+
+                        mailStorage.markMessageAsRead(messageId);
+
                         sendFormattedMessageWithIndices(player, messages, messageIndex);
                     } else {
                         player.sendMessage(miniMessage.deserialize("<red>Сообщение с таким номером не найдено.</red>"));
@@ -90,35 +98,6 @@ public class MailCommand implements CommandExecutor {
                 } catch (NumberFormatException e) {
                     player.sendMessage(miniMessage.deserialize("<red>Неправильный формат номера сообщения.</red>"));
                 }
-                return true;
-            }
-            return false;
-        }
-
-        if (command.getName().equalsIgnoreCase("maildelete")) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-
-                if (args.length != 1) {
-                    player.sendMessage(miniMessage.deserialize("<red>Укажите ID сообщения для удаления: /maildelete <id></red>"));
-                    return true;
-                }
-
-                try {
-                    long messageId = Long.parseLong(args[0]);
-                    boolean success = mailStorage.deleteMessageById(messageId);
-
-                    if (success) {
-                        player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение удалено.</green>"));
-                    } else {
-                        player.sendMessage(miniMessage.deserialize("<red>Сообщение с таким ID не найдено.</red>"));
-                    }
-                } catch (NumberFormatException e) {
-                    player.sendMessage(miniMessage.deserialize("<red>Неправильный формат ID сообщения.</red>"));
-                }
-                return true;
-            } else {
-                sender.sendMessage("Эта команда доступна только игрокам.");
                 return true;
             }
         }
@@ -202,20 +181,17 @@ public class MailCommand implements CommandExecutor {
         }
     }
 
-    // Метод для форматирования сообщения с кнопками [✔] и [✖]
     private void sendFormattedMessage(Player player, String[] messageData, int currentIndex) {
-        String messageId = messageData[0];
         String senderPrefix = messageData[1];
         String sender = messageData[2];
         String senderSuffix = messageData[3];
         String message = messageData[4];
+        String status = messageData[5].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<green>[Непрочитано]</green>";
 
-        int nextIndex = currentIndex + 2; // Индекс для следующего сообщения (команда /mailread ожидает 1-based index)
         String formattedMessage = "<gray>--------------------------</gray>\n" +
                 "<green>Отправитель:</green> " + senderPrefix + sender + senderSuffix + "\n" +
                 "<green>Сообщение:</green> " + message + "\n" +
-                "<click:run_command:/mailread " + nextIndex + "><green>[✔]</green></click>  " +
-                "<click:run_command:/maildelete " + messageId + "><red>[✖]</red></click>\n" +
+                status + "\n" +
                 "<gray>--------------------------</gray>";
         player.sendMessage(miniMessage.deserialize(formattedMessage));
     }
