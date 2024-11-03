@@ -21,10 +21,10 @@ public class VersionCommand implements CommandExecutor {
                     "<gray>----------------</gray>"
                     )
             );
-            return true; // Успех
+            return true;
         } else {
             sender.sendMessage("Эта команда доступна только игрокам.");
-            return true; // Команда была обработана, но не выполнена
+            return true;
         }
     }
 }

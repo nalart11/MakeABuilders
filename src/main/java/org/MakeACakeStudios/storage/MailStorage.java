@@ -6,12 +6,72 @@ import java.util.List;
 
 public class MailStorage {
 
-    private final Connection connection;
+    private Connection connection;
+    private final String dbPath;
 
-    public MailStorage(Connection connection) {
-        this.connection = connection;
+    public MailStorage(String dbPath) {
+        this.dbPath = dbPath;
+        connectToDatabase();
+        createMailTable();
+        createTodoTable();
     }
 
+    // Метод для подключения к базе данных
+    private void connectToDatabase() {
+        try {
+            String url = "jdbc:sqlite:" + dbPath + "/mail.db";
+            connection = DriverManager.getConnection(url);
+            System.out.println("Подключение к базе данных SQLite установлено.");
+        } catch (SQLException e) {
+            System.err.println("Ошибка при подключении к базе данных: " + e.getMessage());
+        }
+    }
+
+    // Метод для отключения от базы данных
+    public void disconnectFromDatabase() {
+        if (connection != null) {
+            try {
+                connection.close();
+                System.out.println("Подключение к базе данных закрыто.");
+            } catch (SQLException e) {
+                System.err.println("Ошибка при закрытии подключения к базе данных: " + e.getMessage());
+            }
+        }
+    }
+
+    // Создание таблицы сообщений
+    private void createMailTable() {
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "recipient TEXT, " +
+                "senderPrefix TEXT, " +
+                "sender TEXT, " +
+                "senderSuffix TEXT, " +
+                "message TEXT, " +
+                "is_read BOOLEAN DEFAULT 0)";
+        try {
+            connection.createStatement().execute(createTableSQL);
+            System.out.println("Таблица для хранения сообщений создана или уже существует.");
+        } catch (SQLException e) {
+            System.err.println("Ошибка при создании таблицы сообщений: " + e.getMessage());
+        }
+    }
+
+    // Создание таблицы задач
+    private void createTodoTable() {
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS todo_tasks (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "title TEXT NOT NULL, " +
+                "description TEXT)";
+        try {
+            connection.createStatement().execute(createTableSQL);
+            System.out.println("Таблица задач создана или уже существует.");
+        } catch (SQLException e) {
+            System.err.println("Ошибка при создании таблицы задач: " + e.getMessage());
+        }
+    }
+
+    // Проверка подключения
     public boolean isConnected() {
         try {
             return connection != null && !connection.isClosed();
@@ -19,6 +79,11 @@ public class MailStorage {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // Метод получения соединения
+    public Connection getConnection() {
+        return connection;
     }
 
     // Добавление нового сообщения с автоматическим ID
@@ -42,19 +107,6 @@ public class MailStorage {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    // Удаление сообщения по ID
-    public boolean deleteMessageById(long messageId) {
-        String sql = "DELETE FROM mail_messages WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setLong(1, messageId);
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public boolean deleteReadMessages(String recipient) {

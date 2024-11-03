@@ -22,7 +22,7 @@ public class MailCommand implements CommandExecutor {
 
     public MailCommand(MakeABuilders plugin) {
         this.plugin = plugin;
-        this.mailStorage = new MailStorage(plugin.getConnection());
+        this.mailStorage = plugin.getMailStorage();
     }
 
     @Override
@@ -113,7 +113,22 @@ public class MailCommand implements CommandExecutor {
         if (messageCount > 1) { // Панель с индексами выводится только если сообщений больше одного
             StringBuilder indices = new StringBuilder();
 
-            if (currentIndex <= 1) {
+            if (messageCount == 3 || messageCount == 4 || (messageCount == 5 && currentIndex == 2)) {
+                // Если всего 3 или 4 сообщения, либо если 5 сообщений и выбран 3-й, выводим их подряд без многоточий
+                for (int i = 1; i <= messageCount; i++) {
+                    if (i - 1 == currentIndex) {
+                        indices.append("<color:#fc8803>[")
+                                .append(i)
+                                .append("]</color> ");
+                    } else {
+                        indices.append("<click:run_command:/mailread ")
+                                .append(i)
+                                .append("><yellow>[")
+                                .append(i)
+                                .append("]</yellow></click> ");
+                    }
+                }
+            } else if (currentIndex <= 1) {
                 // Для первых двух сообщений показываем [1] [2] [3] ... [x]
                 for (int i = 1; i <= Math.min(3, messageCount); i++) {
                     if (i - 1 == currentIndex) {

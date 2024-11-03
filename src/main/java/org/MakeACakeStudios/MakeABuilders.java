@@ -52,12 +52,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public void onEnable() {
         saveDefaultConfig();
         config = getConfig();
-        connectToDatabase();
-        createTodoTable();
 
         playerNameStorage = new PlayerNameStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
-        mailStorage = new MailStorage(connection);  // Передаем подключение в MailStorage
+        String dbPath = getDataFolder().getAbsolutePath();
+        mailStorage = new MailStorage(dbPath);  // Передаем подключение в MailStorage
         chatHandler = new ChatHandler(this);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
@@ -94,8 +93,13 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("tableflip").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("unflip").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("info").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("list").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
-        this.getCommand("unmute").setTabCompleter(new UnmuteTabCompleter());
+        this.getCommand("unmute").setTabCompleter(new PlayerTabCompleter());
+        this.getCommand("message").setTabCompleter(new PlayerTabCompleter());
+        this.getCommand("mail").setTabCompleter(new PlayerTabCompleter());
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);
@@ -107,54 +111,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     @Override
     public void onDisable() {
         getLogger().info("MakeABuilders плагин деактивирован.");
-        disconnectFromDatabase();  // Отключение от базы данных
-    }
-
-    // Подключение к базе данных SQLite
-    private void connectToDatabase() {
-        try {
-            String url = "jdbc:sqlite:" + getDataFolder().getAbsolutePath() + "/mail.db";
-            connection = DriverManager.getConnection(url);
-            getLogger().info("Подключение к базе данных SQLite установлено.");
-
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "recipient TEXT, " +
-                    "senderPrefix TEXT, " +
-                    "sender TEXT, " +
-                    "senderSuffix TEXT, " +
-                    "message TEXT, " +
-                    "is_read BOOLEAN DEFAULT 0)";
-            connection.createStatement().execute(createTableSQL);
-            getLogger().info("Таблица для хранения сообщений создана или уже существует.");
-        } catch (SQLException e) {
-            getLogger().severe("Ошибка при подключении к базе данных: " + e.getMessage());
-        }
-    }
-
-    // Отключение от базы данных
-    private void disconnectFromDatabase() {
-        if (connection != null) {
-            try {
-                connection.close();
-                getLogger().info("Подключение к базе данных закрыто.");
-            } catch (SQLException e) {
-                getLogger().severe("Ошибка при закрытии подключения к базе данных: " + e.getMessage());
-            }
-        }
-    }
-
-    private void createTodoTable() {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS todo_tasks (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "title TEXT NOT NULL, " +
-                "description TEXT)";
-        try {
-            connection.createStatement().execute(createTableSQL);
-            getLogger().info("Таблица задач создана или уже существует.");
-        } catch (SQLException e) {
-            getLogger().severe("Ошибка при создании таблицы задач: " + e.getMessage());
-        }
+        mailStorage.disconnectFromDatabase();
     }
 
     @EventHandler
