@@ -39,6 +39,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private TabList tabList;
     private MailStorage mailStorage;
     private PlayerNameStorage playerNameStorage;
+    private TodoStorage todoStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
 
@@ -56,7 +57,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         playerNameStorage = new PlayerNameStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
         String dbPath = getDataFolder().getAbsolutePath();
-        mailStorage = new MailStorage(dbPath);  // Передаем подключение в MailStorage
+        mailStorage = new MailStorage(dbPath);
+        todoStorage = new TodoStorage(dbPath);
         chatHandler = new ChatHandler(this);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
@@ -84,7 +86,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("info").setExecutor(new VersionCommand());
         this.getCommand("delete").setExecutor(new DeleteCommand(chatHandler));
         this.getCommand("list").setExecutor(new ListCommand(this, playerNameStorage));
-        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerNameStorage));
+        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerNameStorage, todoStorage));
         this.getCommand("todo").setExecutor(new TodoCommand(this));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());

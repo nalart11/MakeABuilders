@@ -78,6 +78,8 @@ commands:
   status:
     description: Проверка состояния баз данных
     usage: /status <check|mail|prefix>
+    permission: MakeABuilders.status
   todo:
     description: Управление задачами (список и добавление)
     usage: /todo <add>
+    permission: MakeABuilders.todo
