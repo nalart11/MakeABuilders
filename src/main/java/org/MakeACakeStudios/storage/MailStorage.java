@@ -12,6 +12,15 @@ public class MailStorage {
         this.connection = connection;
     }
 
+    public boolean isConnected() {
+        try {
+            return connection != null && !connection.isClosed();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // Добавление нового сообщения с автоматическим ID
     public void addMessage(String recipient, String senderPrefix, String sender, String senderSuffix, String message) {
         String sql = "INSERT INTO mail_messages (recipient, senderPrefix, sender, senderSuffix, message, is_read) VALUES (?, ?, ?, ?, ?, 0)";

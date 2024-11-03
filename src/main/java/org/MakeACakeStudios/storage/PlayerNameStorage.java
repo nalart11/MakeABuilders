@@ -5,11 +5,9 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
 import org.bukkit.entity.Player;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.MakeACakeStudios.MakeABuilders;
 
-import java.io.File;
-import java.io.IOException;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -17,7 +15,7 @@ import java.util.logging.Level;
 public class PlayerNameStorage {
 
     private final MakeABuilders plugin;
-    private final FileConfiguration config;
+    private Connection connection;
     private static final Map<String, Integer> groupWeights = new HashMap<>();
 
     static {
@@ -32,11 +30,33 @@ public class PlayerNameStorage {
 
     public PlayerNameStorage(MakeABuilders plugin) {
         this.plugin = plugin;
-        this.config = plugin.getConfig();
+        initializeDatabase();
+    }
+
+    private void initializeDatabase() {
+        try {
+            connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder() + "/player_data.db");
+            Statement stmt = connection.createStatement();
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_data (" +
+                    "player_name TEXT PRIMARY KEY, " +
+                    "prefix TEXT, " +
+                    "suffix TEXT)");
+            stmt.close();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Не удалось подключиться к базе данных SQLite!", e);
+        }
+    }
+
+    public boolean isConnected() {
+        try {
+            return connection != null && !connection.isClosed();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public String getPlayerPrefix(Player player) {
-
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
         String highestGroup = "default";
         int highestWeight = 0;
@@ -86,7 +106,6 @@ public class PlayerNameStorage {
     }
 
     public String getPlayerSuffix(Player player) {
-
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
         String highestGroup = "default";
         int highestWeight = 0;
@@ -104,49 +123,58 @@ public class PlayerNameStorage {
             }
         }
 
-        String suffix = "";
-        if (highestGroup.equals("default")) {
-            suffix = "";
-        } else {
-            suffix = "</gradient>";
-        }
-
+        String suffix = highestGroup.equals("default") ? "" : "</gradient>";
         setPlayerSuffix(player.getName(), suffix);
         return suffix;
     }
 
     public String getPlayerPrefixByName(String playerName) {
-        if (config.contains("players." + playerName + ".prefix")) {
-            return config.getString("players." + playerName + ".prefix");
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT prefix FROM player_data WHERE player_name = ?")) {
+            stmt.setString(1, playerName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("prefix");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении префикса из базы данных", e);
         }
-
         return "";
     }
 
     public String getPlayerSuffixByName(String playerName) {
-        if (config.contains("players." + playerName + ".suffix")) {
-            return config.getString("players." + playerName + ".suffix");
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT suffix FROM player_data WHERE player_name = ?")) {
+            stmt.setString(1, playerName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("suffix");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении суффикса из базы данных", e);
         }
-
         return "";
     }
 
     public void setPlayerPrefix(String playerName, String prefix) {
-        config.set("players." + playerName + ".prefix", prefix);
-        saveConfig();
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT OR REPLACE INTO player_data (player_name, prefix, suffix) VALUES (?, ?, (SELECT suffix FROM player_data WHERE player_name = ?))")) {
+            stmt.setString(1, playerName);
+            stmt.setString(2, prefix);
+            stmt.setString(3, playerName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Ошибка при сохранении префикса в базе данных", e);
+        }
     }
 
     public void setPlayerSuffix(String playerName, String suffix) {
-        config.set("players." + playerName + ".suffix", suffix);
-        saveConfig();
-    }
-
-    private void saveConfig() {
-        try {
-            File configFile = new File(plugin.getDataFolder(), "config.yml");
-            config.save(configFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Не удалось сохранить конфигурацию!", e);
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT OR REPLACE INTO player_data (player_name, prefix, suffix) VALUES (?, (SELECT prefix FROM player_data WHERE player_name = ?), ?)")) {
+            stmt.setString(1, playerName);
+            stmt.setString(2, playerName);
+            stmt.setString(3, suffix);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Ошибка при сохранении суффикса в базе данных", e);
         }
     }
 }

@@ -52,7 +52,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public void onEnable() {
         saveDefaultConfig();
         config = getConfig();
-        connectToDatabase();  // Подключение к базе данных
+        connectToDatabase();
+        createTodoTable();
 
         playerNameStorage = new PlayerNameStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
@@ -84,6 +85,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("info").setExecutor(new VersionCommand());
         this.getCommand("delete").setExecutor(new DeleteCommand(chatHandler));
         this.getCommand("list").setExecutor(new ListCommand(this, playerNameStorage));
+        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerNameStorage));
+        this.getCommand("todo").setExecutor(new TodoCommand(this));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
@@ -138,6 +141,19 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
             } catch (SQLException e) {
                 getLogger().severe("Ошибка при закрытии подключения к базе данных: " + e.getMessage());
             }
+        }
+    }
+
+    private void createTodoTable() {
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS todo_tasks (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "title TEXT NOT NULL, " +
+                "description TEXT)";
+        try {
+            connection.createStatement().execute(createTableSQL);
+            getLogger().info("Таблица задач создана или уже существует.");
+        } catch (SQLException e) {
+            getLogger().severe("Ошибка при создании таблицы задач: " + e.getMessage());
         }
     }
 
