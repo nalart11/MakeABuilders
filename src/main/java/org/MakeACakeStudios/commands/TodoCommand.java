@@ -1,29 +1,24 @@
 package org.MakeACakeStudios.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.storage.TodoStorage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class TodoCommand implements CommandExecutor, Listener {
+public class TodoCommand implements CommandExecutor {
     private final MakeABuilders plugin;
     private final TodoStorage todoStorage;
-
-    private final Map<Player, TodoState> playerTodoState = new HashMap<>();
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public TodoCommand(MakeABuilders plugin) {
         this.plugin = plugin;
         this.todoStorage = new TodoStorage(plugin.getDataFolder().getAbsolutePath());
-        plugin.getServer().getPluginManager().registerEvents(this, plugin); // Регистрация слушателя событий чата
     }
 
     @Override
@@ -41,79 +36,42 @@ public class TodoCommand implements CommandExecutor, Listener {
         }
 
         if (args[0].equalsIgnoreCase("add")) {
-            // Начинаем процесс добавления задачи
-            playerTodoState.put(player, new TodoState());
-            player.sendMessage("Введите название задачи:");
+            if (args.length < 3) {
+                player.sendMessage("Использование: /todo add <название> <описание>");
+                return true;
+            }
+
+            // Сбор названия и описания задачи
+            String title = args[1];
+            String description = String.join(" ", args).substring(args[0].length() + args[1].length() + 2);
+
+            todoStorage.addTask(title, description);
+            player.sendMessage("Задача успешно добавлена!");
             return true;
         }
 
         return false;
     }
 
-    // Слушатель для событий чата, чтобы обрабатывать этапы добавления задач
-    @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-
-        // Проверяем, ожидаем ли мы ввода от игрока
-        if (playerTodoState.containsKey(player)) {
-            event.setCancelled(true); // Отключаем вывод сообщения в чат
-
-            TodoState state = playerTodoState.get(player);
-
-            if (state.getTitle() == null) {
-                // Сохраняем название задачи
-                state.setTitle(event.getMessage());
-                player.sendMessage("Теперь введите описание задачи:");
-            } else {
-                // Сохраняем описание задачи и добавляем её в базу
-                state.setDescription(event.getMessage());
-                todoStorage.addTask(state.getTitle(), state.getDescription()); // Используем TodoStorage
-                player.sendMessage("Задача успешно добавлена!");
-                playerTodoState.remove(player); // Убираем игрока из отслеживания
-            }
-        }
-    }
-
     private void showTasks(Player player) {
         List<String[]> tasks = todoStorage.getTasks();
 
         if (tasks.isEmpty()) {
-            player.sendMessage("Список задач пуст.");
+            player.sendMessage(miniMessage.deserialize("<yellow>Список задач пуст.</yellow>"));
             return;
         }
 
-        player.sendMessage("Ваши задачи:");
+        player.sendMessage(miniMessage.deserialize("<yellow>Ваши задачи:</yellow>"));
         for (String[] task : tasks) {
-            String title = task[0];
-            String description = task[1];
+            String id = task[0];
+            String title = task[1];
+            String description = task[2];
 
-            player.sendMessage("----------------");
-            player.sendMessage("Название: " + title);
-            player.sendMessage("Описание: " + description);
-            player.sendMessage("----------------");
-        }
-    }
-
-    // Вспомогательный класс для хранения состояния добавления задачи
-    private static class TodoState {
-        private String title;
-        private String description;
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
+            player.sendMessage(miniMessage.deserialize("<gray>----------------<gray>"));
+            player.sendMessage(miniMessage.deserialize("<yellow>Название: </yellow><green>" + title + "</green>"));
+            player.sendMessage(miniMessage.deserialize("<yellow>Описание: </yellow><green>" + description + "</green>"));
+            player.sendMessage(miniMessage.deserialize("<yellow>id: </yellow><red>" + id + "</red>"));
+            player.sendMessage(miniMessage.deserialize("<gray>----------------<gray>"));
         }
     }
 }

@@ -64,17 +64,18 @@ public class TodoStorage {
         }
     }
 
-    // Метод для получения списка задач
+    // Метод для получения списка задач с включением id
     public List<String[]> getTasks() {
         List<String[]> tasks = new ArrayList<>();
-        String sql = "SELECT title, description FROM todo_tasks";
+        String sql = "SELECT id, title, description FROM todo_tasks";
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                String id = String.valueOf(rs.getInt("id"));
                 String title = rs.getString("title");
                 String description = rs.getString("description");
-                tasks.add(new String[]{title, description});
+                tasks.add(new String[]{id, title, description});
             }
         } catch (SQLException e) {
             System.err.println("Ошибка при получении списка задач: " + e.getMessage());

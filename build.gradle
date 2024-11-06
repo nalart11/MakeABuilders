@@ -56,8 +56,7 @@ processResources {
     }
 }
 
-// Shadow task для создания fat JAR
 shadowJar {
-    archiveClassifier.set('shad') // Убираем "-all" суффикс в имени файла
-    mergeServiceFiles() // Объединение метаданных сервисов, если они есть
+    archiveClassifier.set('shad')
+    mergeServiceFiles()
 }

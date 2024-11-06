@@ -83,3 +83,4 @@ commands:
     description: Управление задачами (список и добавление)
     usage: /todo <add>
     permission: MakeABuilders.todo
+    aliases: [task]

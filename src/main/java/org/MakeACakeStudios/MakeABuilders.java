@@ -98,6 +98,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("info").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("list").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("mailcheck").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
         this.getCommand("unmute").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("message").setTabCompleter(new PlayerTabCompleter());
