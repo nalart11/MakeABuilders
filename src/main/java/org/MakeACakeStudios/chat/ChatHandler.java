@@ -15,8 +15,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -44,6 +46,12 @@ public class ChatHandler implements Listener {
         }
         Random random = new Random();
         return messages.get(random.nextInt(messages.size()));
+    }
+
+    private Component getFormattedPlayerName(Player player) {
+        String prefix = playerNameStorage.getPlayerPrefix(player);
+        String suffix = playerNameStorage.getPlayerSuffix(player);
+        return miniMessage.deserialize(prefix + player.getName() + suffix);
     }
 
     @EventHandler
@@ -83,6 +91,34 @@ public class ChatHandler implements Listener {
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component quitMessage = miniMessage.deserialize(parsedMessage);
             event.quitMessage(quitMessage);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        Component originalDeathMessage = event.deathMessage();
+
+        if (originalDeathMessage != null) {
+            Component customDeathMessage = originalDeathMessage.replaceText(builder ->
+                    builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
+            );
+
+            event.deathMessage(customDeathMessage);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerAdvancement(PlayerAdvancementDoneEvent event) {
+        Player player = event.getPlayer();
+        Component originalMessage = event.message();
+
+        if (originalMessage != null) {
+            Component customAdvancementMessage = originalMessage.replaceText(builder ->
+                    builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
+            );
+
+            event.message(customAdvancementMessage);
         }
     }
 
