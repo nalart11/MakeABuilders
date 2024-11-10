@@ -11,7 +11,6 @@ import org.bukkit.Sound;
 import org.MakeACakeStudios.chat.ChatHandler;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,8 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +35,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private ChatHandler chatHandler;
     private TabList tabList;
     private MailStorage mailStorage;
-    private PlayerNameStorage playerNameStorage;
+    private PlayerDataStorage playerDataStorage;
     private TodoStorage todoStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
@@ -54,7 +51,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         saveDefaultConfig();
         config = getConfig();
 
-        playerNameStorage = new PlayerNameStorage(this);
+        playerDataStorage = new PlayerDataStorage(this);
         MiniMessage miniMessage = MiniMessage.miniMessage();
         String dbPath = getDataFolder().getAbsolutePath();
         mailStorage = new MailStorage(dbPath);
@@ -62,7 +59,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         chatHandler = new ChatHandler(this);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
-        muteCommand = new MuteCommand(this, playerNameStorage);
+        muteCommand = new MuteCommand(this, playerDataStorage);
 
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
@@ -74,19 +71,20 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("reply").setExecutor(new ReplyCommand(this));
         this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
-        this.getCommand("shrug").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
-        this.getCommand("tableflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
-        this.getCommand("unflip").setExecutor(new SmugCommand(playerNameStorage, miniMessage));
+        this.getCommand("shrug").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
+        this.getCommand("tableflip").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
+        this.getCommand("unflip").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
         this.getCommand("announce").setExecutor(new AnnounceCommand(this));
-        this.getCommand("mail").setExecutor(new MailCommand(this));
-        this.getCommand("mailcheck").setExecutor(new MailCommand(this));
-        this.getCommand("mailread").setExecutor(new MailCommand(this));
-        this.getCommand("mute").setExecutor(new MuteCommand(this, playerNameStorage));
+        this.getCommand("mail").setExecutor(new MailCommand(this, playerDataStorage));
+        this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage));
+        this.getCommand("mailread").setExecutor(new MailCommand(this, playerDataStorage));
+        this.getCommand("mute").setExecutor(new MuteCommand(this, playerDataStorage));
         this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
         this.getCommand("info").setExecutor(new VersionCommand());
-        this.getCommand("delete").setExecutor(new DeleteCommand(chatHandler));
-        this.getCommand("list").setExecutor(new ListCommand(this, playerNameStorage));
-        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerNameStorage, todoStorage));
+        this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
+        this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
+        this.getCommand("list").setExecutor(new ListCommand(this, playerDataStorage));
+        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, todoStorage));
         this.getCommand("todo").setExecutor(new TodoCommand(this));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
@@ -102,7 +100,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
         this.getCommand("unmute").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("message").setTabCompleter(new PlayerTabCompleter());
-        this.getCommand("mail").setTabCompleter(new PlayerTabCompleter());
+        this.getCommand("mail").setTabCompleter(new PlayerDBTabCompleter(playerDataStorage));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);
@@ -137,8 +135,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         return mailStorage;
     }
 
-    public PlayerNameStorage getPlayerNameStorage() {
-        return playerNameStorage;
+    public PlayerDataStorage getPlayerNameStorage() {
+        return playerDataStorage;
     }
 
     public void addLocationToHistory(Player player, Location location) {
@@ -166,11 +164,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     }
 
     public String getPlayerPrefix(Player player) {
-        return playerNameStorage.getPlayerPrefix(player);
+        return playerDataStorage.getPlayerPrefix(player);
     }
 
     public String getPlayerSuffix(Player player) {
-        return playerNameStorage.getPlayerSuffix(player);
+        return playerDataStorage.getPlayerSuffix(player);
     }
 
     public void setPlayerSound(Player player, Sound sound) {

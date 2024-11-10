@@ -1,4 +1,3 @@
-player-sounds: {}
 Messages:
   Join:
     - "<blue>[<green>!</green>] <yellow><player> влетел на сервер!"
@@ -16,6 +15,13 @@ Messages:
     - "<blue>[<red>!</red>] <yellow><player> ушёл в школу!"
     - "<blue>[<red>!</red>] <yellow><player> нашёл потайной ход!"
     - "<blue>[<red>!</red>] <yellow><player> caduto in un buco nero!"
-ServerName: "MakeABuilders"
-Signature: "Подпись"
-AdditionalSignature: "Дополнительная подпись"
+motd:
+  '1':
+    - <b><gradient:#E43A96:#FF0000>MakeATest!</gradient></b>
+    - <gradient:#573DFF:#BDDDFC>Version beta 0.3</gradient>
+  '2':
+    - <b><gradient:#E43A96:#FF0000>MakeATest!</gradient></b>
+    - <gradient:#FF3DEA:#E7BDFC>Version beta 0.3</gradient>
+  '3':
+    - <b><gradient:#E43A96:#FF0000>MakeATest!</gradient></b>
+    - <gradient:#3DFF71:#BDF2FC>Version beta 0.3</gradient>

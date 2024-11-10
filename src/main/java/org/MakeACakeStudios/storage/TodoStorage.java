@@ -26,7 +26,6 @@ public class TodoStorage {
         }
     }
 
-    // Метод для отключения от базы данных
     public void disconnectFromDatabase() {
         if (connection != null) {
             try {
@@ -38,7 +37,6 @@ public class TodoStorage {
         }
     }
 
-    // Создание таблицы задач, если она не существует
     private void createTodoTable() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS todo_tasks (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -52,7 +50,6 @@ public class TodoStorage {
         }
     }
 
-    // Метод для добавления задачи
     public void addTask(String title, String description) {
         String sql = "INSERT INTO todo_tasks (title, description) VALUES (?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -64,7 +61,6 @@ public class TodoStorage {
         }
     }
 
-    // Метод для получения списка задач с включением id
     public List<String[]> getTasks() {
         List<String[]> tasks = new ArrayList<>();
         String sql = "SELECT id, title, description FROM todo_tasks";
@@ -83,7 +79,6 @@ public class TodoStorage {
         return tasks;
     }
 
-    // Проверка подключения
     public boolean isConnected() {
         try {
             return connection != null && !connection.isClosed();

@@ -13,7 +13,6 @@ public class MailStorage {
         this.dbPath = dbPath;
         connectToDatabase();
         createMailTable();
-        createTodoTable();
     }
 
     // Метод для подключения к базе данных
@@ -39,7 +38,6 @@ public class MailStorage {
         }
     }
 
-    // Создание таблицы сообщений
     private void createMailTable() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -57,20 +55,6 @@ public class MailStorage {
         }
     }
 
-    // Создание таблицы задач
-    private void createTodoTable() {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS todo_tasks (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "title TEXT NOT NULL, " +
-                "description TEXT)";
-        try {
-            connection.createStatement().execute(createTableSQL);
-            System.out.println("Таблица задач создана или уже существует.");
-        } catch (SQLException e) {
-            System.err.println("Ошибка при создании таблицы задач: " + e.getMessage());
-        }
-    }
-
     // Проверка подключения
     public boolean isConnected() {
         try {
@@ -81,12 +65,6 @@ public class MailStorage {
         }
     }
 
-    // Метод получения соединения
-    public Connection getConnection() {
-        return connection;
-    }
-
-    // Добавление нового сообщения с автоматическим ID
     public void addMessage(String recipient, String senderPrefix, String sender, String senderSuffix, String message) {
         String sql = "INSERT INTO mail_messages (recipient, senderPrefix, sender, senderSuffix, message, is_read) VALUES (?, ?, ?, ?, ?, 0)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {

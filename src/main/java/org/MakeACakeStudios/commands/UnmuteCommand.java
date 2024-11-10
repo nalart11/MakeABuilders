@@ -8,22 +8,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.storage.*;
-
-import java.util.UUID;
 
 public class UnmuteCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
     private final MiniMessage miniMessage;
-    private final PlayerNameStorage playerNameStorage;
+    private final PlayerDataStorage playerDataStorage;
 
     public UnmuteCommand(MakeABuilders plugin) {
         this.plugin = plugin;
         this.miniMessage = MiniMessage.miniMessage();
-        this.playerNameStorage = new PlayerNameStorage(plugin);
+        this.playerDataStorage = new PlayerDataStorage(plugin);
     }
 
     @Override
@@ -39,8 +36,8 @@ public class UnmuteCommand implements CommandExecutor {
             return true;
         }
 
-        String prefix = playerNameStorage.getPlayerPrefix(target);
-        String suffix = playerNameStorage.getPlayerSuffix(target);
+        String prefix = playerDataStorage.getPlayerPrefix(target);
+        String suffix = playerDataStorage.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
         MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();

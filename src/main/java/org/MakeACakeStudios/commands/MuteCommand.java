@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit;
 public class MuteCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
-    private final PlayerNameStorage playerNameStorage;
+    private final PlayerDataStorage playerDataStorage;
     private final MiniMessage miniMessage;
     private final NamespacedKey muteKey;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
 
-    public MuteCommand(MakeABuilders plugin, PlayerNameStorage playerNameStorage) {
+    public MuteCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
-        this.playerNameStorage = playerNameStorage;
+        this.playerDataStorage = playerDataStorage;
         this.miniMessage = MiniMessage.miniMessage();
         this.muteKey = new NamespacedKey(plugin, "mute_time");
     }
@@ -56,8 +56,8 @@ public class MuteCommand implements CommandExecutor {
 
         mutePlayer(target, muteDuration, reason);
 
-        String prefix = playerNameStorage.getPlayerPrefix(target);
-        String suffix = playerNameStorage.getPlayerSuffix(target);
+        String prefix = playerDataStorage.getPlayerPrefix(target);
+        String suffix = playerDataStorage.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
         if (timeString.equals("Fv")) {

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.storage.MailStorage;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -18,11 +19,13 @@ public class MailCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
     private final MailStorage mailStorage;
+    private final PlayerDataStorage playerDataStorage;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    public MailCommand(MakeABuilders plugin) {
+    public MailCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
         this.mailStorage = plugin.getMailStorage();
+        this.playerDataStorage = playerDataStorage;
     }
 
     @Override
@@ -37,9 +40,16 @@ public class MailCommand implements CommandExecutor {
                 }
 
                 String recipientName = args[0];
+
+                // Check if recipient exists in the database
+                if (!playerDataStorage.playerExistsInDatabase(recipientName)) {
+                    player.sendMessage(miniMessage.deserialize("<red>Игрок не найден в базе данных.</red>"));
+                    return true;
+                }
+
                 String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-                // Добавляем сообщение в базу данных
+                // Add message to the database
                 mailStorage.addMessage(recipientName, plugin.getPlayerPrefix(player), player.getName(), plugin.getPlayerSuffix(player), message);
                 player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение отправлено.</green>"));
                 return true;
@@ -110,11 +120,10 @@ public class MailCommand implements CommandExecutor {
         sendFormattedMessage(player, selectedMessage, currentIndex);
 
         int messageCount = messages.size();
-        if (messageCount > 1) { // Панель с индексами выводится только если сообщений больше одного
+        if (messageCount > 1) {
             StringBuilder indices = new StringBuilder();
 
             if (messageCount == 3 || messageCount == 4 || (messageCount == 5 && currentIndex == 2)) {
-                // Если всего 3 или 4 сообщения, либо если 5 сообщений и выбран 3-й, выводим их подряд без многоточий
                 for (int i = 1; i <= messageCount; i++) {
                     if (i - 1 == currentIndex) {
                         indices.append("<color:#fc8803>[")
@@ -175,7 +184,6 @@ public class MailCommand implements CommandExecutor {
                         .append(messageCount)
                         .append("]</yellow></click> ");
             } else {
-                // Для последнего и предпоследнего сообщения показываем [1] ... [x-2] [x-1] [x]
                 indices.append("<click:run_command:/mailread 1><yellow>[1]</yellow></click> ");
                 indices.append("... ");
                 for (int i = messageCount - 2; i <= messageCount; i++) {

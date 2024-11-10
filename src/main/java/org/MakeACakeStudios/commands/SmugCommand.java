@@ -11,11 +11,11 @@ import org.MakeACakeStudios.storage.*;
 
 public class SmugCommand implements CommandExecutor {
 
-    private final PlayerNameStorage playerNameStorage;
+    private final PlayerDataStorage playerDataStorage;
     private final MiniMessage miniMessage;
 
-    public SmugCommand(PlayerNameStorage playerNameStorage, MiniMessage miniMessage) {
-        this.playerNameStorage = playerNameStorage;
+    public SmugCommand(PlayerDataStorage playerDataStorage, MiniMessage miniMessage) {
+        this.playerDataStorage = playerDataStorage;
         this.miniMessage = miniMessage;
     }
 
@@ -24,8 +24,8 @@ public class SmugCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             String playerName = player.getDisplayName();
-            String prefix = playerNameStorage.getPlayerPrefix(player);
-            String suffix = playerNameStorage.getPlayerSuffix(player);
+            String prefix = playerDataStorage.getPlayerPrefix(player);
+            String suffix = playerDataStorage.getPlayerSuffix(player);
 
             String userInput = String.join(" ", args); // Соединяем аргументы в одну строку
 

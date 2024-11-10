@@ -68,10 +68,16 @@ commands:
     description: Размутить человека.
     usage: /unmute <nickname>
     permission: MakeABuilders.unmute
-  delete:
+  remove-message:
     description: Удалить сообщение в чате.
-    usage: /delete id
-    permission: MakeABuilders.delete
+    usage: /remove-message id
+    permission: MakeABuilders.remmsg
+    aliases: [remmsg]
+  return-message:
+    description: Вернуть удалённое сообщение в чате.
+    usage: /return-message id
+    permission: MakeABuilders.retmsg
+    aliases: [ retmsg ]
   list:
     description: Список игроков онлайн.
     usage: /list

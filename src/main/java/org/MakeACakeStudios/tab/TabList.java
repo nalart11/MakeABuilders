@@ -46,7 +46,6 @@ public class TabList {
 
         int ping = player.getPing();
         double tpsValue = getServerTPS();
-//        double msptValue = getMSPT();
 
         String pingColor;
         if (ping > 250) {
@@ -66,23 +65,13 @@ public class TabList {
             tpsColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-//        String msptColor;
-//        if (msptValue > 45) {
-//            msptColor = "<gradient:#FF0000:#FF7E7E>";
-//        } else if (msptValue > 35) {
-//            msptColor = "<gradient:#DFFF00:#F3FF7E>";
-//        } else {
-//            msptColor = "<gradient:#00FF1A:#7EFF91>";
-//        }
-
         String additionalTagline = "<i>/goto существует...</i>";
 
         Component header = miniMessage.deserialize("\n" + serverName + "\n" +
                 "<gray>   " + serverTagline + "   </gray>\n");
         Component footer = miniMessage.deserialize("\n" +
                 "<gray>Пинг</gray><yellow>:</yellow> " + pingColor + ping + "<reset> | " +
-                 "<gray>TPS</gray><yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>"+ /*" | " +
-                 "<gray>Mspt</gray><yellow>:</yellow> " + msptColor + String.format("%.2f", msptValue) + "<reset>" + */"\n" +
+                "<gray>TPS</gray><yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>" + "\n" +
                 "<gray>" + additionalTagline + "</gray>" + "\n");
 
         player.sendPlayerListHeaderAndFooter(header, footer);
@@ -96,19 +85,4 @@ public class TabList {
             return tps[0];
         }
     }
-
-//    private double getMSPT() {
-//        long[] tickTimes = Bukkit.getServer().getTickTimes();
-//
-//        double totalTickTime = 0;
-//        int ticksToAverage = 5;
-//
-//        for (int i = 0; i < ticksToAverage; i++) {
-//            totalTickTime += tickTimes[i];
-//        }
-//
-//        double averageTickTime = totalTickTime / ticksToAverage;
-//
-//        return averageTickTime / 1_000_000.0;
-//    }
 }
