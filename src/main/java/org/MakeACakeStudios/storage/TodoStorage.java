@@ -15,7 +15,6 @@ public class TodoStorage {
         createTodoTable();
     }
 
-    // Метод для подключения к базе данных SQLite
     private void connectToDatabase() {
         try {
             String url = "jdbc:sqlite:" + dbPath + "/todo.db";

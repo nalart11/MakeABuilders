@@ -15,7 +15,6 @@ public class MailStorage {
         createMailTable();
     }
 
-    // Метод для подключения к базе данных
     private void connectToDatabase() {
         try {
             String url = "jdbc:sqlite:" + dbPath + "/mail.db";

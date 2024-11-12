@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.commands.MuteCommand;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,11 +27,13 @@ public class ChatHandler implements Listener {
     private final MakeABuilders plugin;
     private final Map<String, List<String>> messages = new HashMap<>();
     private final PlayerDataStorage playerDataStorage;
+    private final PunishmentStorage punishmentStorage;
     private final TagFormatter tagFormatter;
 
-    public ChatHandler(MakeABuilders makeABuilders) {
+    public ChatHandler(MakeABuilders makeABuilders, PunishmentStorage punishmentStorage) {
         this.config = makeABuilders.getConfig();
         this.plugin = makeABuilders;
+        this.punishmentStorage = punishmentStorage;
         this.playerDataStorage = new PlayerDataStorage(plugin);
         this.tagFormatter = new TagFormatter();
     }
@@ -229,8 +232,9 @@ public class ChatHandler implements Listener {
         String playerName = player.getDisplayName();
         String message = event.getMessage();
 
-        MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
-        if (muteCommand.isMuted(player)) {
+        String muteStatus = punishmentStorage.checkMute(player.getName());
+
+        if (!muteStatus.contains("не замьючен")) {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
             player.sendMessage(miniMessage.deserialize("<red>Вы замьючены и не можете отправлять сообщения.</red>"));
             event.setCancelled(true);

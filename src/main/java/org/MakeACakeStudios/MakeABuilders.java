@@ -37,6 +37,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private MailStorage mailStorage;
     private PlayerDataStorage playerDataStorage;
     private TodoStorage todoStorage;
+    private PunishmentStorage punishmentStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
 
@@ -56,10 +57,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         String dbPath = getDataFolder().getAbsolutePath();
         mailStorage = new MailStorage(dbPath);
         todoStorage = new TodoStorage(dbPath);
-        chatHandler = new ChatHandler(this);
+        punishmentStorage = new PunishmentStorage(dbPath);
+        chatHandler = new ChatHandler(this, punishmentStorage);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
-        muteCommand = new MuteCommand(this, playerDataStorage);
+        muteCommand = new MuteCommand(this, playerDataStorage, punishmentStorage);
 
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
@@ -78,13 +80,13 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mail").setExecutor(new MailCommand(this, playerDataStorage));
         this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage));
         this.getCommand("mailread").setExecutor(new MailCommand(this, playerDataStorage));
-        this.getCommand("mute").setExecutor(new MuteCommand(this, playerDataStorage));
-        this.getCommand("unmute").setExecutor(new UnmuteCommand(this));
+        this.getCommand("mute").setExecutor(new MuteCommand(this, playerDataStorage, punishmentStorage));
+        this.getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage));
         this.getCommand("info").setExecutor(new VersionCommand());
         this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
         this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
         this.getCommand("list").setExecutor(new ListCommand(this, playerDataStorage));
-        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, todoStorage));
+        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, todoStorage, punishmentStorage));
         this.getCommand("todo").setExecutor(new TodoCommand(this));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());

@@ -9,18 +9,21 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.storage.*;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 
 public class UnmuteCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
     private final MiniMessage miniMessage;
     private final PlayerDataStorage playerDataStorage;
+    private final PunishmentStorage punishmentStorage;
 
-    public UnmuteCommand(MakeABuilders plugin) {
+    public UnmuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage) {
         this.plugin = plugin;
         this.miniMessage = MiniMessage.miniMessage();
         this.playerDataStorage = new PlayerDataStorage(plugin);
+        this.punishmentStorage = punishmentStorage;
     }
 
     @Override
@@ -40,13 +43,15 @@ public class UnmuteCommand implements CommandExecutor {
         String suffix = playerDataStorage.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
-        MuteCommand muteCommand = (MuteCommand) plugin.getCommand("mute").getExecutor();
-        if (!muteCommand.isMuted(target)) {
+        // Check if the player is muted by calling punishmentStorage's checkMute
+        String muteStatus = punishmentStorage.checkMute(target.getName());
+        if (muteStatus.contains("не замьючен")) { // Not muted
             sender.sendMessage(miniMessage.deserialize("<red>✖ Игрок " + formattedName + " не замьючен.</red>"));
             return true;
         }
 
-        muteCommand.unmutePlayer(target);
+        // Unmute the player by marking the mute as invalid
+        punishmentStorage.unmutePlayer(target.getName());
         sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был размьючен.</green>"));
         target.playSound(target.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);
         target.sendMessage(miniMessage.deserialize("<green>Вы были размьючены.</green>"));

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.storage.MailStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.MakeACakeStudios.storage.TodoStorage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,11 +16,13 @@ public class StatusCommand implements CommandExecutor {
     private final MailStorage mailStorage;
     private final PlayerDataStorage playerDataStorage;
     private final TodoStorage todoStorage;
+    private final PunishmentStorage punishmentStorage;
 
-    public StatusCommand(MakeABuilders plugin, MailStorage mailStorage, PlayerDataStorage playerDataStorage, TodoStorage todoStorage) {
+    public StatusCommand(MakeABuilders plugin, MailStorage mailStorage, PlayerDataStorage playerDataStorage, TodoStorage todoStorage, PunishmentStorage punishmentStorage) {
         this.mailStorage = mailStorage;
         this.playerDataStorage = playerDataStorage;
         this.todoStorage = todoStorage;
+        this.punishmentStorage = punishmentStorage;
     }
 
     @Override
@@ -28,6 +31,7 @@ public class StatusCommand implements CommandExecutor {
         boolean mailConnected = mailStorage.isConnected();
         boolean playerNameConnected = playerDataStorage.isConnected();
         boolean todoConnected = todoStorage.isConnected();
+        boolean punishmentConnected = punishmentStorage.isConnected();
 
         if (args.length == 0) {
             sender.sendMessage(miniMessage.deserialize("<yellow>Статус соединения с базами данных:</yellow>\n"));
