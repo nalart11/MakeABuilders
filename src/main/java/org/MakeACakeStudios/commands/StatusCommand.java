@@ -38,6 +38,7 @@ public class StatusCommand implements CommandExecutor {
             sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
             sender.sendMessage(miniMessage.deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
             sender.sendMessage(miniMessage.deserialize("<yellow>TodoStorage</yellow> -> " + (todoConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+            sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
             return true;
         }
 
@@ -47,6 +48,7 @@ public class StatusCommand implements CommandExecutor {
                 sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
                 sender.sendMessage(miniMessage.deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
                 sender.sendMessage(miniMessage.deserialize("<yellow>TodoStorage</yellow> -> " + (todoConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+                sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
                 break;
 
             case "mail":
@@ -59,6 +61,10 @@ public class StatusCommand implements CommandExecutor {
 
             case "todo":
                 sender.sendMessage(miniMessage.deserialize("<yellow>TodoStorage</yellow> -> " + (todoConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+                break;
+
+            case "punishments":
+                sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
                 break;
 
             default:
