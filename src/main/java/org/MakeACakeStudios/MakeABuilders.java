@@ -40,10 +40,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
 
-    private Connection connection;  // Для подключения к базе данных
+    private Connection connection;
 
     public Connection getConnection() {
-        return connection;  // Add this method
+        return connection;
     }
 
     @Override

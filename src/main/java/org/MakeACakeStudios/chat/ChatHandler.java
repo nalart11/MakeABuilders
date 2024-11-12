@@ -52,7 +52,6 @@ public class ChatHandler implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
         player.sendMessage(miniMessage.deserialize("<gradient:#FF3D4D:#FCBDBD>С возвращением!</gradient>"));
 
         String prefix = playerDataStorage.getPlayerPrefix(player);
@@ -63,6 +62,11 @@ public class ChatHandler implements Listener {
         if (rawMessage != null) {
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component joinMessage = miniMessage.deserialize(parsedMessage);
+
+            int messageId = messageIdCounter++;
+            chatMessages.put(messageId, parsedMessage);
+            messageOwners.put(messageId, player);
+
             event.joinMessage(joinMessage);
 
             List<String[]> playerMessages = plugin.getMailStorage().getMessages(player.getName());
@@ -85,6 +89,11 @@ public class ChatHandler implements Listener {
         if (rawMessage != null) {
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component quitMessage = miniMessage.deserialize(parsedMessage);
+
+            int messageId = messageIdCounter++;
+            chatMessages.put(messageId, parsedMessage);
+            messageOwners.put(messageId, player);
+
             event.quitMessage(quitMessage);
         }
     }
@@ -187,13 +196,11 @@ public class ChatHandler implements Listener {
 
     private void reloadChat() {
         clearChat();
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             String role = playerDataStorage.getPlayerRoleByName(player.getName());
 
             chatMessages.forEach((id, message) -> {
                 String formattedMessage;
-
                 if (role != null && !role.equals("player")) {
                     formattedMessage = message;
                 } else {
@@ -229,6 +236,8 @@ public class ChatHandler implements Listener {
             event.setCancelled(true);
             return;
         }
+
+        System.out.println(playerName + " → " + message);
 
         if (message.contains("@")) {
             String[] words = message.split(" ");
