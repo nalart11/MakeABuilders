@@ -2,7 +2,7 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.other.MuteExpirationTask;
+import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -17,27 +17,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MuteCommand implements CommandExecutor {
-
+public class BanCommand implements CommandExecutor {
     private final MakeABuilders plugin;
     private final PlayerDataStorage playerDataStorage;
     private final PunishmentStorage punishmentStorage;
     private final MiniMessage miniMessage;
-    private final MuteExpirationTask muteExpirationTask;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
 
-    public MuteCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask) {
+    public BanCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MiniMessage miniMessage) {
         this.plugin = plugin;
         this.playerDataStorage = playerDataStorage;
         this.punishmentStorage = punishmentStorage;
-        this.muteExpirationTask = muteExpirationTask;
-        this.miniMessage = MiniMessage.miniMessage();
+        this.miniMessage = miniMessage;
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(miniMessage.deserialize("<red>Используйте: /mute <ник> <время> [причина]</red>"));
+            sender.sendMessage(miniMessage.deserialize("<red>Используйте: /ban <ник> <время> [причина]</red>"));
             return true;
         }
 
@@ -48,27 +45,17 @@ public class MuteCommand implements CommandExecutor {
         }
 
         String timeString = args[1];
-        long muteDuration = parseTimeString(timeString);
-        if (muteDuration == -1) {
+        long banDuration = parseTimeString(timeString);
+        if (banDuration == -1) {
             sender.sendMessage(miniMessage.deserialize("<red>Неправильный формат времени. Пример: 10s, 5m, 2h, Fv (навсегда)</red>"));
             return true;
         }
 
         String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "Не указано";
 
-        mutePlayer(target, muteDuration, reason, sender.getName());
+        banPlayer(target, banDuration, reason, sender.getName());
 
-        String prefix = playerDataStorage.getPlayerPrefix(target);
-        String suffix = playerDataStorage.getPlayerSuffix(target);
-        String formattedName = prefix + target.getName() + suffix;
-
-        if (timeString.equals("Fv")) {
-            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>"));
-        } else {
-            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>"));
-        }
-
-        return true;
+        return false;
     }
 
     private long parseTimeString(String timeString) {
@@ -94,30 +81,19 @@ public class MuteCommand implements CommandExecutor {
                 case 'y':
                     return TimeUnit.DAYS.toMillis(time * 365);
                 default:
-                    return -1; // неправильный формат
+                    return -1;
             }
         } catch (NumberFormatException e) {
-            return -1; // ошибка в формате
+            return -1;
         }
     }
 
-    private void mutePlayer(Player player, long duration, String reason, String admin) {
+    private void banPlayer(Player player, long duration, String reason, String admin) {
         long muteEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
         String endTime = (muteEndTime == Long.MAX_VALUE) ? "Fv" : String.valueOf(muteEndTime);
 
-        muteExpirationTask.addPlayerToMuteCheck(player.getName());
-        punishmentStorage.addMute(player.getName(), admin, reason, endTime);
-
-        String message = duration == Long.MAX_VALUE
-                ? "<red>Вы были замьючены навсегда по причине: </red><gold>" + reason + "</gold>"
-                : "<red>Вы были замьючены на " + (duration / 1000) + " секунд по причине:</red><gold> " + reason + "</gold>";
-
-        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-        player.sendMessage(miniMessage.deserialize(message));
-    }
-
-    public boolean isMuted(Player player) {
-        String muteStatus = punishmentStorage.checkMute(player.getName());
-        return !muteStatus.contains("не замьючен"); // Returns true if player is muted
+        punishmentStorage.addBan(player.getName(), admin, reason, endTime);
+        Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
+        player.kickPlayer("Вы были забанены.");
     }
 }

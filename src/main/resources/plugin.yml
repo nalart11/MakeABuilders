@@ -90,3 +90,7 @@ commands:
     usage: /todo <add>
     permission: MakeABuilders.todo
     aliases: [task]
+  ban:
+    description: Бан игрока
+    usage: /ban <nickname>
+    permission: MakeABuilders.ban

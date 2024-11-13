@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MuteTabCompleter implements TabCompleter {
+public class PunishmentTabCompleter implements TabCompleter {
 
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y");
 

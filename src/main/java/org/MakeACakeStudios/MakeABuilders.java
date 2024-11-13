@@ -5,6 +5,7 @@ import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.motd.DynamicMotd;
 import org.MakeACakeStudios.other.EmptyTabCompleter;
 import org.MakeACakeStudios.tab.TabList;
+import org.MakeACakeStudios.other.MuteExpirationTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -40,6 +41,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private PunishmentStorage punishmentStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
+    private MuteExpirationTask muteExpirationTask;
 
     private Connection connection;
 
@@ -61,7 +63,13 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         chatHandler = new ChatHandler(this, punishmentStorage);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
-        muteCommand = new MuteCommand(this, playerDataStorage, punishmentStorage);
+
+        this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
+        muteExpirationTask.runTaskTimer(this, 0L, 20L);
+
+        MuteCommand muteCommand = new MuteCommand(this, playerDataStorage, punishmentStorage, muteExpirationTask);
+        getCommand("mute").setExecutor(muteCommand);
+        getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage));
 
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
@@ -80,14 +88,13 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mail").setExecutor(new MailCommand(this, playerDataStorage));
         this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage));
         this.getCommand("mailread").setExecutor(new MailCommand(this, playerDataStorage));
-        this.getCommand("mute").setExecutor(new MuteCommand(this, playerDataStorage, punishmentStorage));
-        this.getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage));
         this.getCommand("info").setExecutor(new VersionCommand());
         this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
         this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
         this.getCommand("list").setExecutor(new ListCommand(this, playerDataStorage));
         this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, todoStorage, punishmentStorage));
         this.getCommand("todo").setExecutor(new TodoCommand(this));
+        this.getCommand("ban").setExecutor(new BanCommand(this, playerDataStorage, punishmentStorage, miniMessage));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
@@ -99,10 +106,14 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("list").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mailcheck").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("mute").setTabCompleter(new MuteTabCompleter());
+        this.getCommand("mute").setTabCompleter(new PunishmentTabCompleter());
+        this.getCommand("ban").setTabCompleter(new PunishmentTabCompleter());
         this.getCommand("unmute").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("message").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("mail").setTabCompleter(new PlayerDBTabCompleter(playerDataStorage));
+
+        this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
+        muteExpirationTask.runTaskTimer(this, 0L, 20L);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);

@@ -1,8 +1,6 @@
 package org.MakeACakeStudios.storage;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PunishmentStorage {
 
@@ -40,11 +38,11 @@ public class PunishmentStorage {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS punishments (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "type TEXT, " +
-                "endTime TEXT, " +
+                "endTime INTEGER, " +
                 "reason TEXT," +
                 "player TEXT, " +
                 "admin TEXT, " +
-                "ban_nuber INTEGER, " +
+                "ban_number INTEGER, " +
                 "is_valid BOOLEAN DEFAULT 0)";
         try {
             connection.createStatement().execute(createTableSQL);
@@ -110,6 +108,25 @@ public class PunishmentStorage {
         }
     }
 
+    public void pardon(String player) {
+        String updateSQL = "UPDATE punishments SET is_valid = ? WHERE player = ? AND is_valid = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(updateSQL)) {
+            pstmt.setBoolean(1, false); // Set is_valid to false
+            pstmt.setString(2, player); // Specify the player
+            pstmt.setBoolean(3, true);  // Only update if the ban is currently valid (true)
+            int rowsUpdated = pstmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Player " + player + " has been pardoned successfully.");
+            } else {
+                System.out.println("No active ban found for player: " + player);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error pardoning player: " + e.getMessage());
+        }
+    }
+
+
     public String checkMute(String player) {
         String query = "SELECT admin, endTime, reason FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -125,6 +142,20 @@ public class PunishmentStorage {
             System.err.println("Error checking mute: " + e.getMessage());
             return "Error checking mute for player " + player;
         }
+    }
+
+    public long getMuteEndTime(String player) {
+        String query = "SELECT endTime FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, player);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("endTime"); // возвращаем endTime как long
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении времени окончания мьюта: " + e.getMessage());
+        }
+        return -1; // Возвращаем -1, если мьют не найден
     }
 
     public void unmutePlayer(String player) {
@@ -143,7 +174,7 @@ public class PunishmentStorage {
         }
     }
 
-    public String checkBan(String player) {
+    public String banwhy(String player) {
         String query = "SELECT admin, endTime, reason, ban_number FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, player);
