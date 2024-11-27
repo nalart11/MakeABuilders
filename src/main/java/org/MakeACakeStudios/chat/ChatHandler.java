@@ -35,7 +35,7 @@ public class ChatHandler implements Listener {
         this.plugin = makeABuilders;
         this.punishmentStorage = punishmentStorage;
         this.playerDataStorage = new PlayerDataStorage(plugin);
-        this.tagFormatter = new TagFormatter();
+        this.tagFormatter = new TagFormatter(playerDataStorage);
     }
 
     private String getRandomMessage(List<String> messages) {
@@ -111,6 +111,12 @@ public class ChatHandler implements Listener {
                     builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
             );
 
+            String renderedMessage = miniMessage.serialize(customDeathMessage);
+
+            int messageId = messageIdCounter++;
+            chatMessages.put(messageId, renderedMessage);
+            messageOwners.put(messageId, player);
+
             event.deathMessage(customDeathMessage);
         }
     }
@@ -124,6 +130,12 @@ public class ChatHandler implements Listener {
             Component customAdvancementMessage = originalMessage.replaceText(builder ->
                     builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
             );
+
+            String renderedMessage = miniMessage.serialize(customAdvancementMessage);
+
+            int messageId = messageIdCounter++;
+            chatMessages.put(messageId, renderedMessage);
+            messageOwners.put(messageId, player);
 
             event.message(customAdvancementMessage);
         }

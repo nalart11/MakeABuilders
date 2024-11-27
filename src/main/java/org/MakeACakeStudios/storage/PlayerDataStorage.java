@@ -22,19 +22,21 @@ public class PlayerDataStorage {
     private static final Map<String, String> groupRoles = new HashMap<>();
 
     static {
-        groupWeights.put("iam", 5);
-        groupWeights.put("javadper", 4);
-        groupWeights.put("yosya", 4);
-        groupWeights.put("admin", 3);
+        groupWeights.put("iam", 6);
+        groupWeights.put("javadper", 5);
+        groupWeights.put("yosya", 5);
+        groupWeights.put("admin", 4);
         groupWeights.put("developer", 3);
         groupWeights.put("moderator", 2);
         groupWeights.put("sponsor", 1);
 
         groupRoles.put("iam", "owner");
-        groupRoles.put("javadper", "developer");
+        groupRoles.put("javadper", "main_developer");
+        groupRoles.put("yosya", "yosya");
+        groupRoles.put("admin", "admin");
         groupRoles.put("developer", "developer");
-        groupRoles.put("admin", "staff");
-        groupRoles.put("moderator", "staff");
+        groupRoles.put("moderator", "moderator");
+        groupRoles.put("sponsor", "sponsor");
     }
 
     public PlayerDataStorage(MakeABuilders plugin) {
@@ -220,5 +222,23 @@ public class PlayerDataStorage {
             plugin.getLogger().log(Level.SEVERE, "Ошибка при получении имен игроков из базы данных", e);
         }
         return playerNames;
+    }
+
+    public int getGroupWeight(Player player) {
+        User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
+        if (user != null) {
+            int highestWeight = 0;
+            for (Node node : user.getNodes()) {
+                if (node instanceof InheritanceNode) {
+                    InheritanceNode inheritanceNode = (InheritanceNode) node;
+                    String groupName = inheritanceNode.getGroupName();
+                    if (groupWeights.containsKey(groupName)) {
+                        highestWeight = Math.max(highestWeight, groupWeights.get(groupName));
+                    }
+                }
+            }
+            return highestWeight;
+        }
+        return 0;
     }
 }

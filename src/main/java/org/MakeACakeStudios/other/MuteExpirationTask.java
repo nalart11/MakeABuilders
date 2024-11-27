@@ -35,11 +35,11 @@ public class MuteExpirationTask extends BukkitRunnable {
 
         while (iterator.hasNext()) {
             String playerName = iterator.next();
-            long muteEndTime = punishmentStorage.getMuteEndTime(playerName); // Получаем время окончания мьюта
+            long muteEndTime = punishmentStorage.getMuteEndTime(playerName);
 
-            if (muteEndTime <= System.currentTimeMillis()) {
-                iterator.remove(); // Убираем игрока из списка
-                punishmentStorage.unmutePlayer(playerName); // Обновляем базу, чтобы снять мьют
+            if (muteEndTime != Long.MAX_VALUE && muteEndTime <= System.currentTimeMillis()) {
+                iterator.remove();
+                punishmentStorage.unmutePlayer(playerName);
                 Player player = Bukkit.getPlayer(playerName);
                 if (player != null && player.isOnline()) {
                     player.sendMessage(miniMessage.deserialize("<green>Ваш мут истек. Теперь вы можете общаться.<green>"));

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -17,10 +18,12 @@ public class AnnounceCommand implements CommandExecutor {
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
     private final TagFormatter tagFormatter;
+    private final PlayerDataStorage playerDataStorage;
     
-    public AnnounceCommand(MakeABuilders plugin) {
+    public AnnounceCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
-        this.tagFormatter = new TagFormatter();
+        this.playerDataStorage = playerDataStorage;
+        this.tagFormatter = new TagFormatter(playerDataStorage);
     }
 
     @Override

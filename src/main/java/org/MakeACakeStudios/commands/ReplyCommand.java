@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,10 +16,12 @@ public class ReplyCommand implements CommandExecutor {
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final MakeABuilders plugin;
     private final TagFormatter tagFormatter;
+    private final PlayerDataStorage playerDataStorage;
 
-    public ReplyCommand(MakeABuilders plugin) {
+    public ReplyCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
-        this.tagFormatter = new TagFormatter();
+        this.playerDataStorage = playerDataStorage;
+        this.tagFormatter = new TagFormatter(playerDataStorage);
     }
 
     private String getPlayerPrefix(Player player) {

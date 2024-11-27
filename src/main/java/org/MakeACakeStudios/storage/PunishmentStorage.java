@@ -71,7 +71,7 @@ public class PunishmentStorage {
         } catch (SQLException e) {
             System.err.println("Error getting next ban number: " + e.getMessage());
         }
-        return 1; // Default to 1 if no previous bans
+        return 1;
     }
 
     public void addMute(String player, String admin, String reason, String endTime) {
@@ -85,6 +85,7 @@ public class PunishmentStorage {
             pstmt.setBoolean(6, true);
             pstmt.executeUpdate();
             System.out.println("Mute added successfully for player: " + player);
+            System.out.println("End time:" + endTime);
         } catch (SQLException e) {
             System.err.println("Error adding mute: " + e.getMessage());
         }
@@ -103,6 +104,7 @@ public class PunishmentStorage {
             pstmt.setBoolean(7, true);
             pstmt.executeUpdate();
             System.out.println("Ban added successfully for player: " + player + " with ban number: " + nextBanNumber);
+            System.out.println("End time:" + endTime);
         } catch (SQLException e) {
             System.err.println("Error adding ban: " + e.getMessage());
         }
@@ -150,12 +152,16 @@ public class PunishmentStorage {
             pstmt.setString(1, player);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getLong("endTime"); // возвращаем endTime как long
+                String endTime = rs.getString("endTime");
+                if ("Fv".equals(endTime)) {
+                    return Long.MAX_VALUE;
+                }
+                return Long.parseLong(endTime);
             }
-        } catch (SQLException e) {
+        } catch (SQLException | NumberFormatException e) {
             System.err.println("Ошибка при получении времени окончания мьюта: " + e.getMessage());
         }
-        return -1; // Возвращаем -1, если мьют не найден
+        return -1;
     }
 
     public void unmutePlayer(String player) {

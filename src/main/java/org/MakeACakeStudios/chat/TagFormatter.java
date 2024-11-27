@@ -2,16 +2,22 @@ package org.MakeACakeStudios.chat;
 
 import org.bukkit.entity.Player;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 
 public class TagFormatter {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final PlayerDataStorage playerDataStorage;
+
+    public TagFormatter(PlayerDataStorage playerDataStorage) {
+        this.playerDataStorage = playerDataStorage;
+    }
 
     public String format(String message, Player player) {
+        message = replaceTextFormatting(message);
         message = replaceLocationTag(message, player);
         message = replaceEmojis(message);
         message = replaceLinks(message);
-        message = replaceTextFormatting(message);
         message = replaceBackSlashes(message);
 
         return message;
@@ -23,6 +29,12 @@ public class TagFormatter {
             int y = player.getLocation().getBlockY();
             int z = player.getLocation().getBlockZ();
             String worldName = player.getWorld().getName();
+
+            String prefix = playerDataStorage.getPlayerPrefix(player);
+            String suffix = playerDataStorage.getPlayerSuffix(player);
+            String playerName = player.getDisplayName();
+
+            String formattedPlayerName = prefix + playerName + suffix;
 
             String color;
             switch (worldName) {
@@ -41,8 +53,9 @@ public class TagFormatter {
 
             String location = color + "<click:run_command:'/goto " + worldName + " " + x + " " + y + " " + z + "'>["
                     + x + "x/" + y + "y/" + z + "z, " + worldName + "]</click></gradient>";
+            String locationHover = "<hover:show_text:'Координаты игрока " + formattedPlayerName + ".\nНажмите <green>ЛКМ</green> чтобы телепортироваться.'>" + location + "</hover>";
 
-            return message.replace(":loc:", location);
+            return message.replace(":loc:", locationHover);
         }
         return message;
     }
@@ -82,11 +95,22 @@ public class TagFormatter {
     }
 
     private String replaceTextFormatting(String message) {
-        message = message.replaceAll("\\*\\*\\*(.*?)\\*\\*\\*", "<b><i>$1</i></b>"); // ***фраза***
-        message = message.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>"); // **фраза**
-        message = message.replaceAll("\\*(.*?)\\*", "<i>$1</i>"); // *фраза*
-        message = message.replaceAll("~(.*?)~", "<st>$1</st>"); // ~фраза~
-        message = message.replaceAll("_(.*?)_", "<u>$1</u>"); // _фраза_
+        String locTagRegex = ":loc:";
+        String placeholder = "###LOC###";
+
+        if (message.contains(locTagRegex)) {
+            message = message.replace(locTagRegex, placeholder);
+        }
+
+        message = message.replaceAll("\\*\\*\\*(.*?)\\*\\*\\*", "<b><i>$1</i></b>");
+        message = message.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
+        message = message.replaceAll("\\*(.*?)\\*", "<i>$1</i>");
+        message = message.replaceAll("~(.*?)~", "<st>$1</st>");
+        message = message.replaceAll("_(.*?)_", "<u>$1</u>");
+
+        if (message.contains(placeholder)) {
+            message = message.replace(placeholder, locTagRegex);
+        }
 
         return message;
     }
