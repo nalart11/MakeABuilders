@@ -23,7 +23,7 @@ public class AnnounceCommand implements CommandExecutor {
     public AnnounceCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
         this.playerDataStorage = playerDataStorage;
-        this.tagFormatter = new TagFormatter(playerDataStorage);
+        this.tagFormatter = new TagFormatter(plugin);
     }
 
     @Override
@@ -50,8 +50,8 @@ public class AnnounceCommand implements CommandExecutor {
         String senderDisplayName;
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            String prefix = plugin.getPlayerNameStorage().getPlayerPrefix(player);
-            String suffix = plugin.getPlayerNameStorage().getPlayerSuffix(player);
+            String prefix = plugin.getPlayerPrefix(player);
+            String suffix = plugin.getPlayerSuffix(player);
             senderDisplayName = prefix + player.getName() + suffix;
         } else {
             String prefix = "<blue>\uD83D\uDCBB</blue> <gradient:#FF3D4D:#FCBDBD>";

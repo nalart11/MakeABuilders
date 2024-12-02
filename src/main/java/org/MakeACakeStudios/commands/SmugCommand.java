@@ -1,6 +1,7 @@
 package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.Component;
+import org.MakeACakeStudios.MakeABuilders;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -11,12 +12,12 @@ import org.MakeACakeStudios.storage.*;
 
 public class SmugCommand implements CommandExecutor {
 
-    private final PlayerDataStorage playerDataStorage;
     private final MiniMessage miniMessage;
+    private final MakeABuilders plugin;
 
-    public SmugCommand(PlayerDataStorage playerDataStorage, MiniMessage miniMessage) {
-        this.playerDataStorage = playerDataStorage;
+    public SmugCommand(MakeABuilders makeABuilders ,MiniMessage miniMessage) {
         this.miniMessage = miniMessage;
+        this.plugin = makeABuilders;
     }
 
     @Override
@@ -24,8 +25,8 @@ public class SmugCommand implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             String playerName = player.getDisplayName();
-            String prefix = playerDataStorage.getPlayerPrefix(player);
-            String suffix = playerDataStorage.getPlayerSuffix(player);
+            String prefix = plugin.getPlayerPrefix(player);
+            String suffix = plugin.getPlayerSuffix(player);
 
             String userInput = String.join(" ", args); // Соединяем аргументы в одну строку
 

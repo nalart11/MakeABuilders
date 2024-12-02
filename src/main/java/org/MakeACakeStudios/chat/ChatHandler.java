@@ -35,7 +35,7 @@ public class ChatHandler implements Listener {
         this.plugin = makeABuilders;
         this.punishmentStorage = punishmentStorage;
         this.playerDataStorage = new PlayerDataStorage(plugin);
-        this.tagFormatter = new TagFormatter(playerDataStorage);
+        this.tagFormatter = new TagFormatter(plugin);
     }
 
     private String getRandomMessage(List<String> messages) {
@@ -47,8 +47,8 @@ public class ChatHandler implements Listener {
     }
 
     private Component getFormattedPlayerName(Player player) {
-        String prefix = playerDataStorage.getPlayerPrefix(player);
-        String suffix = playerDataStorage.getPlayerSuffix(player);
+        String prefix = plugin.getPlayerPrefix(player);
+        String suffix = plugin.getPlayerSuffix(player);
         return miniMessage.deserialize(prefix + player.getName() + suffix);
     }
 
@@ -57,8 +57,8 @@ public class ChatHandler implements Listener {
         Player player = event.getPlayer();
         player.sendMessage(miniMessage.deserialize("<gradient:#FF3D4D:#FCBDBD>С возвращением!</gradient>"));
 
-        String prefix = playerDataStorage.getPlayerPrefix(player);
-        String suffix = playerDataStorage.getPlayerSuffix(player);
+        String prefix = plugin.getPlayerPrefix(player);
+        String suffix = plugin.getPlayerSuffix(player);
         List<String> joinMessages = config.getStringList("Messages.Join");
         String rawMessage = getRandomMessage(joinMessages);
 
@@ -84,8 +84,8 @@ public class ChatHandler implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        String prefix = playerDataStorage.getPlayerPrefix(player);
-        String suffix = playerDataStorage.getPlayerSuffix(player);
+        String prefix = plugin.getPlayerPrefix(player);
+        String suffix = plugin.getPlayerSuffix(player);
         List<String> quitMessages = config.getStringList("Messages.Quit");
         String rawMessage = getRandomMessage(quitMessages);
 
@@ -172,13 +172,13 @@ public class ChatHandler implements Listener {
             Player messageOwner = messageOwners.get(messageId);
             String clickableName;
             if (messageOwner != null) {
-                String prefix = playerDataStorage.getPlayerPrefix(messageOwner);
-                String suffix = playerDataStorage.getPlayerSuffix(messageOwner);
+                String prefix = plugin.getPlayerPrefix(messageOwner);
+                String suffix = plugin.getPlayerSuffix(messageOwner);
                 String playerName = messageOwner.getName();
 
                 clickableName = "<click:suggest_command:'/msg " + playerName + " '>"
                         + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
-                        + prefix + playerName + suffix + "</hover></click> ";
+                        + prefix + playerName + suffix + "</hover></click>";
             } else {
                 clickableName = "<unknown>";
             }
@@ -186,8 +186,6 @@ public class ChatHandler implements Listener {
             String deletedMessageFormatWithRole = "<gray>[ID:" + messageId + "]</gray> "
                     + "<click:run_command:/retmsg " + messageId + "><green>[✔]</green></click> "
                     + clickableName + "> <gray><i><сообщение удалено></i></gray>";
-
-            String deletedMessageFormatWithoutRole = clickableName + " > <gray><i><сообщение удалено></i></gray>";
 
             chatMessages.put(messageId, deletedMessageFormatWithRole);
             reloadChat();
@@ -266,8 +264,8 @@ public class ChatHandler implements Listener {
                         Sound notificationSound = plugin.getPlayerSound(mentionedPlayer);
                         mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
 
-                        String mentionedPlayerPrefix = playerDataStorage.getPlayerPrefix(mentionedPlayer);
-                        String mentionedPlayerSuffix = playerDataStorage.getPlayerSuffix(mentionedPlayer);
+                        String mentionedPlayerPrefix = plugin.getPlayerPrefix(mentionedPlayer);
+                        String mentionedPlayerSuffix = plugin.getPlayerSuffix(mentionedPlayer);
 
                         String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
                         message = message.replace(word, formattedMention);
@@ -282,8 +280,8 @@ public class ChatHandler implements Listener {
         int messageId = messageIdCounter++;
         String formattedMessage = tagFormatter.format(message, player);
 
-        String prefix = playerDataStorage.getPlayerPrefix(player);
-        String suffix = playerDataStorage.getPlayerSuffix(player);
+        String prefix = plugin.getPlayerPrefix(player);
+        String suffix = plugin.getPlayerSuffix(player);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             if (playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()) != null && !playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()).equals("player")) {

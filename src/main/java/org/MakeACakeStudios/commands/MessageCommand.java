@@ -28,7 +28,7 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
     public MessageCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
         this.playerDataStorage = playerDataStorage;
-        this.tagFormatter = new TagFormatter(playerDataStorage);
+        this.tagFormatter = new TagFormatter(plugin);
     }
 
     @Override
@@ -53,8 +53,10 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
 
         String senderPrefix = plugin.getPlayerPrefix(playerSender);
         String senderSuffix = plugin.getPlayerSuffix(playerSender);
+        String senderName = senderPrefix + playerSender.getName() + senderSuffix;
         String targetPrefix = plugin.getPlayerPrefix(target);
         String targetSuffix = plugin.getPlayerSuffix(target);
+        String targetName = targetPrefix + target.getName() + targetSuffix;
 
         StringBuilder message = new StringBuilder();
         for (int i = 1; i < args.length; i++) {
@@ -62,13 +64,15 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
         }
 
         String formattedMessage = tagFormatter.format(message.toString().trim(), playerSender);
-        String finalMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
-                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + formattedMessage + "</gray>";
+        String senderMessage = senderName + " <yellow>→</yellow> "
+                + targetName + ": <gray>" + formattedMessage + "</gray>";
+        String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
+                + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
+                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> "
+                + targetName + ": <gray>" + formattedMessage + "</gray>";
 
-        Component parsedMessage = miniMessage.deserialize(finalMessage);
-
-        target.sendMessage(parsedMessage);
-        playerSender.sendMessage(parsedMessage);
+        target.sendMessage(miniMessage.deserialize(targetMessage));
+        playerSender.sendMessage(miniMessage.deserialize(senderMessage));
 
         Sound selectedSound = plugin.getPlayerSound(target);
 

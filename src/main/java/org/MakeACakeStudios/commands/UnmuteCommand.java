@@ -39,18 +39,16 @@ public class UnmuteCommand implements CommandExecutor {
             return true;
         }
 
-        String prefix = playerDataStorage.getPlayerPrefix(target);
-        String suffix = playerDataStorage.getPlayerSuffix(target);
+        String prefix = plugin.getPlayerPrefix(target);
+        String suffix = plugin.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
-        // Check if the player is muted by calling punishmentStorage's checkMute
         String muteStatus = punishmentStorage.checkMute(target.getName());
-        if (muteStatus.contains("не замьючен")) { // Not muted
+        if (muteStatus.contains("не замьючен")) {
             sender.sendMessage(miniMessage.deserialize("<red>✖ Игрок " + formattedName + " не замьючен.</red>"));
             return true;
         }
 
-        // Unmute the player by marking the mute as invalid
         punishmentStorage.unmutePlayer(target.getName());
         sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был размьючен.</green>"));
         target.playSound(target.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);

@@ -12,6 +12,7 @@ import org.bukkit.Sound;
 import org.MakeACakeStudios.chat.ChatHandler;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
+import org.MakeACakeStudios.other.PlayerBanListener;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -37,11 +38,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private TabList tabList;
     private MailStorage mailStorage;
     private PlayerDataStorage playerDataStorage;
-    private TodoStorage todoStorage;
     private PunishmentStorage punishmentStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
     private MuteExpirationTask muteExpirationTask;
+    private BanExpirationTask banExpirationTask;
+    private PlayerBanListener playerBanListener;
 
     private Connection connection;
 
@@ -58,7 +60,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         MiniMessage miniMessage = MiniMessage.miniMessage();
         String dbPath = getDataFolder().getAbsolutePath();
         mailStorage = new MailStorage(dbPath);
-        todoStorage = new TodoStorage(dbPath);
         punishmentStorage = new PunishmentStorage(dbPath);
         chatHandler = new ChatHandler(this, punishmentStorage);
         tabList = new TabList(this);
@@ -67,7 +68,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
         muteExpirationTask.runTaskTimer(this, 0L, 20L);
 
-        MuteCommand muteCommand = new MuteCommand(this, playerDataStorage, punishmentStorage, muteExpirationTask);
+        this.banExpirationTask = new BanExpirationTask(punishmentStorage, miniMessage);
+        banExpirationTask.runTaskTimer(this, 0L, 20L);
+
+        MuteCommand muteCommand = new MuteCommand(this, punishmentStorage, muteExpirationTask);
         getCommand("mute").setExecutor(muteCommand);
         getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage));
 
@@ -81,9 +85,9 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("reply").setExecutor(new ReplyCommand(this, playerDataStorage));
         this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
-        this.getCommand("shrug").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
-        this.getCommand("tableflip").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
-        this.getCommand("unflip").setExecutor(new SmugCommand(playerDataStorage, miniMessage));
+        this.getCommand("shrug").setExecutor(new SmugCommand(this, miniMessage));
+        this.getCommand("tableflip").setExecutor(new SmugCommand(this, miniMessage));
+        this.getCommand("unflip").setExecutor(new SmugCommand(this, miniMessage));
         this.getCommand("announce").setExecutor(new AnnounceCommand(this, playerDataStorage));
         this.getCommand("mail").setExecutor(new MailCommand(this, playerDataStorage));
         this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage));
@@ -92,9 +96,9 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
         this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
         this.getCommand("list").setExecutor(new ListCommand(this, playerDataStorage));
-        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, todoStorage, punishmentStorage));
-        this.getCommand("todo").setExecutor(new TodoCommand(this));
-        this.getCommand("ban").setExecutor(new BanCommand(this, playerDataStorage, punishmentStorage, miniMessage));
+        this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, punishmentStorage));
+        this.getCommand("ban").setExecutor(new BanCommand(this, playerDataStorage, punishmentStorage, miniMessage, banExpirationTask));
+        this.getCommand("pardon").setExecutor(new PardonCommand(this, punishmentStorage));
 
         this.getCommand("reply").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("back").setTabCompleter(new EmptyTabCompleter());
@@ -106,14 +110,20 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("list").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mailcheck").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("mute").setTabCompleter(new PunishmentTabCompleter());
-        this.getCommand("ban").setTabCompleter(new PunishmentTabCompleter());
+        this.getCommand("mute").setTabCompleter(new PunishmentTabCompleter(playerDataStorage));
+        this.getCommand("ban").setTabCompleter(new PunishmentTabCompleter(playerDataStorage));
         this.getCommand("unmute").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("message").setTabCompleter(new PlayerTabCompleter());
         this.getCommand("mail").setTabCompleter(new PlayerDBTabCompleter(playerDataStorage));
+        this.getCommand("pardon").setTabCompleter(new PardonTabCompleter(punishmentStorage));
 
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
         muteExpirationTask.runTaskTimer(this, 0L, 20L);
+
+        this.banExpirationTask = new BanExpirationTask(punishmentStorage, miniMessage);
+        banExpirationTask.runTaskTimer(this, 0L,  20L);
+
+        getServer().getPluginManager().registerEvents(new PlayerBanListener(punishmentStorage), this);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             loadPlayerSound(player);
@@ -177,12 +187,15 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     }
 
     public String getPlayerPrefix(Player player) {
-        return playerDataStorage.getPlayerPrefix(player);
+        playerDataStorage.updatePlayerData(player);
+        return playerDataStorage.getPlayerPrefixByName(player.getName());
     }
 
     public String getPlayerSuffix(Player player) {
-        return playerDataStorage.getPlayerSuffix(player);
+        playerDataStorage.updatePlayerData(player);
+        return playerDataStorage.getPlayerSuffixByName(player.getName());
     }
+
 
     public void setPlayerSound(Player player, Sound sound) {
         playerSounds.put(player, sound);

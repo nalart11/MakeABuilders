@@ -10,7 +10,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 
 import java.util.Arrays;
@@ -20,15 +19,13 @@ import java.util.concurrent.TimeUnit;
 public class MuteCommand implements CommandExecutor {
 
     private final MakeABuilders plugin;
-    private final PlayerDataStorage playerDataStorage;
     private final PunishmentStorage punishmentStorage;
     private final MiniMessage miniMessage;
     private final MuteExpirationTask muteExpirationTask;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
 
-    public MuteCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask) {
+    public MuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask) {
         this.plugin = plugin;
-        this.playerDataStorage = playerDataStorage;
         this.punishmentStorage = punishmentStorage;
         this.muteExpirationTask = muteExpirationTask;
         this.miniMessage = MiniMessage.miniMessage();
@@ -58,8 +55,8 @@ public class MuteCommand implements CommandExecutor {
 
         mutePlayer(target, muteDuration, reason, sender.getName());
 
-        String prefix = playerDataStorage.getPlayerPrefix(target);
-        String suffix = playerDataStorage.getPlayerSuffix(target);
+        String prefix = plugin.getPlayerPrefix(target);
+        String suffix = plugin.getPlayerSuffix(target);
         String formattedName = prefix + target.getName() + suffix;
 
         if (timeString.equals("Fv")) {

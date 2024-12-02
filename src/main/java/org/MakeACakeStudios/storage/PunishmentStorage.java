@@ -1,6 +1,10 @@
 package org.MakeACakeStudios.storage;
 
+import org.bukkit.Bukkit;
+
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PunishmentStorage {
 
@@ -61,7 +65,7 @@ public class PunishmentStorage {
         }
     }
 
-    private int getNextBanNumber() {
+    public int getNextBanNumber() {
         String query = "SELECT MAX(ban_number) FROM punishments WHERE type = 'BAN'";
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
@@ -110,24 +114,24 @@ public class PunishmentStorage {
         }
     }
 
-    public void pardon(String player) {
+    public void pardonPlayer(String player) {
         String updateSQL = "UPDATE punishments SET is_valid = ? WHERE player = ? AND is_valid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updateSQL)) {
-            pstmt.setBoolean(1, false); // Set is_valid to false
-            pstmt.setString(2, player); // Specify the player
-            pstmt.setBoolean(3, true);  // Only update if the ban is currently valid (true)
+            pstmt.setBoolean(1, false);
+            pstmt.setString(2, player);
+            pstmt.setBoolean(3, true);
             int rowsUpdated = pstmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Player " + player + " has been pardoned successfully.");
+                System.out.println("Игрок " + player + " был разбанен.");
+                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(player);
             } else {
-                System.out.println("No active ban found for player: " + player);
+                System.out.println("Игрок " + player + " не забанен.");
             }
         } catch (SQLException e) {
             System.err.println("Error pardoning player: " + e.getMessage());
         }
     }
-
 
     public String checkMute(String player) {
         String query = "SELECT admin, endTime, reason FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
@@ -135,8 +139,8 @@ public class PunishmentStorage {
             pstmt.setString(1, player);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return "Player " + player + " is muted by " + rs.getString("admin") +
-                        " until " + rs.getString("endTime") + " for reason: " + rs.getString("reason");
+                return "Игрок " + player + " замьючен " + rs.getString("admin") +
+                        " до " + rs.getString("endTime") + " по причине: " + rs.getString("reason");
             } else {
                 return "Игрок " + player + " не замьючен.";
             }
@@ -164,6 +168,24 @@ public class PunishmentStorage {
         return -1;
     }
 
+    public long getBanEndTime(String player) {
+        String query = "SELECT endTime FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, player);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String endTime = rs.getString("endTime");
+                if ("Fv".equals(endTime)) {
+                    return Long.MAX_VALUE;
+                }
+                return Long.parseLong(endTime);
+            }
+        } catch (SQLException | NumberFormatException e) {
+            System.err.println("Ошибка при получении времени окончания бана: " + e.getMessage());
+        }
+        return -1;
+    }
+
     public void unmutePlayer(String player) {
         String updateSQL = "UPDATE punishments SET is_valid = false WHERE player = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(updateSQL)) {
@@ -171,30 +193,86 @@ public class PunishmentStorage {
             int rowsUpdated = pstmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Player " + player + " has been successfully unmuted.");
+                System.out.println("Игрок " + player + " был успешно размьючен.");
             } else {
-                System.out.println("No active mute found for player " + player + ".");
+                System.out.println("Игрок " + player + " не замьючен.");
             }
         } catch (SQLException e) {
             System.err.println("Error unmuting player " + player + ": " + e.getMessage());
         }
     }
 
-    public String banwhy(String player) {
+    public String checkBan(String player) {
         String query = "SELECT admin, endTime, reason, ban_number FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, player);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return "Player " + player + " is banned by " + rs.getString("admin") +
-                        " (Ban number: " + rs.getInt("ban_number") + ") until " + rs.getString("endTime") +
-                        " for reason: " + rs.getString("reason");
+                return "Игрок " + player + " забанен " + rs.getString("admin") +
+                        " (номер бана: " + rs.getInt("ban_number") + ") до " + rs.getString("endTime") +
+                        " по причине: " + rs.getString("reason");
             } else {
-                return "Player " + player + " is not banned.";
+                return "Игрок " + player + " не забанен.";
             }
         } catch (SQLException e) {
             System.err.println("Error checking ban: " + e.getMessage());
             return "Error checking ban for player " + player;
         }
+    }
+
+    public String getBanAdmin(String player) {
+        String query = "SELECT admin FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, player);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("admin");
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении администратора бана: " + e.getMessage());
+        }
+        return "Неизвестно";
+    }
+
+    public String getBanReason(String player) {
+        String query = "SELECT reason FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, player);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("reason");
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении причины бана: " + e.getMessage());
+        }
+        return "Не указана";
+    }
+
+    public int getBanNumber(String player) {
+        String query = "SELECT ban_number FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setString(1, player);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("ban_number");
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении номера бана: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    public List<String> getBannedPlayerNames() {
+        String query = "SELECT DISTINCT player FROM punishments WHERE type = 'BAN' AND is_valid = true";
+        List<String> bannedPlayers = new ArrayList<>();
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                bannedPlayers.add(rs.getString("player"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка при получении списка забаненных игроков: " + e.getMessage());
+        }
+        return bannedPlayers;
     }
 }

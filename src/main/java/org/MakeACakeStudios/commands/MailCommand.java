@@ -41,7 +41,6 @@ public class MailCommand implements CommandExecutor {
 
                 String recipientName = args[0];
 
-                // Check if recipient exists in the database
                 if (!playerDataStorage.playerExistsInDatabase(recipientName)) {
                     player.sendMessage(miniMessage.deserialize("<red>Игрок не найден в базе данных.</red>"));
                     return true;
@@ -49,7 +48,6 @@ public class MailCommand implements CommandExecutor {
 
                 String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-                // Add message to the database
                 mailStorage.addMessage(recipientName, plugin.getPlayerPrefix(player), player.getName(), plugin.getPlayerSuffix(player), message);
                 player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение отправлено.</green>"));
                 return true;
@@ -209,7 +207,7 @@ public class MailCommand implements CommandExecutor {
         String sender = messageData[2];
         String senderSuffix = messageData[3];
         String message = messageData[4];
-        String status = messageData[5].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<green>[Непрочитано]</green>";
+        String status = messageData[5].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<yellow>[Непрочитано]</yellow>";
 
         String formattedMessage = "<gray>--------------------------</gray>\n" +
                 "<green>Отправитель:</green> " + senderPrefix + sender + senderSuffix + "\n" +

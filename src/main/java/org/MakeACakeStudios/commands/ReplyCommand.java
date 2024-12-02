@@ -21,7 +21,7 @@ public class ReplyCommand implements CommandExecutor {
     public ReplyCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
         this.plugin = plugin;
         this.playerDataStorage = playerDataStorage;
-        this.tagFormatter = new TagFormatter(playerDataStorage);
+        this.tagFormatter = new TagFormatter(plugin);
     }
 
     private String getPlayerPrefix(Player player) {

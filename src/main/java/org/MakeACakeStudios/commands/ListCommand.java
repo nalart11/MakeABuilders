@@ -25,8 +25,8 @@ public class ListCommand implements CommandExecutor {
         StringBuilder playerList = new StringBuilder("<yellow>Игроки онлайн:</yellow>\n");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String prefix = playerDataStorage.getPlayerPrefix(player);
-            String suffix = playerDataStorage.getPlayerSuffix(player);
+            String prefix = plugin.getPlayerPrefix(player);
+            String suffix = plugin.getPlayerSuffix(player);
             String playerName = player.getName();
 
             // Format the player entry with prefix, name, and suffix

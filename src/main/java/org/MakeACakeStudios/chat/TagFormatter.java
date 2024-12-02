@@ -1,16 +1,16 @@
 package org.MakeACakeStudios.chat;
 
+import org.MakeACakeStudios.MakeABuilders;
 import org.bukkit.entity.Player;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
 
 public class TagFormatter {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final PlayerDataStorage playerDataStorage;
+    private final MakeABuilders plugin;
 
-    public TagFormatter(PlayerDataStorage playerDataStorage) {
-        this.playerDataStorage = playerDataStorage;
+    public TagFormatter(MakeABuilders plugin) {
+        this.plugin = plugin;
     }
 
     public String format(String message, Player player) {
@@ -30,8 +30,8 @@ public class TagFormatter {
             int z = player.getLocation().getBlockZ();
             String worldName = player.getWorld().getName();
 
-            String prefix = playerDataStorage.getPlayerPrefix(player);
-            String suffix = playerDataStorage.getPlayerSuffix(player);
+            String prefix = plugin.getPlayerPrefix(player);
+            String suffix = plugin.getPlayerSuffix(player);
             String playerName = player.getDisplayName();
 
             String formattedPlayerName = prefix + playerName + suffix;

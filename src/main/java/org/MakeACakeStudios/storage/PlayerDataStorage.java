@@ -68,7 +68,7 @@ public class PlayerDataStorage {
         }
     }
 
-    public String getPlayerPrefix(Player player) {
+    public void updatePlayerData(Player player) {
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
         String highestGroup = "default";
         int highestWeight = 0;
@@ -86,72 +86,55 @@ public class PlayerDataStorage {
             }
         }
 
-        String prefix;
+        String prefix, suffix;
         switch (highestGroup) {
             case "iam":
                 prefix = "<yellow>\uD83D\uDC51</yellow> <gradient:#E43A96:#FF0000>";
+                suffix = "</gradient>";
                 break;
             case "javadper":
                 prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#E0E0E0:#808080>";
+                suffix = "</gradient>";
                 break;
             case "yosya":
                 prefix = "<light_purple>\uD83D\uDC08</light_purple> <gradient:#DD00CC:#FFC8F6>";
+                suffix = "</gradient>";
                 break;
             case "admin":
                 prefix = "<blue>\uD83D\uDDE1</blue> <gradient:#FF2323:#FF7878>";
+                suffix = "</gradient>";
                 break;
             case "developer":
                 prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#141378:#97ABFF>";
+                suffix = "</gradient>";
                 break;
             case "moderator":
                 prefix = "<red>\uD83D\uDD31</red> <gradient:#23DBFF:#C8E9FF>";
+                suffix = "</gradient>";
                 break;
             case "sponsor":
                 prefix = "<gold>$</gold> <gradient:#00A53E:#C8FFD4>";
+                suffix = "</gradient>";
                 break;
             default:
                 prefix = "";
+                suffix = "";
         }
 
         String role = getRoleByGroup(highestGroup);
-        setPlayerData(player.getName(), prefix, role);
-        return prefix;
-    }
-
-    public String getPlayerSuffix(Player player) {
-        User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
-        String highestGroup = "default";
-        int highestWeight = 0;
-
-        if (user != null) {
-            for (Node node : user.getNodes()) {
-                if (node instanceof InheritanceNode) {
-                    InheritanceNode inheritanceNode = (InheritanceNode) node;
-                    String groupName = inheritanceNode.getGroupName();
-                    if (groupWeights.containsKey(groupName) && groupWeights.get(groupName) > highestWeight) {
-                        highestWeight = groupWeights.get(groupName);
-                        highestGroup = groupName;
-                    }
-                }
-            }
-        }
-
-        String suffix = highestGroup.equals("default") ? "" : "</gradient>";
-        String role = getRoleByGroup(highestGroup);
-        setPlayerData(player.getName(), suffix, role);
-        return suffix;
+        setPlayerData(player.getName(), prefix, suffix, role);
     }
 
     private String getRoleByGroup(String group) {
         return groupRoles.getOrDefault(group, "player");
     }
 
-    public void setPlayerData(String playerName, String prefix, String role) {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT OR REPLACE INTO player_data (player_name, prefix, suffix, role) VALUES (?, ?, (SELECT suffix FROM player_data WHERE player_name = ?), ?)")) {
+    public void setPlayerData(String playerName, String prefix, String suffix, String role) {
+        String query = "INSERT OR REPLACE INTO player_data (player_name, prefix, suffix, role) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, playerName);
             stmt.setString(2, prefix);
-            stmt.setString(3, playerName);
+            stmt.setString(3, suffix);
             stmt.setString(4, role);
             stmt.executeUpdate();
         } catch (SQLException e) {
