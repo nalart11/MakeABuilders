@@ -28,13 +28,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             Player player = (Player) sender;
 
             String worldName = args.length > 0 ? args[0] : player.getWorld().getName();
-            int x = 0, y = -60, z = 0;
+            long x = 0, y = -60, z = 0;
 
             if (args.length == 4) {
                 try {
-                    x = Integer.parseInt(args[1]);
-                    y = Integer.parseInt(args[2]);
-                    z = Integer.parseInt(args[3]);
+                    x = Long.parseLong(args[1]);
+                    y = Long.parseLong(args[2]);
+                    z = Long.parseLong(args[3]);
                 } catch (NumberFormatException e) {
                     player.sendMessage(miniMessage.deserialize("<red>Координаты должны быть числами.</red>"));
                     return true;

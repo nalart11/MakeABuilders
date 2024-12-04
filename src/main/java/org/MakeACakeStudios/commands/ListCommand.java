@@ -35,9 +35,8 @@ public class ListCommand implements CommandExecutor {
                     .append("</green>, ");
         }
 
-        // Remove the trailing comma and space if players are listed
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
-            playerList.setLength(playerList.length() - 2);  // Remove last ", "
+            playerList.setLength(playerList.length() - 2);
         }
 
         sender.sendMessage(miniMessage.deserialize(playerList.toString()));

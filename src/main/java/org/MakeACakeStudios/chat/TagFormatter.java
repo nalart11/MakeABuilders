@@ -78,7 +78,8 @@ public class TagFormatter {
                 .replace(":tada:", "<color:#FF00FF>\uD83C\uDF89</color>")
                 .replace(":nyaboom:", "<rainbow>NYABOOM :333</rainbow>")
                 .replace(":decline:", "<red>✖</red>")
-                .replace(":accept:", "<green>✔</green>");
+                .replace(":accept:", "<green>✔</green>")
+                .replace(":shrug:", "¯\\_(ツ)_/¯");
     }
 
     private String replaceLinks(String message) {

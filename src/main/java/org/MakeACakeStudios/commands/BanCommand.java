@@ -2,11 +2,11 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.other.BanExpirationTask;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,13 +26,15 @@ public class BanCommand implements CommandExecutor {
     private final MiniMessage miniMessage;
     private final BanExpirationTask banExpirationTask;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
+    private TagFormatter tagFormatter;
 
-    public BanCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MiniMessage miniMessage, BanExpirationTask banExpirationTask) {
+    public BanCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MiniMessage miniMessage, BanExpirationTask banExpirationTask, TagFormatter tagFormatter) {
         this.plugin = plugin;
         this.playerDataStorage = playerDataStorage;
         this.punishmentStorage = punishmentStorage;
         this.miniMessage = miniMessage;
         this.banExpirationTask = banExpirationTask;
+        this.tagFormatter = tagFormatter;
     }
 
     @Override
@@ -80,6 +82,10 @@ public class BanCommand implements CommandExecutor {
             String formattedName = prefix + offlinePlayer.getName() + suffix;
 
             banOfflinePlayer(offlinePlayer, banDuration, reason, admin);
+
+            Player adminPlayer = Bukkit.getPlayer(admin);
+
+            reason = tagFormatter.format(reason, adminPlayer);
 
             if (timeString.equals("Fv")) {
                 sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был забанен навсегда по причине: " + reason + "</green>"));
@@ -144,10 +150,13 @@ public class BanCommand implements CommandExecutor {
         String adminSuffix = playerDataStorage.getPlayerSuffixByName(admin);
         String adminName = adminPrefix + admin + adminSuffix;
 
+        Player adminPlayer = Bukkit.getPlayer(admin);
+
         String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
+        String finalChatMessage = tagFormatter.format(chatMessage, adminPlayer);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(miniMessage.deserialize(chatMessage));
+            onlinePlayer.sendMessage(miniMessage.deserialize(finalChatMessage));
         }
     }
 
@@ -171,10 +180,13 @@ public class BanCommand implements CommandExecutor {
         String adminSuffix = playerDataStorage.getPlayerSuffixByName(admin);
         String adminName = adminPrefix + admin + adminSuffix;
 
+        Player adminPlayer = Bukkit.getPlayer(admin);
+
         String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
+        String finalChatMessage = tagFormatter.format(chatMessage, adminPlayer);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(miniMessage.deserialize(chatMessage));
+            onlinePlayer.sendMessage(miniMessage.deserialize(finalChatMessage));
         }
     }
 

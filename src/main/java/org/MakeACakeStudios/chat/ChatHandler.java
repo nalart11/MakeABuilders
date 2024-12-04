@@ -185,7 +185,7 @@ public class ChatHandler implements Listener {
 
             String deletedMessageFormatWithRole = "<gray>[ID:" + messageId + "]</gray> "
                     + "<click:run_command:/retmsg " + messageId + "><green>[✔]</green></click> "
-                    + clickableName + "> <gray><i><сообщение удалено></i></gray>";
+                    + clickableName + " > <gray><i><сообщение удалено></i></gray>";
 
             chatMessages.put(messageId, deletedMessageFormatWithRole);
             reloadChat();

@@ -2,6 +2,7 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.other.MuteExpirationTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -23,11 +24,13 @@ public class MuteCommand implements CommandExecutor {
     private final MiniMessage miniMessage;
     private final MuteExpirationTask muteExpirationTask;
     private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
+    private final TagFormatter tagFormatter;
 
-    public MuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask) {
+    public MuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask, TagFormatter tagFormatter) {
         this.plugin = plugin;
         this.punishmentStorage = punishmentStorage;
         this.muteExpirationTask = muteExpirationTask;
+        this.tagFormatter = tagFormatter;
         this.miniMessage = MiniMessage.miniMessage();
     }
 
@@ -60,9 +63,13 @@ public class MuteCommand implements CommandExecutor {
         String formattedName = prefix + target.getName() + suffix;
 
         if (timeString.equals("Fv")) {
-            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>"));
+            String message = "<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>";
+            String finalMessage = tagFormatter.format(message, target);
+            sender.sendMessage(miniMessage.deserialize(finalMessage));
         } else {
-            sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>"));
+            String message = "<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>";
+            String finalMessage = tagFormatter.format(message, target);
+            sender.sendMessage(miniMessage.deserialize(finalMessage));
         }
 
         return true;
@@ -110,7 +117,7 @@ public class MuteCommand implements CommandExecutor {
                 : "<red>Вы были замьючены на " + (duration / 1000) + " секунд по причине:</red><gold> " + reason + "</gold>";
 
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-        player.sendMessage(miniMessage.deserialize(message));
+        player.sendMessage(miniMessage.deserialize(tagFormatter.format(message, player)));
     }
 
     public boolean isMuted(Player player) {

@@ -21,11 +21,13 @@ public class MailCommand implements CommandExecutor {
     private final MailStorage mailStorage;
     private final PlayerDataStorage playerDataStorage;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final TagFormatter tagFormatter;
 
-    public MailCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
+    public MailCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, TagFormatter tagFormatter) {
         this.plugin = plugin;
         this.mailStorage = plugin.getMailStorage();
         this.playerDataStorage = playerDataStorage;
+        this.tagFormatter = tagFormatter;
     }
 
     @Override
@@ -47,6 +49,8 @@ public class MailCommand implements CommandExecutor {
                 }
 
                 String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+
+                message = tagFormatter.format(message, player);
 
                 mailStorage.addMessage(recipientName, plugin.getPlayerPrefix(player), player.getName(), plugin.getPlayerSuffix(player), message);
                 player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение отправлено.</green>"));
