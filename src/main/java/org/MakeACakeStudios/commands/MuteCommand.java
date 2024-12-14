@@ -47,6 +47,15 @@ public class MuteCommand implements CommandExecutor {
             return true;
         }
 
+        if (isMuted(target)) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
+            }
+            sender.sendMessage(miniMessage.deserialize("<red>Игрок уже замьючен.</red>"));
+            return true;
+        }
+
         String timeString = args[1];
         long muteDuration = parseTimeString(timeString);
         if (muteDuration == -1) {
@@ -98,10 +107,10 @@ public class MuteCommand implements CommandExecutor {
                 case 'y':
                     return TimeUnit.DAYS.toMillis(time * 365);
                 default:
-                    return -1; // неправильный формат
+                    return -1;
             }
         } catch (NumberFormatException e) {
-            return -1; // ошибка в формате
+            return -1;
         }
     }
 
@@ -122,6 +131,6 @@ public class MuteCommand implements CommandExecutor {
 
     public boolean isMuted(Player player) {
         String muteStatus = punishmentStorage.checkMute(player.getName());
-        return !muteStatus.contains("не замьючен"); // Returns true if player is muted
+        return !muteStatus.contains("не замьючен");
     }
 }

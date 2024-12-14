@@ -89,7 +89,7 @@ public class PlayerDataStorage {
         String prefix, suffix;
         switch (highestGroup) {
             case "iam":
-                prefix = "<yellow>\uD83D\uDC51</yellow> <gradient:#E43A96:#FF0000>";
+                prefix = "<yellow>✦</yellow> <gradient:#914EFF:#97ABFF>";
                 suffix = "</gradient>";
                 break;
             case "javadper":
@@ -97,19 +97,19 @@ public class PlayerDataStorage {
                 suffix = "</gradient>";
                 break;
             case "yosya":
-                prefix = "<light_purple>\uD83D\uDC08</light_purple> <gradient:#DD00CC:#FFC8F6>";
+                prefix = "<color:#CBC3E3>\uD83D\uDC08</color> <gradient:#DD00CC:#FFC8F6>";
                 suffix = "</gradient>";
                 break;
             case "admin":
-                prefix = "<blue>\uD83D\uDDE1</blue> <gradient:#FF2323:#FF7878>";
+                prefix = "<blue>⛨</blue> <gradient:#FF2323:#FF7878>";
                 suffix = "</gradient>";
                 break;
             case "developer":
-                prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#141378:#97ABFF>";
+                prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#E43A96:#FF0000>";
                 suffix = "</gradient>";
                 break;
             case "moderator":
-                prefix = "<red>\uD83D\uDD31</red> <gradient:#23DBFF:#C8E9FF>";
+                prefix = "<blue>⛨</blue> <gradient:#23DBFF:#C8E9FF>";
                 suffix = "</gradient>";
                 break;
             case "sponsor":

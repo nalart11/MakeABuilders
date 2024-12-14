@@ -64,7 +64,7 @@ public class TagFormatter {
         return message
                 .replace(":cry:", "<yellow>☹</yellow><aqua>,</aqua>")
                 .replace(":skull:", "☠")
-                .replace(":skulley:", "<red>☠</red>")
+                .replace(":skulley:", "<red>☠'ey</red>")
                 .replace("<3", "<red>❤</red>")
                 .replace(":heart:", "<red>❤</red>")
                 .replace(":fire:", "<color:#FF7800>\uD83D\uDD25</color>")
@@ -72,14 +72,18 @@ public class TagFormatter {
                 .replace(":stop:", "<red>⚠</red>")
                 .replace(":sun:", "<yellow>☀</yellow>")
                 .replace(":mail:", "✉")
-                .replace(":happy:", "☺")
-                .replace(":sad:", "☹")
+                .replace(":happy:", "<yellow>☺</yellow>")
+                .replace(":sad:", "<yellow>☹</yellow>")
                 .replace(":umbrella:", "☂")
                 .replace(":tada:", "<color:#FF00FF>\uD83C\uDF89</color>")
-                .replace(":nyaboom:", "<rainbow>NYABOOM :333</rainbow>")
-                .replace(":decline:", "<red>✖</red>")
-                .replace(":accept:", "<green>✔</green>")
-                .replace(":shrug:", "¯\\_(ツ)_/¯");
+                .replace(":nyaboom:", "<rainbow>NYABOOM</rainbow> <aqua>:333</aqua>")
+                .replace(":no:", "<red>✖</red>")
+                .replace(":yes:", "<green>✔</green>")
+                .replace(":shrug:", "¯\\_(ツ)_/¯")
+                .replace(":tableflip:", "<red>(╯°□°)╯︵ ┻━┻</red>")
+                .replace(":unflip:", "┬─┬ノ( º _ ºノ)")
+                .replace(":questionmark:", "<b>???<b>")
+                .replace(":sadge:", "<yellow>ⓈⒶⒹⒼⒺ</yellow><aqua>...</aqua>");
     }
 
     private String replaceLinks(String message) {

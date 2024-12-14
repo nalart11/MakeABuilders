@@ -2,6 +2,7 @@ package org.MakeACakeStudios.other;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.MakeACakeStudios.storage.PunishmentStorage;
@@ -13,7 +14,7 @@ import java.util.Set;
 public class MuteExpirationTask extends BukkitRunnable {
 
     private final PunishmentStorage punishmentStorage;
-    private final Set<String> mutedPlayers = new HashSet<>();
+    public final Set<String> mutedPlayers = new HashSet<>();
     private final MiniMessage miniMessage;
 
     public MuteExpirationTask(PunishmentStorage punishmentStorage, MiniMessage miniMessage) {
@@ -43,6 +44,7 @@ public class MuteExpirationTask extends BukkitRunnable {
                 Player player = Bukkit.getPlayer(playerName);
                 if (player != null && player.isOnline()) {
                     player.sendMessage(miniMessage.deserialize("<green>Ваш мут истек. Теперь вы можете общаться.<green>"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);
                     removePlayerFromMuteCheck(playerName);
                 }
             }

@@ -1,6 +1,7 @@
 package org.MakeACakeStudios.commands;
 
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.other.MuteExpirationTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -18,9 +19,11 @@ public class UnmuteCommand implements CommandExecutor {
     private final MiniMessage miniMessage;
     private final PlayerDataStorage playerDataStorage;
     private final PunishmentStorage punishmentStorage;
+    private final MuteExpirationTask muteExpirationTask;
 
-    public UnmuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage) {
+    public UnmuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask) {
         this.plugin = plugin;
+        this.muteExpirationTask = muteExpirationTask;
         this.miniMessage = MiniMessage.miniMessage();
         this.playerDataStorage = new PlayerDataStorage(plugin);
         this.punishmentStorage = punishmentStorage;
@@ -53,6 +56,7 @@ public class UnmuteCommand implements CommandExecutor {
         sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был размьючен.</green>"));
         target.playSound(target.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);
         target.sendMessage(miniMessage.deserialize("<green>Вы были размьючены.</green>"));
+        muteExpirationTask.removePlayerFromMuteCheck(target.getName());
 
         return true;
     }

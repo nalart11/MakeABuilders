@@ -7,6 +7,7 @@ import org.MakeACakeStudios.other.BanExpirationTask;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -58,6 +59,15 @@ public class BanCommand implements CommandExecutor {
 
         if (onlinePlayer == null && !offlinePlayer.hasPlayedBefore()) {
             sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден или никогда не заходил на сервер.</red>"));
+            return true;
+        }
+
+        if (isBanned(playerName)) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
+            }
+            sender.sendMessage(miniMessage.deserialize("<red>Игрок уже забанен.</red>"));
             return true;
         }
 
@@ -212,5 +222,10 @@ public class BanCommand implements CommandExecutor {
 
         java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm");
         return dateFormat.format(new java.util.Date(banEndTime));
+    }
+
+    public boolean isBanned(String playerName) {
+        String banStatus = punishmentStorage.checkBan(playerName);
+        return !banStatus.contains("не забанен");
     }
 }

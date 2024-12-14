@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressWarnings("ALL")
 public final class MakeABuilders extends JavaPlugin implements @NotNull Listener {
 
     private final HashMap<Player, Player> lastMessaged = new HashMap<>();
@@ -76,7 +77,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
         MuteCommand muteCommand = new MuteCommand(this, punishmentStorage, muteExpirationTask, tagFormatter);
         getCommand("mute").setExecutor(muteCommand);
-        getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage));
+        getCommand("unmute").setExecutor(new UnmuteCommand(this, punishmentStorage, muteExpirationTask));
 
         getServer().getPluginManager().registerEvents(new DynamicMotd(this), this);
         getServer().getPluginManager().registerEvents(chatHandler, this);
@@ -88,17 +89,15 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("reply").setExecutor(new ReplyCommand(this, playerDataStorage));
         this.getCommand("message-sound").setExecutor(new MessageSoundCommand(this));
         this.getCommand("rename").setExecutor(new RenameCommand());
-        this.getCommand("shrug").setExecutor(new SmugCommand(this, miniMessage));
-        this.getCommand("tableflip").setExecutor(new SmugCommand(this, miniMessage));
-        this.getCommand("unflip").setExecutor(new SmugCommand(this, miniMessage));
-        this.getCommand("announce").setExecutor(new AnnounceCommand(this, playerDataStorage));
+        this.getCommand("shrug").setExecutor(new SmugCommand(this, miniMessage, chatHandler));
+        this.getCommand("tableflip").setExecutor(new SmugCommand(this, miniMessage, chatHandler));
+        this.getCommand("unflip").setExecutor(new SmugCommand(this, miniMessage, chatHandler));
         this.getCommand("mail").setExecutor(new MailCommand(this, playerDataStorage, tagFormatter));
         this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage, tagFormatter));
         this.getCommand("mailread").setExecutor(new MailCommand(this, playerDataStorage, tagFormatter));
         this.getCommand("info").setExecutor(new VersionCommand());
         this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
         this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
-        this.getCommand("list").setExecutor(new ListCommand(this, playerDataStorage));
         this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, punishmentStorage));
         this.getCommand("ban").setExecutor(new BanCommand(this, playerDataStorage, punishmentStorage, miniMessage, banExpirationTask, tagFormatter));
         this.getCommand("pardon").setExecutor(new PardonCommand(this, punishmentStorage));
@@ -108,10 +107,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("shrug").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("tableflip").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("unflip").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("info").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("list").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("announce").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mailcheck").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("mute").setTabCompleter(new PunishmentTabCompleter(playerDataStorage));
         this.getCommand("ban").setTabCompleter(new PunishmentTabCompleter(playerDataStorage));
@@ -122,6 +118,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mailread").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("remmsg").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("retmsg").setTabCompleter(new EmptyTabCompleter());
+        this.getCommand("status").setTabCompleter(new StatusTabCompleter());
 
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
         muteExpirationTask.runTaskTimer(this, 0L, 20L);

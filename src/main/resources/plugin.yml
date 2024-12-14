@@ -51,11 +51,6 @@ commands:
   unflip:
     description: Стол перевернуться
     usage: /unflip
-  announce:
-    description: Отправить срочное оповещение всем игрокам.
-    usage: /announce <сообщение>
-    permission: MakeABuilders.announce
-    aliases: [an]
   mute:
     description: Замьютить человека.
     usage: /mute <nickname> <time> [reason]
@@ -74,9 +69,6 @@ commands:
     usage: /return-message id
     permission: MakeABuilders.retmsg
     aliases: [ retmsg ]
-  list:
-    description: Список игроков онлайн.
-    usage: /list
   status:
     description: Проверка состояния баз данных
     usage: /status <check|mail|prefix>

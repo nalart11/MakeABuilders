@@ -1,6 +1,8 @@
 package org.MakeACakeStudios.storage;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -24,17 +26,6 @@ public class PunishmentStorage {
             System.out.println("Подключение к базе данных SQLite установлено.");
         } catch (SQLException e) {
             System.err.println("Ошибка при подключении к базе данных: " + e.getMessage());
-        }
-    }
-
-    public void disconnectFromDatabase() {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println("Подключение к базе данных закрыто.");
-            } catch (SQLException e) {
-                System.err.println("Ошибка при закрытии подключения к базе данных: " + e.getMessage());
-            }
         }
     }
 

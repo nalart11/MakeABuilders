@@ -8,6 +8,12 @@ import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StatusCommand implements CommandExecutor {
 
@@ -46,7 +52,7 @@ public class StatusCommand implements CommandExecutor {
                 break;
 
             case "mail":
-                sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> ->" + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+                sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
                 break;
 
             case "player":
