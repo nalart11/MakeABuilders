@@ -30,8 +30,8 @@ public class TabList {
     }
 
     private void updateTab(Player player) {
-        String serverName = "<b><gradient:#E43A96:#FF0000>MakeATest!</gradient></b>";
-        String serverTagline = "<i>Он работает тут every day...</i>";
+        String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></b>";
+        String serverTagline = "<i>Делаем здесь что то every day...</i>";
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String prefix = plugin.getPlayerPrefix(onlinePlayer);
@@ -65,7 +65,7 @@ public class TabList {
             tpsColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-        String additionalTagline = "<i>/goto существует...</i>";
+        String additionalTagline = "<i>/info существует...</i>";
 
         Component header = miniMessage.deserialize("\n" + serverName + "\n" +
                 "<gray>   " + serverTagline + "   </gray>\n");
