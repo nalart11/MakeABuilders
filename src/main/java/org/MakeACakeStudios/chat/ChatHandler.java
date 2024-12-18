@@ -249,13 +249,33 @@ public class ChatHandler implements Listener {
 
     private void reloadChat() {
         clearChat();
+
         for (Player player : Bukkit.getOnlinePlayers()) {
+            boolean hasRole = playerDataStorage.getPlayerRoleByName(player.getName()) != null &&
+                    !playerDataStorage.getPlayerRoleByName(player.getName()).equals("player");
+
             chatMessages.forEach((id, message) -> {
-                Component parsedMessage = miniMessage.deserialize(message);
+                // Удаляем кнопки удаления/восстановления для обычных игроков
+                String processedMessage = message;
+                if (!hasRole) {
+                    processedMessage = removeAdminTags(message);
+                }
+
+                Component parsedMessage = miniMessage.deserialize(processedMessage);
                 player.sendMessage(parsedMessage);
             });
         }
     }
+
+    private String removeAdminTags(String message) {
+        String cleanedMessage = message
+                .replaceAll("<click:run_command:/remmsg \\d+><red>\\[✖\\]</red></click>", "")
+                .replaceAll("<click:run_command:/retmsg \\d+><green>\\[✔\\]</green></click>", "")
+                .replaceAll("<gray>\\[ID:\\d+\\]</gray>", "");
+
+        return cleanedMessage.replaceAll("\\s{2,}", " ").trim();
+    }
+
 
     private void clearChat() {
         for (Player player : Bukkit.getOnlinePlayers()) {
