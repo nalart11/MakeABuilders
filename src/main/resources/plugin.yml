@@ -59,16 +59,6 @@ commands:
     description: Размутить человека.
     usage: /unmute <nickname>
     permission: MakeABuilders.unmute
-  remove-message:
-    description: Удалить сообщение в чате.
-    usage: /remove-message id
-    permission: MakeABuilders.remmsg
-    aliases: [remmsg]
-  return-message:
-    description: Вернуть удалённое сообщение в чате.
-    usage: /return-message id
-    permission: MakeABuilders.retmsg
-    aliases: [ retmsg ]
   status:
     description: Проверка состояния баз данных
     usage: /status <check|mail|prefix>

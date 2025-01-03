@@ -96,8 +96,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mailcheck").setExecutor(new MailCommand(this, playerDataStorage, tagFormatter));
         this.getCommand("mailread").setExecutor(new MailCommand(this, playerDataStorage, tagFormatter));
         this.getCommand("info").setExecutor(new VersionCommand());
-        this.getCommand("remove-message").setExecutor(new RemoveMessage(chatHandler));
-        this.getCommand("return-message").setExecutor(new ReturnMessage(this, chatHandler));
         this.getCommand("status").setExecutor(new StatusCommand(this, mailStorage, playerDataStorage, punishmentStorage));
         this.getCommand("ban").setExecutor(new BanCommand(this, playerDataStorage, punishmentStorage, miniMessage, banExpirationTask, tagFormatter));
         this.getCommand("pardon").setExecutor(new PardonCommand(this, punishmentStorage));
@@ -116,8 +114,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         this.getCommand("mail").setTabCompleter(new PlayerDBTabCompleter(playerDataStorage));
         this.getCommand("pardon").setTabCompleter(new PardonTabCompleter(punishmentStorage));
         this.getCommand("mailread").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("remmsg").setTabCompleter(new EmptyTabCompleter());
-        this.getCommand("retmsg").setTabCompleter(new EmptyTabCompleter());
         this.getCommand("status").setTabCompleter(new StatusTabCompleter());
 
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);

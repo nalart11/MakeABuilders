@@ -3,7 +3,6 @@ package org.MakeACakeStudios.chat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.commands.MuteCommand;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
@@ -25,7 +24,6 @@ public class ChatHandler implements Listener {
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final FileConfiguration config;
     private final MakeABuilders plugin;
-    private final Map<String, List<String>> messages = new HashMap<>();
     private final PlayerDataStorage playerDataStorage;
     private final PunishmentStorage punishmentStorage;
     private final TagFormatter tagFormatter;
@@ -66,10 +64,6 @@ public class ChatHandler implements Listener {
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component joinMessage = miniMessage.deserialize(parsedMessage);
 
-            int messageId = messageIdCounter++;
-            chatMessages.put(messageId, parsedMessage);
-            messageOwners.put(messageId, player);
-
             event.joinMessage(joinMessage);
 
             List<String[]> playerMessages = plugin.getMailStorage().getMessages(player.getName());
@@ -93,10 +87,6 @@ public class ChatHandler implements Listener {
             String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
             Component quitMessage = miniMessage.deserialize(parsedMessage);
 
-            int messageId = messageIdCounter++;
-            chatMessages.put(messageId, parsedMessage);
-            messageOwners.put(messageId, player);
-
             event.quitMessage(quitMessage);
         }
     }
@@ -110,12 +100,6 @@ public class ChatHandler implements Listener {
             Component customDeathMessage = originalDeathMessage.replaceText(builder ->
                     builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
             );
-
-            String renderedMessage = miniMessage.serialize(customDeathMessage);
-
-            int messageId = messageIdCounter++;
-            chatMessages.put(messageId, renderedMessage);
-            messageOwners.put(messageId, player);
 
             event.deathMessage(customDeathMessage);
         }
@@ -131,157 +115,25 @@ public class ChatHandler implements Listener {
                     builder.matchLiteral(player.getName()).replacement(getFormattedPlayerName(player))
             );
 
-            String renderedMessage = miniMessage.serialize(customAdvancementMessage);
-
-            int messageId = messageIdCounter++;
-            chatMessages.put(messageId, renderedMessage);
-            messageOwners.put(messageId, player);
-
             event.message(customAdvancementMessage);
         }
     }
 
-    public Map<String, List<String>> getMessages() {
-        return messages;
-    }
-
-    private static final Map<String, Integer> groupWeights = new HashMap<>();
-
-    static {
-        groupWeights.put("iam", 5);
-        groupWeights.put("javadper", 4);
-        groupWeights.put("yosya", 4);
-        groupWeights.put("admin", 3);
-        groupWeights.put("developer", 2);
-        groupWeights.put("moderator", 1);
-        groupWeights.put("sponsor", 0);
-    }
-
-    private final Map<Integer, String> chatMessages = new HashMap<>();
-    private final Map<Integer, String> originalMessages = new HashMap<>();
-    private final Map<Integer, Player> messageOwners = new HashMap<>();
-    private int messageIdCounter = 0;
-
     public void handleExternalCommandMessage(Player sender, String message) {
-        int messageId = messageIdCounter++;
         String formattedMessage = tagFormatter.format(message, sender);
 
         String prefix = plugin.getPlayerPrefix(sender);
         String suffix = plugin.getPlayerSuffix(sender);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()) != null &&
-                    !playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()).equals("player")) {
-
-                String deleteButton = "<click:run_command:/remmsg " + messageId + "><red>[✖]</red></click>";
-                String messageIdTag = "<gray>[ID:" + messageId + "]</gray> ";
-                String clickableName = "<click:suggest_command:'/msg " + sender.getName() + " '> " +
+            String clickableName = "<click:suggest_command:'/msg " + sender.getName() + " '>" +
                         "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " +
                         prefix + sender.getName() + suffix + ".'>" +
                         prefix + sender.getName() + suffix + "</hover></click>";
 
-                String finalMessage = messageIdTag + deleteButton + clickableName + " > " + formattedMessage;
+            String finalMessage = clickableName + " > " + formattedMessage;
 
-                chatMessages.put(messageId, finalMessage);
-                messageOwners.put(messageId, sender);
-
-                Component staffMessage = miniMessage.deserialize(finalMessage);
-                onlinePlayer.sendMessage(staffMessage);
-            } else {
-                String finalMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>" +
-                        "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " +
-                        prefix + sender.getName() + suffix + ".'>" +
-                        prefix + sender.getName() + suffix + "</hover></click> > " + formattedMessage;
-
-                Component playerMessage = miniMessage.deserialize(finalMessage);
-                onlinePlayer.sendMessage(playerMessage);
-            }
-        }
-
-        originalMessages.put(messageId, message);
-    }
-
-    public void deleteMessage(int messageId) {
-        if (chatMessages.containsKey(messageId)) {
-            plugin.getLogger().info("Deleting message with ID: " + messageId);
-
-            String originalMessage = chatMessages.get(messageId);
-            originalMessages.put(messageId, originalMessage);
-
-            Player messageOwner = messageOwners.get(messageId);
-            String clickableName;
-            if (messageOwner != null) {
-                String prefix = plugin.getPlayerPrefix(messageOwner);
-                String suffix = plugin.getPlayerSuffix(messageOwner);
-                String playerName = messageOwner.getName();
-
-                clickableName = "<click:suggest_command:'/msg " + playerName + " '> " +
-                        "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " +
-                        prefix + playerName + suffix + ".'>" +
-                        prefix + playerName + suffix + "</hover></click>";
-            } else {
-                clickableName = "<unknown>";
-            }
-
-            String deletedMessageFormatWithRole = "<gray>[ID:" + messageId + "]</gray> " +
-                    "<click:run_command:/retmsg " + messageId + "><green>[✔]</green></click>" +
-                    clickableName + " > <gray><i><сообщение удалено></i></gray>";
-
-            chatMessages.put(messageId, deletedMessageFormatWithRole);
-            reloadChat();
-        } else {
-            plugin.getLogger().info("Message with ID " + messageId + " does not exist.");
-        }
-    }
-
-    public boolean restoreMessage(int messageId) {
-        if (originalMessages.containsKey(messageId)) {
-            String originalMessage = originalMessages.get(messageId);
-            chatMessages.put(messageId, originalMessage);
-            plugin.getLogger().info("Restoring message with ID: " + messageId);
-            reloadChat();
-            return true;
-        } else {
-            plugin.getLogger().info("Original message with ID " + messageId + " does not exist.");
-            return false;
-        }
-    }
-
-    private void reloadChat() {
-        clearChat();
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            boolean hasRole = playerDataStorage.getPlayerRoleByName(player.getName()) != null &&
-                    !playerDataStorage.getPlayerRoleByName(player.getName()).equals("player");
-
-            chatMessages.forEach((id, message) -> {
-                // Удаляем кнопки удаления/восстановления для обычных игроков
-                String processedMessage = message;
-                if (!hasRole) {
-                    processedMessage = removeAdminTags(message);
-                }
-
-                Component parsedMessage = miniMessage.deserialize(processedMessage);
-                player.sendMessage(parsedMessage);
-            });
-        }
-    }
-
-    private String removeAdminTags(String message) {
-        String cleanedMessage = message
-                .replaceAll("<click:run_command:/remmsg \\d+><red>\\[✖\\]</red></click>", "")
-                .replaceAll("<click:run_command:/retmsg \\d+><green>\\[✔\\]</green></click>", "")
-                .replaceAll("<gray>\\[ID:\\d+\\]</gray>", "");
-
-        return cleanedMessage.replaceAll("\\s{2,}", " ").trim();
-    }
-
-
-    private void clearChat() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            for (int i = 0; i < 100; i++) {
-                player.sendMessage("");
-            }
+            onlinePlayer.sendMessage(miniMessage.deserialize(finalMessage));
         }
     }
 
@@ -326,37 +178,17 @@ public class ChatHandler implements Listener {
             }
         }
 
-        int messageId = messageIdCounter++;
         String formattedMessage = tagFormatter.format(message, player);
-
         String prefix = plugin.getPlayerPrefix(player);
         String suffix = plugin.getPlayerSuffix(player);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()) != null && !playerDataStorage.getPlayerRoleByName(onlinePlayer.getName()).equals("player")) {
-                String deleteButton = "<click:run_command:/remmsg " + messageId + "><red>[✖]</red></click> ";
-                String messageIdTag = "<gray>[ID:" + messageId + "]</gray> ";
+            String finalMessage = "<click:suggest_command:'/msg " + player.getName() + " '>"
+                    + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
+                    + prefix + playerName + suffix + "</hover></click> > " + formattedMessage;
 
-                String clickableName = "<click:suggest_command:'/msg " + player.getName() + " '>"
-                        + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
-                        + prefix + playerName + suffix + "</hover></click> ";
-
-                String finalMessage = messageIdTag + deleteButton + clickableName + "> " + formattedMessage;
-
-                chatMessages.put(messageId, finalMessage);
-                messageOwners.put(messageId, player);
-
-                Component staffMessage = miniMessage.deserialize(finalMessage);
-                onlinePlayer.sendMessage(staffMessage);
-                }
-            else {
-                String finalMessage = "<click:suggest_command:'/msg " + player.getName() + " '>"
-                        + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
-                        + prefix + playerName + suffix + "</hover></click> > " + formattedMessage;
-
-                Component playerMessage = miniMessage.deserialize(finalMessage);
-                onlinePlayer.sendMessage(playerMessage);
-            }
+            Component playerMessage = miniMessage.deserialize(finalMessage);
+            onlinePlayer.sendMessage(playerMessage);
         }
 
         event.setCancelled(true);
