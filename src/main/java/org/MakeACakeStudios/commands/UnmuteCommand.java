@@ -25,7 +25,7 @@ public class UnmuteCommand implements CommandExecutor {
         this.plugin = plugin;
         this.muteExpirationTask = muteExpirationTask;
         this.miniMessage = MiniMessage.miniMessage();
-        this.playerDataStorage = new PlayerDataStorage(plugin);
+        this.playerDataStorage = new PlayerDataStorage();
         this.punishmentStorage = punishmentStorage;
     }
 

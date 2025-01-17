@@ -1,102 +1,61 @@
 package org.MakeACakeStudios.commands;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 
-public class MessageCommand implements CommandExecutor, TabCompleter {
-
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final MakeABuilders plugin;
-    private final TagFormatter tagFormatter;
-    private final PlayerDataStorage playerDataStorage;
-
-    public MessageCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
-        this.plugin = plugin;
-        this.playerDataStorage = playerDataStorage;
-        this.tagFormatter = new TagFormatter(plugin);
-    }
+public class MessageCommand implements Command {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("§cТолько игроки могут использовать эту команду.");
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("message", "msg")
+                        .senderType(Player.class)
+                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("text", StringParser.greedyStringParser())
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("text")))
+        );
+    }
 
-        if (args.length < 2) {
-            sender.sendMessage(miniMessage.deserialize("<red>Использование: /msg <игрок> <сообщение></red>"));
-            return true;
-        }
+    private void handle(@NotNull Player sender, @NotNull OfflinePlayer offlineTarget, String message) {
 
-        Player target = Bukkit.getPlayer(args[0]);
-        if (target == null) {
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден!</red>"));
-            return true;
-        }
+        String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(sender.getName());
+        String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(sender.getName());
+        String senderName = senderPrefix + sender.getName() + senderSuffix;
 
-        Player playerSender = (Player) sender;
+        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(offlineTarget.getName());
+        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(offlineTarget.getName());
+        String targetName = targetPrefix + offlineTarget.getName() + targetSuffix;
 
-        String senderPrefix = plugin.getPlayerPrefix(playerSender);
-        String senderSuffix = plugin.getPlayerSuffix(playerSender);
-        String senderName = senderPrefix + playerSender.getName() + senderSuffix;
-        String targetPrefix = plugin.getPlayerPrefix(target);
-        String targetSuffix = plugin.getPlayerSuffix(target);
-        String targetName = targetPrefix + target.getName() + targetSuffix;
+        Player target = Bukkit.getPlayer(offlineTarget.getName());
 
-        StringBuilder message = new StringBuilder();
-        for (int i = 1; i < args.length; i++) {
-            message.append(args[i]).append(" ");
-        }
+        String formattedMessage = TagFormatter.format(message, sender);
 
-        String formattedMessage = tagFormatter.format(message.toString().trim(), playerSender);
-        String senderMessage = senderName + " <yellow>→</yellow> "
+        Sound selectedSound = MakeABuilders.instance.getPlayerSound(target);
+
+        String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
         String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
                 + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
                 + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
 
-        target.sendMessage(miniMessage.deserialize(targetMessage));
-        playerSender.sendMessage(miniMessage.deserialize(senderMessage));
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
+        target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
+        target.playSound(target, selectedSound, 1.0F, 1.0F);
 
-        Sound selectedSound = plugin.getPlayerSound(target);
-
-        target.playSound(target.getLocation(), selectedSound, 1.0F, 1.0F);
-
-        plugin.setLastMessaged(playerSender, target);
-
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        List<String> suggestions = new ArrayList<>();
-
-        if (args.length == 1) {
-            String partialName = args[0].toLowerCase();
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getName().toLowerCase().startsWith(partialName)) {
-                    suggestions.add(player.getName());
-                }
-            }
-        }
-
-        return suggestions;
+        MakeABuilders.instance.setLastMessaged(sender, target);
     }
 }

@@ -1,110 +1,70 @@
 package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.other.BanExpirationTask;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
+import org.incendo.cloud.component.DefaultValue;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
-import org.MakeACakeStudios.storage.PunishmentStorage;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class BanCommand implements CommandExecutor {
-    private final MakeABuilders plugin;
-    private final PlayerDataStorage playerDataStorage;
-    private final PunishmentStorage punishmentStorage;
-    private final MiniMessage miniMessage;
-    private final BanExpirationTask banExpirationTask;
-    private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
-    private TagFormatter tagFormatter;
 
-    public BanCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage, MiniMessage miniMessage, BanExpirationTask banExpirationTask, TagFormatter tagFormatter) {
-        this.plugin = plugin;
-        this.playerDataStorage = playerDataStorage;
-        this.punishmentStorage = punishmentStorage;
-        this.miniMessage = miniMessage;
-        this.banExpirationTask = banExpirationTask;
-        this.tagFormatter = tagFormatter;
-    }
+public class BanCommand implements Command {
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(miniMessage.deserialize("<red>Используйте: /ban <ник> <время> [причина]</red>"));
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("ban")
+                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("time", StringParser.greedyStringParser())
+                        .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("<red>Не указано.</red>"))
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("time"), ctx.get("reason")))
+                        .build()
+        );
+    }
 
-        String playerName = args[0];
-        String timeString = args[1];
-        long banDuration = parseTimeString(timeString);
+    private void handle(@NonNull CommandSender sender, @NotNull OfflinePlayer offlinePlayer, String time, String reason) {
+        Player target = Bukkit.getPlayer(offlinePlayer.getUniqueId());
 
-        if (banDuration == -1) {
-            sender.sendMessage(miniMessage.deserialize("<red>Неправильный формат времени. Пример: 10s, 5m, 2h, Fv (навсегда)</red>"));
-            return true;
-        }
-
-        Player onlinePlayer = Bukkit.getPlayer(playerName);
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-
-        if (onlinePlayer == null && !offlinePlayer.hasPlayedBefore()) {
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден или никогда не заходил на сервер.</red>"));
-            return true;
-        }
-
+        String playerName = offlinePlayer.getName();
         if (isBanned(playerName)) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
             }
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок уже забанен.</red>"));
-            return true;
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок уже забанен.</red>"));
         }
 
-        String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "Не указано";
-        String admin = sender.getName();
-
-        if (onlinePlayer != null) {
-            String prefix = plugin.getPlayerPrefix(onlinePlayer);
-            String suffix = plugin.getPlayerSuffix(onlinePlayer);
-            String formattedName = prefix + onlinePlayer.getName() + suffix;
-
-            banPlayer(onlinePlayer, banDuration, reason, admin);
-
-            if (timeString.equals("Fv")) {
-                sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был забанен навсегда по причине: " + reason + "</green>"));
-            } else {
-                sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был забанен на " + timeString + " по причине: " + reason + "</green>"));
+        if (target != null) {
+            if (sender instanceof Player) {
+                banPlayer(target, parseTimeString(time), reason, sender.getName());
             }
-        } else {
-            String prefix = playerDataStorage.getPlayerPrefixByName(offlinePlayer.getName());
-            String suffix = playerDataStorage.getPlayerSuffixByName(offlinePlayer.getName());
-            String formattedName = prefix + offlinePlayer.getName() + suffix;
-
-            banOfflinePlayer(offlinePlayer, banDuration, reason, admin);
-
-            Player adminPlayer = Bukkit.getPlayer(admin);
-
-            reason = tagFormatter.format(reason, adminPlayer);
-
-            if (timeString.equals("Fv")) {
-                sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был забанен навсегда по причине: " + reason + "</green>"));
-            } else {
-                sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был забанен на " + timeString + " по причине: " + reason + "</green>"));
+            else {
+                banPlayer(target, parseTimeString(time), reason, "console.mkbuilders.ru");
             }
         }
-
-        return true;
+        else {
+            if (sender instanceof Player) {
+                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, sender.getName());
+            }
+            else {
+                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, "console.mkbuilders.ru");
+            }
+        }
     }
 
     private long parseTimeString(String timeString) {
@@ -143,60 +103,60 @@ public class BanCommand implements CommandExecutor {
         String formattedEndTime = (banEndTime == Long.MAX_VALUE) ? "навсегда" : formatBanTime(banEndTime);
         String banMessage = buildBanMessage(admin, formattedEndTime, reason);
 
-        banExpirationTask.addPlayerToBanCheck(player.getName());
-        punishmentStorage.addBan(player.getName(), admin, reason, String.valueOf(banEndTime)); // В миллисекундах
+        BanExpirationTask.instance.addPlayerToBanCheck(player.getName());
+        PunishmentStorage.instance.addBan(player.getName(), admin, reason, String.valueOf(banEndTime)); // В миллисекундах
 
         Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
 
         player.kickPlayer(banMessage);
 
-        Integer BanNumber = punishmentStorage.getBanNumber(player.getName());
+        Integer BanNumber = PunishmentStorage.instance.getBanNumber(player.getName());
 
-        String playerPrefix = plugin.getPlayerPrefix(player);
-        String playerSuffix = plugin.getPlayerSuffix(player);
+        String playerPrefix = MakeABuilders.instance.getPlayerPrefix(player);
+        String playerSuffix = MakeABuilders.instance.getPlayerSuffix(player);
         String playerName = playerPrefix + player.getName() + playerSuffix;
 
-        String adminPrefix = playerDataStorage.getPlayerPrefixByName(admin);
-        String adminSuffix = playerDataStorage.getPlayerSuffixByName(admin);
+        String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
+        String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
         String adminName = adminPrefix + admin + adminSuffix;
 
         Player adminPlayer = Bukkit.getPlayer(admin);
 
         String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
-        String finalChatMessage = tagFormatter.format(chatMessage, adminPlayer);
+        String finalChatMessage = TagFormatter.format(chatMessage, adminPlayer);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(miniMessage.deserialize(finalChatMessage));
+            onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
         }
     }
 
     private void banOfflinePlayer(OfflinePlayer player, long duration, String reason, String admin) {
         long banEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
 
-        banExpirationTask.addPlayerToBanCheck(player.getName());
-        punishmentStorage.addBan(player.getName(), admin, reason, String.valueOf(banEndTime));
+        BanExpirationTask.instance.addPlayerToBanCheck(player.getName());
+        PunishmentStorage.instance.addBan(player.getName(), admin, reason, String.valueOf(banEndTime));
 
         Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
 
         String formattedEndTime = (banEndTime == Long.MAX_VALUE) ? "навсегда" : formatBanTime(banEndTime);
 
-        Integer BanNumber = punishmentStorage.getBanNumber(player.getName());
+        Integer BanNumber = PunishmentStorage.instance.getBanNumber(player.getName());
 
-        String playerPrefix = playerDataStorage.getPlayerPrefixByName(player.getName());
-        String playerSuffix = playerDataStorage.getPlayerSuffixByName(player.getName());
+        String playerPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(player.getName());
+        String playerSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(player.getName());
         String playerName = playerPrefix + player.getName() + playerSuffix;
 
-        String adminPrefix = playerDataStorage.getPlayerPrefixByName(admin);
-        String adminSuffix = playerDataStorage.getPlayerSuffixByName(admin);
+        String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
+        String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
         String adminName = adminPrefix + admin + adminSuffix;
 
         Player adminPlayer = Bukkit.getPlayer(admin);
 
         String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
-        String finalChatMessage = tagFormatter.format(chatMessage, adminPlayer);
+        String finalChatMessage = TagFormatter.format(chatMessage, adminPlayer);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(miniMessage.deserialize(finalChatMessage));
+            onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
         }
     }
 
@@ -208,7 +168,7 @@ public class BanCommand implements CommandExecutor {
         §fВы были забанены администратором §6%s §c%s §fпо причине: §e%s.
         §fЕсли вы считаете что это ошибка вы можете обратиться к администрации: §ahttps://discord.gg/Ac9CSskbTf
         """,
-                punishmentStorage.getNextBanNumber(),
+                PunishmentStorage.instance.getNextBanNumber(),
                 admin,
                 timeText,
                 reason
@@ -225,7 +185,7 @@ public class BanCommand implements CommandExecutor {
     }
 
     public boolean isBanned(String playerName) {
-        String banStatus = punishmentStorage.checkBan(playerName);
+        String banStatus = PunishmentStorage.instance.checkBan(playerName);
         return !banStatus.contains("не забанен");
     }
 }

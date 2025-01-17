@@ -1,72 +1,86 @@
 package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.storage.MailStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class StatusCommand implements CommandExecutor {
-
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final MailStorage mailStorage;
-    private final PlayerDataStorage playerDataStorage;
-    private final PunishmentStorage punishmentStorage;
-
-    public StatusCommand(MakeABuilders plugin, MailStorage mailStorage, PlayerDataStorage playerDataStorage, PunishmentStorage punishmentStorage) {
-        this.mailStorage = mailStorage;
-        this.playerDataStorage = playerDataStorage;
-        this.punishmentStorage = punishmentStorage;
-    }
+public class StatusCommand implements Command {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("status")
+                        .senderType(Player.class)
+                        .literal("check")
+                        .handler(ctx -> handleCheck(ctx.sender()))
+                        .build()
+        );
 
-        boolean mailConnected = mailStorage.isConnected();
-        boolean playerNameConnected = playerDataStorage.isConnected();
-        boolean punishmentConnected = punishmentStorage.isConnected();
+        manager.command(
+                manager.commandBuilder("status")
+                        .senderType(Player.class)
+                        .literal("mail")
+                        .handler(ctx -> handleMail(ctx.sender()))
+                        .build()
+        );
 
-        if (args.length == 0) {
-            sender.sendMessage(miniMessage.deserialize("Статус соединения с базами данных:\n"));
-            sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-            sender.sendMessage(miniMessage.deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-            sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-            return true;
-        }
+        manager.command(
+                manager.commandBuilder("status")
+                        .senderType(Player.class)
+                        .literal("player")
+                        .handler(ctx -> handlePlayer(ctx.sender()))
+                        .build()
+        );
 
-        switch (args[0].toLowerCase()) {
-            case "check":
-                sender.sendMessage(miniMessage.deserialize("Статус соединения с базами данных:\n"));
-                sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                sender.sendMessage(miniMessage.deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                break;
+        manager.command(
+                manager.commandBuilder("status")
+                        .senderType(Player.class)
+                        .literal("punishments")
+                        .handler(ctx -> handlePunishments(ctx.sender()))
+                        .build()
+        );
+    }
 
-            case "mail":
-                sender.sendMessage(miniMessage.deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                break;
+    private void handleCheck(@NotNull CommandSender sender) {
+        Player player = (Player) sender;
 
-            case "player":
-                sender.sendMessage(miniMessage.deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                break;
+        boolean mailConnected = MailStorage.instance.isConnected();
+        boolean playerNameConnected = PlayerDataStorage.instance.isConnected();
+        boolean punishmentConnected = PunishmentStorage.instance.isConnected();
 
-            case "punishments":
-                sender.sendMessage(miniMessage.deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
-                break;
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Статус соединения с базами данных:</gray>"));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+    }
 
-            default:
-                break;
-        }
+    private void handleMail(@NotNull CommandSender sender) {
+        Player player = (Player) sender;
 
-        return true;
+        boolean mailConnected = MailStorage.instance.isConnected();
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Статус соединения с MailStorage:</gray>"));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>MailStorage</yellow> -> " + (mailConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+    }
+
+    private void handlePlayer(@NotNull CommandSender sender) {
+        Player player = (Player) sender;
+
+        boolean playerNameConnected = PlayerDataStorage.instance.isConnected();
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Статус соединения с PlayerDataStorage:</gray>"));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>PlayerDataStorage</yellow> -> " + (playerNameConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
+    }
+
+    private void handlePunishments(@NotNull CommandSender sender) {
+        Player player = (Player) sender;
+
+        boolean punishmentConnected = PunishmentStorage.instance.isConnected();
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Статус соединения с PunishmentStorage:</gray>"));
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>PunishmentStorage</yellow> -> " + (punishmentConnected ? "<green>Подключено</green>" : "<red>Не подключено</red>")));
     }
 }

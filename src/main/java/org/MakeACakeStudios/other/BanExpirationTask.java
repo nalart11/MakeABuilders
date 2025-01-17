@@ -15,10 +15,12 @@ public class BanExpirationTask extends BukkitRunnable {
     private final PunishmentStorage punishmentStorage;
     private final Set<String> bannedPlayers = new HashSet<>();
     private final MiniMessage miniMessage;
+    public static BanExpirationTask instance;
 
     public BanExpirationTask(PunishmentStorage punishmentStorage, MiniMessage miniMessage) {
         this.punishmentStorage = punishmentStorage;
         this.miniMessage = miniMessage;
+        instance = this;
     }
 
     public void addPlayerToBanCheck(String playerName) {

@@ -1,66 +1,56 @@
 package org.MakeACakeStudios.commands;
 
-import org.MakeACakeStudios.MakeABuilders;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
+import org.bukkit.BanList;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.jetbrains.annotations.NotNull;
 
-public class PardonCommand implements CommandExecutor {
+public class PardonCommand implements Command {
 
-    private final MakeABuilders plugin;
-    private final MiniMessage miniMessage;
-    private final PlayerDataStorage playerDataStorage;
-    private final PunishmentStorage punishmentStorage;
-
-    public PardonCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage) {
-        this.plugin = plugin;
-        this.miniMessage = MiniMessage.miniMessage();
-        this.playerDataStorage = new PlayerDataStorage(plugin);
-        this.punishmentStorage = punishmentStorage;
+    public PardonCommand() {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            sender.sendMessage(miniMessage.deserialize("<red>Используйте: /pardon <ник></red>"));
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("pardon")
+                        .required("player", OfflinePlayerParser.offlinePlayerParser()) // Парсер для OfflinePlayer
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("player"))) // Хендлер команды
+                        .build()
+        );
+    }
 
-        String playerName = args[0];
-        OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+    private void handle(@NonNull CommandSender sender, @NotNull OfflinePlayer target) {
+        MiniMessage miniMessage = MiniMessage.miniMessage();
 
-        if (target == null || target.getName() == null) {
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок с именем " + playerName + " не найден.</red>"));
-            return true;
-        }
+        String playerName = target.getName();
 
-        String muteStatus = punishmentStorage.checkBan(playerName);
-        if (muteStatus.contains("не забанен.")) {
+        String banStatus = PunishmentStorage.instance.checkBan(playerName);
+        if (banStatus.contains("не забанен")) {
             sender.sendMessage(miniMessage.deserialize("<red>✖ Игрок " + playerName + " не забанен.</red>"));
-            return true;
+            return;
         }
 
-        String prefix = playerDataStorage.getPlayerPrefixByName(playerName);
-        String suffix = playerDataStorage.getPlayerSuffixByName(playerName);
-        String formattedName = prefix + target.getName() + suffix;
+        String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
+        String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
+        String formattedName = prefix + playerName + suffix;
 
-        punishmentStorage.pardonPlayer(playerName);
+        PunishmentStorage.instance.pardonPlayer(playerName);
+        Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);
+
         sender.sendMessage(miniMessage.deserialize("<green>✔ Игрок " + formattedName + " был разбанен.</green>"));
-        Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(playerName);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.sendMessage(miniMessage.deserialize("Игрок " + formattedName + " был разбанен."));
         }
-
-        return true;
     }
-
 }

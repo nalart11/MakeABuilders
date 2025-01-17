@@ -6,10 +6,12 @@ import java.util.List;
 
 public class MailStorage {
 
+    public static MailStorage instance;
     private Connection connection;
     private final String dbPath;
 
     public MailStorage(String dbPath) {
+        instance = this;
         this.dbPath = dbPath;
         connectToDatabase();
         createMailTable();

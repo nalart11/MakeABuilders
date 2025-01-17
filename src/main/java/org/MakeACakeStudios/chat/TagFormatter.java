@@ -6,14 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public class TagFormatter {
 
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final MakeABuilders plugin;
-
-    public TagFormatter(MakeABuilders plugin) {
-        this.plugin = plugin;
-    }
-
-    public String format(String message, Player player) {
+    public static String format(String message, Player player) {
         message = replaceTextFormatting(message);
         message = replaceLocationTag(message, player);
         message = replaceEmojis(message);
@@ -23,15 +16,15 @@ public class TagFormatter {
         return message;
     }
 
-    private String replaceLocationTag(String message, Player player) {
+    private static String replaceLocationTag(String message, Player player) {
         if (message.contains(":loc:")) {
             int x = player.getLocation().getBlockX();
             int y = player.getLocation().getBlockY();
             int z = player.getLocation().getBlockZ();
             String worldName = player.getWorld().getName();
 
-            String prefix = plugin.getPlayerPrefix(player);
-            String suffix = plugin.getPlayerSuffix(player);
+            String prefix = MakeABuilders.instance.getPlayerPrefix(player);
+            String suffix = MakeABuilders.instance.getPlayerSuffix(player);
             String playerName = player.getDisplayName();
 
             String formattedPlayerName = prefix + playerName + suffix;
@@ -60,7 +53,7 @@ public class TagFormatter {
         return message;
     }
 
-    private String replaceEmojis(String message) {
+    private static String replaceEmojis(String message) {
         return message
                 .replace(":cry:", "<yellow>☹</yellow><aqua>,</aqua>")
                 .replace(":skull:", "☠")
@@ -86,7 +79,7 @@ public class TagFormatter {
                 .replace(":sadge:", "<yellow>ⓈⒶⒹⒼⒺ</yellow><aqua>...</aqua>");
     }
 
-    private String replaceLinks(String message) {
+    private static String replaceLinks(String message) {
         if (message.contains("http://") || message.contains("https://")) {
             String[] words = message.split(" ");
             for (String word : words) {
@@ -99,7 +92,7 @@ public class TagFormatter {
         return message;
     }
 
-    private String replaceTextFormatting(String message) {
+    private static String replaceTextFormatting(String message) {
         String locTagRegex = ":loc:";
         String placeholder = "###LOC###";
 
@@ -121,7 +114,7 @@ public class TagFormatter {
     }
 
 
-    private String replaceBackSlashes(String message) {
+    private static String replaceBackSlashes(String message) {
         return message.replace("\\", "\\\\");
     }
 }

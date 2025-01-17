@@ -1,65 +1,40 @@
 package org.MakeACakeStudios.commands;
 
-import net.kyori.adventure.text.Component;
-import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.chat.ChatHandler;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.MakeACakeStudios.storage.*;
+import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.Command;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.component.DefaultValue;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.parser.standard.StringParser;
 
-public class SmugCommand implements CommandExecutor {
-
-    private final MiniMessage miniMessage;
-    private final MakeABuilders plugin;
-    private final ChatHandler chatHandler;
-
-    public SmugCommand(MakeABuilders makeABuilders , MiniMessage miniMessage, ChatHandler chatHandler) {
-        this.miniMessage = miniMessage;
-        this.plugin = makeABuilders;
-        this.chatHandler = chatHandler;
-    }
+public class SmugCommand implements Command {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
-
-            String userInput = String.join(" ", args); // Соединяем аргументы в одну строку
-
-            if (command.getName().equalsIgnoreCase("shrug")) {
-                String shrugMessage = ":shrug: " + userInput; // Добавляем аргументы к эмодзи
-                sendFormattedMessage(player, shrugMessage);
-            }
-
-            if (command.getName().equalsIgnoreCase("tableflip")) {
-                String tableFlipMessage = ":tableflip: " + userInput;
-                sendFormattedMessage(player, tableFlipMessage);
-            }
-
-            if (command.getName().equalsIgnoreCase("unflip")) {
-                String unFlipMessage = ":unflip: " + userInput;
-                sendFormattedMessage(player, unFlipMessage);
-            }
-        } else {
-            String userInput = String.join(" ", args);
-
-            if (command.getName().equalsIgnoreCase("shrug")) {
-                sender.sendMessage("¯\\_(ツ)_/¯ " + userInput);
-            } else if (command.getName().equalsIgnoreCase("tableflip")) {
-                sender.sendMessage("(╯°□°)╯︵ ┻━┻ " + userInput);
-            } else if (command.getName().equalsIgnoreCase("unflip")) {
-                sender.sendMessage("┬─┬ノ( º _ ºノ) " + userInput);
-            }
-        }
-        return true;
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("shrug")
+                        .senderType(Player.class)
+                        .optional("text", StringParser.greedyStringParser(), DefaultValue.constant(""))
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("text"), ":shrug:"))
+        );
+        manager.command(
+                manager.commandBuilder("tableflip")
+                        .senderType(Player.class)
+                        .optional("text", StringParser.greedyStringParser(), DefaultValue.constant(""))
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("text"), ":tableflip:"))
+        );
+        manager.command(
+                manager.commandBuilder("unflip")
+                        .senderType(Player.class)
+                        .optional("text", StringParser.greedyStringParser(), DefaultValue.constant(""))
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("text"), "unflip"))
+        );
     }
 
-    private void sendFormattedMessage(Player sender, String emoticon) {
-        chatHandler.handleExternalCommandMessage(sender, emoticon);
-        System.out.println(sender.getName() + " → " + emoticon);
+    private void handle(@NonNull Player sender, String text, String addition) {
+        ChatUtils.handleExternalCommandMessage(sender, addition + " " + text);
     }
+
 }

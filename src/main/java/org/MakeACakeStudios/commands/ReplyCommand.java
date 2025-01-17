@@ -1,82 +1,56 @@
 package org.MakeACakeStudios.commands;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.parser.standard.StringParser;
+import org.jetbrains.annotations.NotNull;
 
-public class ReplyCommand implements CommandExecutor {
-
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-    private final MakeABuilders plugin;
-    private final TagFormatter tagFormatter;
-    private final PlayerDataStorage playerDataStorage;
-
-    public ReplyCommand(MakeABuilders plugin, PlayerDataStorage playerDataStorage) {
-        this.plugin = plugin;
-        this.playerDataStorage = playerDataStorage;
-        this.tagFormatter = new TagFormatter(plugin);
-    }
-
-    private String getPlayerPrefix(Player player) {
-        return plugin.getPlayerPrefix(player);
-    }
-
-    private String getPlayerSuffix(Player player) {
-        return plugin.getPlayerSuffix(player);
-    }
+public class ReplyCommand implements Command {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("§cТолько игроки могут использовать эту команду.");
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("reply", "r")
+                        .senderType(Player.class)
+                        .required("text", StringParser.greedyStringParser())
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("text")))
+        );
+    }
 
-        Player playerSender = (Player) sender;
+    private void handle(@NotNull Player sender, String message) {
 
-        Player target = plugin.getLastMessaged(playerSender);
-        if (target == null) {
-            playerSender.sendMessage(miniMessage.deserialize("<red>Нет игрока, которому можно ответить.</red>"));
-            return true;
-        }
+        Player target = MakeABuilders.instance.getLastMessaged(sender);
 
-        if (args.length < 1) {
-            playerSender.sendMessage(miniMessage.deserialize("<red>Использование: /r <сообщение></red>"));
-            return true;
-        }
+        String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(sender.getName());
+        String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(sender.getName());
+        String senderName = senderPrefix + sender.getName() + senderSuffix;
 
-        StringBuilder message = new StringBuilder();
-        for (String arg : args) {
-            message.append(arg).append(" ");
-        }
+        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(target.getName());
+        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(target.getName());
+        String targetName = targetPrefix + target.getName() + targetSuffix;
 
-        String senderPrefix = getPlayerPrefix(playerSender);
-        String senderSuffix = getPlayerSuffix(playerSender);
-        String targetPrefix = getPlayerPrefix(target);
-        String targetSuffix = getPlayerSuffix(target);
+        String formattedMessage = TagFormatter.format(message, sender);
 
-        String formattedMessage = tagFormatter.format(message.toString().trim(), playerSender);
-        String finalMessage = senderPrefix + playerSender.getName() + senderSuffix + " <yellow>→</yellow> "
-                + targetPrefix + target.getName() + targetSuffix + ": <gray>" + formattedMessage + "</gray>";
+        Sound selectedSound = MakeABuilders.instance.getPlayerSound(target);
 
-        Component parsedMessage = miniMessage.deserialize(finalMessage);
+        String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
+                + targetName + ": <gray>" + formattedMessage + "</gray>";
+        String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
+                + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
+                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> "
+                + targetName + ": <gray>" + formattedMessage + "</gray>";
 
-        target.sendMessage(parsedMessage);
-        playerSender.sendMessage(parsedMessage);
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
+        target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
+        target.playSound(target, selectedSound, 1.0F, 1.0F);
 
-        Sound selectedSound = plugin.getPlayerSound(target);
-
-        target.playSound(target.getLocation(), selectedSound, 1.0F, 1.0F);
-
-        plugin.setLastMessaged(playerSender, target);
-
-        return true;
+        MakeABuilders.instance.setLastMessaged(sender, target);
     }
 }

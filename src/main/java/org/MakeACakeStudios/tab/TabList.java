@@ -65,14 +65,22 @@ public class TabList {
             tpsColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-        String additionalTagline = "<i>/info существует...</i>";
+        int onlinePlayers = Bukkit.getOnlinePlayers().size();
+        String additionalTagline;
+
+        if (onlinePlayers % 10 == 1) {
+            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игрок онлайн";
+        } else if (onlinePlayers % 10 == 2 || onlinePlayers % 10 == 3 || onlinePlayers % 10 == 4) {
+            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игрока онлайн";
+        } else {
+            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игроков онлайн";
+        }
 
         Component header = miniMessage.deserialize("\n" + serverName + "\n" +
                 "<gray>   " + serverTagline + "   </gray>\n");
         Component footer = miniMessage.deserialize("\n" +
-                "<gray>Пинг</gray><yellow>:</yellow> " + pingColor + ping + "мс<reset> | " +
-                "<gray>TPS</gray><yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>" + "\n" +
-                "<gray>" + additionalTagline + "</gray>" + "\n");
+                "Пинг<yellow>:</yellow> " + pingColor + ping + "мс<reset> | " +
+                "TPS<yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>" + "\n" + additionalTagline + "\n");
 
         player.sendPlayerListHeaderAndFooter(header, footer);
     }

@@ -12,9 +12,11 @@ public class PunishmentStorage {
 
     private Connection connection;
     private final String dbPath;
+    public static PunishmentStorage instance;
 
     public PunishmentStorage(String dbPath) {
         this.dbPath = dbPath;
+        instance = this;
         connectToDatabase();
         createPunishmentTable();
     }

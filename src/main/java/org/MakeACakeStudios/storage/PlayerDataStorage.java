@@ -16,7 +16,7 @@ import java.util.logging.Level;
 
 public class PlayerDataStorage {
 
-    private final MakeABuilders plugin;
+    public static PlayerDataStorage instance;
     private Connection connection;
     private static final Map<String, Integer> groupWeights = new HashMap<>();
     private static final Map<String, String> groupRoles = new HashMap<>();
@@ -39,14 +39,14 @@ public class PlayerDataStorage {
         groupRoles.put("sponsor", "sponsor");
     }
 
-    public PlayerDataStorage(MakeABuilders plugin) {
-        this.plugin = plugin;
+    public PlayerDataStorage() {
+        instance = this;
         initializeDatabase();
     }
 
     private void initializeDatabase() {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder() + "/player_data.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:" + MakeABuilders.instance.getDataFolder() + "/player_data.db");
             Statement stmt = connection.createStatement();
             stmt.execute("CREATE TABLE IF NOT EXISTS player_data (" +
                     "player_name TEXT PRIMARY KEY, " +
@@ -55,7 +55,7 @@ public class PlayerDataStorage {
                     "role TEXT)");
             stmt.close();
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Не удалось подключиться к базе данных SQLite!", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Не удалось подключиться к базе данных SQLite!", e);
         }
     }
 
@@ -138,7 +138,7 @@ public class PlayerDataStorage {
             stmt.setString(4, role);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при сохранении данных игрока в базе данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при сохранении данных игрока в базе данных", e);
         }
     }
 
@@ -150,7 +150,7 @@ public class PlayerDataStorage {
                 return rs.getString("prefix");
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении префикса из базы данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении префикса из базы данных", e);
         }
         return "";
     }
@@ -163,7 +163,7 @@ public class PlayerDataStorage {
                 return rs.getString("suffix");
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении суффикса из базы данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении суффикса из базы данных", e);
         }
         return "";
     }
@@ -176,7 +176,7 @@ public class PlayerDataStorage {
                 return rs.getString("role");
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении роли из базы данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении роли из базы данных", e);
         }
         return "player";
     }
@@ -189,7 +189,7 @@ public class PlayerDataStorage {
                 return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при проверке наличия игрока в базе данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при проверке наличия игрока в базе данных", e);
         }
         return false;
     }
@@ -202,7 +202,7 @@ public class PlayerDataStorage {
                 playerNames.add(rs.getString("player_name"));
             }
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка при получении имен игроков из базы данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении имен игроков из базы данных", e);
         }
         return playerNames;
     }
