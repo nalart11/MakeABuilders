@@ -37,8 +37,8 @@ public class ChatListener implements Listener {
 
             List<String[]> playerMessages = MakeABuilders.instance.getMailStorage().getMessages(player.getName());
             if (!playerMessages.isEmpty()) {
-                Sound selectedSound = MakeABuilders.instance.getPlayerSound(player);
-                player.playSound(player.getLocation(), selectedSound, 1.0F, 1.0F);
+//                Sound selectedSound = MakeABuilders.instance.getPlayerSound(player);
+//                player.playSound(player.getLocation(), selectedSound, 1.0F, 1.0F);
                 player.sendMessage(MiniMessage.miniMessage().deserialize("<green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщений.</green>"));
             }
         }
@@ -105,38 +105,16 @@ public class ChatListener implements Listener {
 
         System.out.println(playerName + " → " + message);
 
-        if (message.contains("@")) {
-            String[] words = message.split(" ");
-            for (String word : words) {
-                if (word.startsWith("@")) {
-                    String mentionedPlayerName = word.substring(1);
-                    Player mentionedPlayer = Bukkit.getPlayerExact(mentionedPlayerName);
-
-                    if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
-                        Sound notificationSound = MakeABuilders.instance.getPlayerSound(mentionedPlayer);
-                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
-
-                        String mentionedPlayerPrefix = MakeABuilders.instance.getPlayerPrefix(mentionedPlayer);
-                        String mentionedPlayerSuffix = MakeABuilders.instance.getPlayerSuffix(mentionedPlayer);
-
-                        String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
-                        message = message.replace(word, formattedMention);
-                    } else {
-                        String formattedMention = "<yellow>@" + mentionedPlayerName + "</yellow>";
-                        message = message.replace(word, formattedMention);
-                    }
-                }
-            }
-        }
-
-        String formattedMessage = TagFormatter.format(message, player);
+        message = TagFormatter.format(message);
+        message = ChatUtils.replaceLocationTag(player, message);
+        message = ChatUtils.replaceMentions(player, message);
         String prefix = MakeABuilders.instance.getPlayerPrefix(player);
         String suffix = MakeABuilders.instance.getPlayerSuffix(player);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String finalMessage = "<click:suggest_command:'/msg " + player.getName() + " '>"
                     + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
-                    + prefix + playerName + suffix + "</hover></click> > " + formattedMessage;
+                    + prefix + playerName + suffix + "</hover></click> > " + message;
 
             Component playerMessage = MiniMessage.miniMessage().deserialize(finalMessage);
             onlinePlayer.sendMessage(playerMessage);

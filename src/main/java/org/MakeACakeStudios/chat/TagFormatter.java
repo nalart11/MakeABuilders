@@ -6,50 +6,12 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public class TagFormatter {
 
-    public static String format(String message, Player player) {
+    public static String format(String message) {
         message = replaceTextFormatting(message);
-        message = replaceLocationTag(message, player);
         message = replaceEmojis(message);
         message = replaceLinks(message);
         message = replaceBackSlashes(message);
 
-        return message;
-    }
-
-    private static String replaceLocationTag(String message, Player player) {
-        if (message.contains(":loc:")) {
-            int x = player.getLocation().getBlockX();
-            int y = player.getLocation().getBlockY();
-            int z = player.getLocation().getBlockZ();
-            String worldName = player.getWorld().getName();
-
-            String prefix = MakeABuilders.instance.getPlayerPrefix(player);
-            String suffix = MakeABuilders.instance.getPlayerSuffix(player);
-            String playerName = player.getDisplayName();
-
-            String formattedPlayerName = prefix + playerName + suffix;
-
-            String color;
-            switch (worldName) {
-                case "world":
-                    color = "<gradient:#00FF1A:#7EFF91>";
-                    break;
-                case "world_nether":
-                    color = "<gradient:#FF0000:#FF7E7E>";
-                    break;
-                case "world_the_end":
-                    color = "<gradient:#ED00FF:#DE7EFF>";
-                    break;
-                default:
-                    color = "<gradient:#FFFFFF:#FFFFFF>";
-            }
-
-            String location = color + "<click:run_command:'/goto " + worldName + " " + x + " " + y + " " + z + "'>["
-                    + x + "x/" + y + "y/" + z + "z, " + worldName + "]</click></gradient>";
-            String locationHover = "<hover:show_text:'Координаты игрока " + formattedPlayerName + ".\nНажмите <green>ЛКМ</green> чтобы телепортироваться.'>" + location + "</hover>";
-
-            return message.replace(":loc:", locationHover);
-        }
         return message;
     }
 

@@ -15,6 +15,8 @@ import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 
+import org.MakeACakeStudios.commands.MessageSoundCommand.Sounds;
+
 
 public class MessageCommand implements Command {
 
@@ -41,20 +43,26 @@ public class MessageCommand implements Command {
 
         Player target = Bukkit.getPlayer(offlineTarget.getName());
 
-        String formattedMessage = TagFormatter.format(message, sender);
+        if (target == null) {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));
+            return;
+        }
 
-        Sound selectedSound = MakeABuilders.instance.getPlayerSound(target);
+        String formattedMessage = TagFormatter.format(message);
 
         String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
         String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
                 + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
-                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> "
-                + targetName + ": <gray>" + formattedMessage + "</gray>";
+                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
-        target.playSound(target, selectedSound, 1.0F, 1.0F);
+
+        String soundName = PlayerDataStorage.instance.getNotificationSound(target.getName());
+        System.out.println(target.getName() + " " + soundName);
+        Sound sound = Sounds.valueOf(soundName.toUpperCase()).sound;
+        target.playSound(target.getLocation(), sound, 1.0f, 1.0f);
 
         MakeABuilders.instance.setLastMessaged(sender, target);
     }

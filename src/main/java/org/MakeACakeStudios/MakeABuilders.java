@@ -2,7 +2,6 @@ package org.MakeACakeStudios;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.chat.ChatListener;
-import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.motd.DynamicMotd;
@@ -79,7 +78,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new ReplyCommand(),
                 new StatusCommand(),
                 new BanCommand(),
-                new PardonCommand()
+                new PardonCommand(),
+                new MuteCommand(),
+                new UnmuteCommand(),
+                new MessageSoundCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();
@@ -102,14 +104,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         getServer().getPluginManager().registerEvents(chatListener, this);
         getServer().getPluginManager().registerEvents(this, this);
 
-        this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
-        muteExpirationTask.runTaskTimer(this, 0L, 20L);
-
         getServer().getPluginManager().registerEvents(new PlayerBanListener(punishmentStorage), this);
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            loadPlayerSound(player);
-        }
 
         getLogger().info("MakeABuilders плагин активирован!");
     }
@@ -123,13 +118,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        loadPlayerSound(player);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        savePlayerSound(player);
         boolean deleted = mailStorage.deleteReadMessages(player.getName());
         if (deleted) {
             getLogger().info("Прочитанные сообщения для игрока " + player.getName() + " удалены.");
@@ -172,32 +165,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public String getPlayerSuffix(Player player) {
         playerDataStorage.updatePlayerData(player);
         return playerDataStorage.getPlayerSuffixByName(player.getName());
-    }
-
-
-    public void setPlayerSound(Player player, Sound sound) {
-        playerSounds.put(player, sound);
-        savePlayerSound(player);
-    }
-
-    public Sound getPlayerSound(Player player) {
-        return playerSounds.getOrDefault(player, Sound.BLOCK_NOTE_BLOCK_BELL);
-    }
-
-    public void savePlayerSound(Player player) {
-        String path = "players." + player.getUniqueId().toString() + ".sound";
-        Sound sound = getPlayerSound(player);
-        config.set(path, sound.toString());
-        saveConfig();
-    }
-
-    public void loadPlayerSound(Player player) {
-        String path = "players." + player.getUniqueId().toString() + ".sound";
-        if (config.contains(path)) {
-            String soundName = config.getString(path);
-            Sound sound = Sound.valueOf(soundName);
-            setPlayerSound(player, sound);
-        }
     }
 
     public void setLastMessaged(Player sender, Player recipient) {

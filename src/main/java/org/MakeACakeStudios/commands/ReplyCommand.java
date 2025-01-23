@@ -36,20 +36,16 @@ public class ReplyCommand implements Command {
         String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(target.getName());
         String targetName = targetPrefix + target.getName() + targetSuffix;
 
-        String formattedMessage = TagFormatter.format(message, sender);
-
-        Sound selectedSound = MakeABuilders.instance.getPlayerSound(target);
+        String formattedMessage = TagFormatter.format(message);
 
         String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
         String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
-                + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
-                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> "
-                + targetName + ": <gray>" + formattedMessage + "</gray>";
+                + "<hover:show_text:'Нажм ите <green>ЛКМ</green>, чтобы ответить игроку "
+                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
-        target.playSound(target, selectedSound, 1.0F, 1.0F);
 
         MakeABuilders.instance.setLastMessaged(sender, target);
     }

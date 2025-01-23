@@ -50,7 +50,7 @@ public class MailCommand implements CommandExecutor {
 
                 String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-                message = tagFormatter.format(message, player);
+                message = tagFormatter.format(message);
 
                 mailStorage.addMessage(recipientName, plugin.getPlayerPrefix(player), player.getName(), plugin.getPlayerSuffix(player), message);
                 player.sendMessage(miniMessage.deserialize("<green>✔ Сообщение отправлено.</green>"));

@@ -52,7 +52,8 @@ public class PlayerDataStorage {
                     "player_name TEXT PRIMARY KEY, " +
                     "prefix TEXT, " +
                     "suffix TEXT, " +
-                    "role TEXT)");
+                    "role TEXT, " +
+                    "notification_sound TEXT DEFAULT 'bell')");
             stmt.close();
         } catch (SQLException e) {
             MakeABuilders.instance.getLogger().log(Level.SEVERE, "Не удалось подключиться к базе данных SQLite!", e);
@@ -194,34 +195,27 @@ public class PlayerDataStorage {
         return false;
     }
 
-    public List<String> getAllPlayerNames() {
-        List<String> playerNames = new ArrayList<>();
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT player_name FROM player_data")) {
-            while (rs.next()) {
-                playerNames.add(rs.getString("player_name"));
+    public String getNotificationSound(String playerName) {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT notification_sound FROM player_data WHERE player_name = ?")) {
+            stmt.setString(1, playerName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("notification_sound");
             }
         } catch (SQLException e) {
-            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении имен игроков из базы данных", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении звука уведомлений из базы данных", e);
         }
-        return playerNames;
+        return "bell";
     }
 
-    public int getGroupWeight(Player player) {
-        User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
-        if (user != null) {
-            int highestWeight = 0;
-            for (Node node : user.getNodes()) {
-                if (node instanceof InheritanceNode) {
-                    InheritanceNode inheritanceNode = (InheritanceNode) node;
-                    String groupName = inheritanceNode.getGroupName();
-                    if (groupWeights.containsKey(groupName)) {
-                        highestWeight = Math.max(highestWeight, groupWeights.get(groupName));
-                    }
-                }
-            }
-            return highestWeight;
+    public void setNotificationSound(String playerName, String sound) {
+        String query = "UPDATE player_data SET notification_sound = ? WHERE player_name = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, sound);
+            stmt.setString(2, playerName);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при обновлении звука уведомлений в базе данных", e);
         }
-        return 0;
     }
 }

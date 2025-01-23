@@ -1,87 +1,75 @@
 package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.other.MuteExpirationTask;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
+import org.incendo.cloud.component.DefaultValue;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.MakeACakeStudios.storage.PunishmentStorage;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MuteCommand implements CommandExecutor {
-
-    private final MakeABuilders plugin;
-    private final PunishmentStorage punishmentStorage;
-    private final MiniMessage miniMessage;
-    private final MuteExpirationTask muteExpirationTask;
-    private final List<String> timeUnits = Arrays.asList("s", "m", "h", "d", "w", "y", "Fv");
-    private final TagFormatter tagFormatter;
-
-    public MuteCommand(MakeABuilders plugin, PunishmentStorage punishmentStorage, MuteExpirationTask muteExpirationTask, TagFormatter tagFormatter) {
-        this.plugin = plugin;
-        this.punishmentStorage = punishmentStorage;
-        this.muteExpirationTask = muteExpirationTask;
-        this.tagFormatter = tagFormatter;
-        this.miniMessage = MiniMessage.miniMessage();
-    }
+public class MuteCommand implements Command {
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(miniMessage.deserialize("<red>Используйте: /mute <ник> <время> [причина]</red>"));
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("mute")
+                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("time", StringParser.stringParser())
+                        .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
+                        .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("time"), ctx.get("reason")))
+                        .build()
+        );
+    }
 
-        Player target = Bukkit.getPlayer(args[0]);
-        if (target == null) {
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок не найден.</red>"));
-            return true;
-        }
+    private void handle(@NonNull CommandSender sender, @NotNull OfflinePlayer offlinePlayer, String time, String reason) {
+        Player target = Bukkit.getPlayer(offlinePlayer.getUniqueId());
 
-        if (isMuted(target)) {
+        if (offlinePlayer.hasPlayedBefore() != true) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
             }
-            sender.sendMessage(miniMessage.deserialize("<red>Игрок уже замьючен.</red>"));
-            return true;
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));
+            return;
         }
 
-        String timeString = args[1];
-        long muteDuration = parseTimeString(timeString);
-        if (muteDuration == -1) {
-            sender.sendMessage(miniMessage.deserialize("<red>Неправильный формат времени. Пример: 10s, 5m, 2h, Fv (навсегда)</red>"));
-            return true;
+        if (isMuted(offlinePlayer.getName())) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
+            }
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок уже замьючен.</red>"));
         }
 
-        String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "Не указано";
-
-        mutePlayer(target, muteDuration, reason, sender.getName());
-
-        String prefix = plugin.getPlayerPrefix(target);
-        String suffix = plugin.getPlayerSuffix(target);
-        String formattedName = prefix + target.getName() + suffix;
-
-        if (timeString.equals("Fv")) {
-            String message = "<green>✔ Игрок " + formattedName + " был замьючен навсегда" + " по причине: " + reason + "</green>";
-            String finalMessage = tagFormatter.format(message, target);
-            sender.sendMessage(miniMessage.deserialize(finalMessage));
-        } else {
-            String message = "<green>✔ Игрок " + formattedName + " был замьючен на " + timeString + " по причине: " + reason + "</green>";
-            String finalMessage = tagFormatter.format(message, target);
-            sender.sendMessage(miniMessage.deserialize(finalMessage));
+        if (target != null) {
+            if (sender instanceof Player) {
+                mutePlayer(target, parseTimeString(time), reason, sender.getName());
+            }
+            else {
+                mutePlayer(target, parseTimeString(time), reason, "console");
+            }
         }
-
-        return true;
+        else {
+            if (sender instanceof Player) {
+                muteOfflinePlayer(offlinePlayer, parseTimeString(time), reason, sender.getName());
+            }
+            else {
+                muteOfflinePlayer(offlinePlayer, parseTimeString(time), reason, "<gradient:#FF3D4D:#FCBDBD>console.mkbuilders.ru</gradient>");
+            }
+        }
     }
 
     private long parseTimeString(String timeString) {
@@ -118,19 +106,49 @@ public class MuteCommand implements CommandExecutor {
         long muteEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
         String endTime = (muteEndTime == Long.MAX_VALUE) ? "Fv" : String.valueOf(muteEndTime);
 
-        muteExpirationTask.addPlayerToMuteCheck(player.getName());
-        punishmentStorage.addMute(player.getName(), admin, reason, endTime);
+        MuteExpirationTask.instance.addPlayerToMuteCheck(player.getName());
+        PunishmentStorage.instance.addMute(player.getName(), admin, reason, endTime);
+
+        String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(player.getName());
+        String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(player.getName());
+        String formattedName = prefix + player.getName() + suffix;
+
+        if (!admin.equals("console")) {
+            Player sender = Bukkit.getPlayer(admin);
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок " + formattedName + " был замьючен.</green>"));
+        } else {
+            System.out.println("✔ Игрок " + player.getName() + " был замьючен.");
+        }
 
         String message = duration == Long.MAX_VALUE
                 ? "<red>Вы были замьючены навсегда по причине: </red><gold>" + reason + "</gold>"
                 : "<red>Вы были замьючены на " + (duration / 1000) + " секунд по причине:</red><gold> " + reason + "</gold>";
 
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-        player.sendMessage(miniMessage.deserialize(tagFormatter.format(message, player)));
+        player.sendMessage(MiniMessage.miniMessage().deserialize(TagFormatter.format(message)));
     }
 
-    public boolean isMuted(Player player) {
-        String muteStatus = punishmentStorage.checkMute(player.getName());
+    private void muteOfflinePlayer(OfflinePlayer player, long duration, String reason, String admin) {
+        long muteEndTime = (duration == Long.MAX_VALUE) ? Long.MAX_VALUE : System.currentTimeMillis() + duration;
+        String endTime = (muteEndTime == Long.MAX_VALUE) ? "Fv" : String.valueOf(muteEndTime);
+
+        MuteExpirationTask.instance.addPlayerToMuteCheck(player.getName());
+        PunishmentStorage.instance.addMute(player.getName(), admin, reason, endTime);
+
+        String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(player.getName());
+        String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(player.getName());
+        String formattedName = prefix + player.getName() + suffix;
+
+        if (!admin.equals("console")) {
+            Player sender = Bukkit.getPlayer(admin);
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок " + formattedName + " был замьючен.</green>"));
+        } else {
+            System.out.println("✔ Игрок " + player.getName() + " был замьючен.");
+        }
+    }
+
+    public boolean isMuted(String player) {
+        String muteStatus = PunishmentStorage.instance.checkMute(player);
         return !muteStatus.contains("не замьючен");
     }
 }

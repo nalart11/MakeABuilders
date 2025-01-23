@@ -16,10 +16,12 @@ public class MuteExpirationTask extends BukkitRunnable {
     private final PunishmentStorage punishmentStorage;
     public final Set<String> mutedPlayers = new HashSet<>();
     private final MiniMessage miniMessage;
+    public static MuteExpirationTask instance;
 
     public MuteExpirationTask(PunishmentStorage punishmentStorage, MiniMessage miniMessage) {
         this.punishmentStorage = punishmentStorage;
         this.miniMessage = miniMessage;
+        instance = this;
     }
 
     public void addPlayerToMuteCheck(String playerName) {

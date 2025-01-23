@@ -30,8 +30,8 @@ public class BanCommand implements Command {
         manager.command(
                 manager.commandBuilder("ban")
                         .required("player", OfflinePlayerParser.offlinePlayerParser())
-                        .required("time", StringParser.greedyStringParser())
-                        .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("<red>Не указано.</red>"))
+                        .required("time", StringParser.stringParser())
+                        .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("time"), ctx.get("reason")))
                         .build()
         );
@@ -49,12 +49,21 @@ public class BanCommand implements Command {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок уже забанен.</red>"));
         }
 
+        if (offlinePlayer.hasPlayedBefore() != true) {
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
+            }
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));
+            return;
+        }
+
         if (target != null) {
             if (sender instanceof Player) {
                 banPlayer(target, parseTimeString(time), reason, sender.getName());
             }
             else {
-                banPlayer(target, parseTimeString(time), reason, "console.mkbuilders.ru");
+                banPlayer(target, parseTimeString(time), reason, "console");
             }
         }
         else {
@@ -62,7 +71,7 @@ public class BanCommand implements Command {
                 banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, sender.getName());
             }
             else {
-                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, "console.mkbuilders.ru");
+                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, "console");
             }
         }
     }
@@ -104,11 +113,13 @@ public class BanCommand implements Command {
         String banMessage = buildBanMessage(admin, formattedEndTime, reason);
 
         BanExpirationTask.instance.addPlayerToBanCheck(player.getName());
-        PunishmentStorage.instance.addBan(player.getName(), admin, reason, String.valueOf(banEndTime)); // В миллисекундах
+        PunishmentStorage.instance.addBan(player.getName(), admin, reason, String.valueOf(banEndTime));
 
-        Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
+        Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
+            Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
 
-        player.kickPlayer(banMessage);
+            player.kickPlayer(banMessage);
+        });
 
         Integer BanNumber = PunishmentStorage.instance.getBanNumber(player.getName());
 
@@ -116,14 +127,22 @@ public class BanCommand implements Command {
         String playerSuffix = MakeABuilders.instance.getPlayerSuffix(player);
         String playerName = playerPrefix + player.getName() + playerSuffix;
 
-        String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
-        String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
-        String adminName = adminPrefix + admin + adminSuffix;
+        String adminName;
+        Player adminPlayer;
 
-        Player adminPlayer = Bukkit.getPlayer(admin);
+        if (!admin.equals("console")) {
+            String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
+            String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
+            adminName = adminPrefix + admin + adminSuffix;
 
-        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
-        String finalChatMessage = TagFormatter.format(chatMessage, adminPlayer);
+            adminPlayer = Bukkit.getPlayer(admin);
+        } else {
+            adminName = "<gradient:#FF3D4D:#FCBDBD>console.mkbuilders.ru</gradient>";
+            adminPlayer = Bukkit.getPlayer("Nalart11_");
+        }
+
+        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <red>" + reason + "</red>";
+        String finalChatMessage = TagFormatter.format(chatMessage);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
@@ -146,14 +165,24 @@ public class BanCommand implements Command {
         String playerSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(player.getName());
         String playerName = playerPrefix + player.getName() + playerSuffix;
 
-        String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
-        String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
-        String adminName = adminPrefix + admin + adminSuffix;
+        String adminName;
+        Player adminPlayer;
 
-        Player adminPlayer = Bukkit.getPlayer(admin);
+        if (!admin.equals("console")) {
+            String adminPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(admin);
+            String adminSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(admin);
+            adminName = adminPrefix + admin + adminSuffix;
 
-        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <yellow>" + reason + "</yellow>";
-        String finalChatMessage = TagFormatter.format(chatMessage, adminPlayer);
+            adminPlayer = Bukkit.getPlayer(admin);
+        } else {
+            adminName = "<gradient:#FF3D4D:#FCBDBD>console.mkbuilders.ru</gradient>";
+            adminPlayer = Bukkit.getPlayer("Nalart11_");
+        }
+
+        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <red>" + reason + "</red>";
+        String finalChatMessage = TagFormatter.format(chatMessage);
+
+        adminPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок " + playerName + " был забанен.</green>"));
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
@@ -161,11 +190,11 @@ public class BanCommand implements Command {
     }
 
     private String buildBanMessage(String admin, String endTime, String reason) {
-        String timeText = endTime.equals("навсегда") ? "§aнавсегда" : "§6до §a" + endTime;
+        String timeText = endTime.equals("навсегда") ? "§cнавсегда" : "§fдо §c" + endTime;
 
         return String.format("""
         §c[Бан #%d]
-        §fВы были забанены администратором §6%s §c%s §fпо причине: §e%s.
+        §fВы были забанены администратором §6%s §c%s §fпо причине: §e%s
         §fЕсли вы считаете что это ошибка вы можете обратиться к администрации: §ahttps://discord.gg/Ac9CSskbTf
         """,
                 PunishmentStorage.instance.getNextBanNumber(),
