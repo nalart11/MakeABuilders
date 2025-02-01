@@ -81,7 +81,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new PardonCommand(),
                 new MuteCommand(),
                 new UnmuteCommand(),
-                new MessageSoundCommand()
+                new InfoCommand(),
+                new MailCommand(),
+                new MailCheckCommand(),
+                new MailReadCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();

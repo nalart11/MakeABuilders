@@ -27,7 +27,6 @@ public class MailStorage {
         }
     }
 
-    // Метод для отключения от базы данных
     public void disconnectFromDatabase() {
         if (connection != null) {
             try {
@@ -56,7 +55,6 @@ public class MailStorage {
         }
     }
 
-    // Проверка подключения
     public boolean isConnected() {
         try {
             return connection != null && !connection.isClosed();

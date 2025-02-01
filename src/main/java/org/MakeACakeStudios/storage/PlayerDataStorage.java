@@ -24,15 +24,15 @@ public class PlayerDataStorage {
     static {
         groupWeights.put("iam", 6);
         groupWeights.put("javadper", 5);
-        groupWeights.put("yosya", 5);
+        groupWeights.put("lemon", 5);
         groupWeights.put("admin", 4);
         groupWeights.put("developer", 3);
         groupWeights.put("moderator", 2);
         groupWeights.put("sponsor", 1);
 
         groupRoles.put("iam", "owner");
-        groupRoles.put("javadper", "main_developer");
-        groupRoles.put("yosya", "yosya");
+        groupRoles.put("javadper", "custom");
+        groupRoles.put("lemon", "custom");
         groupRoles.put("admin", "admin");
         groupRoles.put("developer", "developer");
         groupRoles.put("moderator", "moderator");
@@ -44,6 +44,7 @@ public class PlayerDataStorage {
         initializeDatabase();
     }
 
+    // В методе initializeDatabase()
     private void initializeDatabase() {
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:" + MakeABuilders.instance.getDataFolder() + "/player_data.db");
@@ -52,11 +53,17 @@ public class PlayerDataStorage {
                     "player_name TEXT PRIMARY KEY, " +
                     "prefix TEXT, " +
                     "suffix TEXT, " +
-                    "role TEXT, " +
-                    "notification_sound TEXT DEFAULT 'bell')");
+                    "role TEXT)");
             stmt.close();
+            try {
+                Statement alterStmt = connection.createStatement();
+                alterStmt.execute("ALTER TABLE player_data ADD COLUMN notification_sound TEXT DEFAULT 'bell'");
+                alterStmt.close();
+            } catch (SQLException e) {
+                // Игнорировать, если столбец уже существует
+            }
         } catch (SQLException e) {
-            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Не удалось подключиться к базе данных SQLite!", e);
+            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка подключения к базе данных", e);
         }
     }
 
@@ -97,8 +104,8 @@ public class PlayerDataStorage {
                 prefix = "<blue>\uD83D\uDEE0</blue> <gradient:#E0E0E0:#808080>";
                 suffix = "</gradient>";
                 break;
-            case "yosya":
-                prefix = "<color:#CBC3E3>\uD83D\uDC08</color> <gradient:#DD00CC:#FFC8F6>";
+            case "lemon":
+                prefix = "<gradient:#FFFB3D:#FCF9BD>";
                 suffix = "</gradient>";
                 break;
             case "admin":
@@ -193,29 +200,5 @@ public class PlayerDataStorage {
             MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при проверке наличия игрока в базе данных", e);
         }
         return false;
-    }
-
-    public String getNotificationSound(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT notification_sound FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("notification_sound");
-            }
-        } catch (SQLException e) {
-            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при получении звука уведомлений из базы данных", e);
-        }
-        return "bell";
-    }
-
-    public void setNotificationSound(String playerName, String sound) {
-        String query = "UPDATE player_data SET notification_sound = ? WHERE player_name = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, sound);
-            stmt.setString(2, playerName);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при обновлении звука уведомлений в базе данных", e);
-        }
     }
 }

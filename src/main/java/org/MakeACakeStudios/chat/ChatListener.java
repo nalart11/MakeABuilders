@@ -16,8 +16,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 
 public class ChatListener implements Listener {
+
+    private static final Pattern MINI_MESSAGE_TAG_PATTERN = Pattern.compile("<[^>]+>");
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -37,9 +41,14 @@ public class ChatListener implements Listener {
 
             List<String[]> playerMessages = MakeABuilders.instance.getMailStorage().getMessages(player.getName());
             if (!playerMessages.isEmpty()) {
-//                Sound selectedSound = MakeABuilders.instance.getPlayerSound(player);
-//                player.playSound(player.getLocation(), selectedSound, 1.0F, 1.0F);
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщений.</green>"));
+                if (playerMessages.size() % 10 == 1) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<click:run_command:/mailcheck><hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть непрочитанное сообщение.'><green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанное сообщение.</green></hover></click>"));
+                } else if (playerMessages.size() % 10 == 2 || playerMessages.size() % 10 == 3 || playerMessages.size() % 10 == 4) {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<click:run_command:/mailcheck><hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть непрочитанные сообщения.'><green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщения.</green></hover></click>"));
+                } else {
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<click:run_command:/mailcheck><hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть непрочитанные сообщения.'><green>У вас есть <yellow>" + playerMessages.size() + "</yellow> непрочитанных сообщений.</green></hover></click>"));
+                }
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
             }
         }
     }
@@ -63,14 +72,24 @@ public class ChatListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        Player killer = player.getKiller();
         Component originalDeathMessage = event.deathMessage();
 
         if (originalDeathMessage != null) {
-            Component customDeathMessage = originalDeathMessage.replaceText(builder ->
-                    builder.matchLiteral(player.getName()).replacement(ChatUtils.getFormattedPlayerName(player))
-            );
+            Component formattedDeathMessage = originalDeathMessage
+                    .replaceText(builder -> builder
+                            .matchLiteral(player.getName())
+                            .replacement(ChatUtils.getFormattedPlayerName(player))
+                    );
 
-            event.deathMessage(customDeathMessage);
+            if (killer != null) {
+                formattedDeathMessage = formattedDeathMessage.replaceText(builder -> builder
+                        .matchLiteral(killer.getName())
+                        .replacement(ChatUtils.getFormattedPlayerName(killer))
+                );
+            }
+
+            event.deathMessage(formattedDeathMessage);
         }
     }
 
@@ -102,8 +121,6 @@ public class ChatListener implements Listener {
             event.setCancelled(true);
             return;
         }
-
-        System.out.println(playerName + " → " + message);
 
         message = TagFormatter.format(message);
         message = ChatUtils.replaceLocationTag(player, message);

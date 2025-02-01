@@ -46,6 +46,7 @@ public class ReplyCommand implements Command {
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
+        target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
 
         MakeABuilders.instance.setLastMessaged(sender, target);
     }

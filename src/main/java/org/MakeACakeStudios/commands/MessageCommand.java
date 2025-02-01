@@ -3,19 +3,16 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-
-import org.MakeACakeStudios.commands.MessageSoundCommand.Sounds;
 
 
 public class MessageCommand implements Command {
@@ -25,23 +22,22 @@ public class MessageCommand implements Command {
         manager.command(
                 manager.commandBuilder("message", "msg")
                         .senderType(Player.class)
-                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("player", PlayerParser.playerParser())
                         .required("text", StringParser.greedyStringParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("text")))
         );
     }
 
-    private void handle(@NotNull Player sender, @NotNull OfflinePlayer offlineTarget, String message) {
+    private void handle(@NotNull Player sender, @NotNull Player target, String message) {
 
         String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(sender.getName());
         String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(sender.getName());
         String senderName = senderPrefix + sender.getName() + senderSuffix;
 
-        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(offlineTarget.getName());
-        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(offlineTarget.getName());
-        String targetName = targetPrefix + offlineTarget.getName() + targetSuffix;
+        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(target.getName());
+        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(target.getName());
+        String targetName = targetPrefix + target.getName() + targetSuffix;
 
-        Player target = Bukkit.getPlayer(offlineTarget.getName());
 
         if (target == null) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));
@@ -49,6 +45,7 @@ public class MessageCommand implements Command {
         }
 
         String formattedMessage = TagFormatter.format(message);
+        formattedMessage = ChatUtils.replaceLocationTag(sender, formattedMessage);
 
         String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
@@ -58,11 +55,7 @@ public class MessageCommand implements Command {
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));
-
-        String soundName = PlayerDataStorage.instance.getNotificationSound(target.getName());
-        System.out.println(target.getName() + " " + soundName);
-        Sound sound = Sounds.valueOf(soundName.toUpperCase()).sound;
-        target.playSound(target.getLocation(), sound, 1.0f, 1.0f);
+        target.playSound(target.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
 
         MakeABuilders.instance.setLastMessaged(sender, target);
     }
