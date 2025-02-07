@@ -84,7 +84,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new InfoCommand(),
                 new MailCommand(),
                 new MailCheckCommand(),
-                new MailReadCommand()
+                new MailReadCommand(),
+                new ProfileCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();

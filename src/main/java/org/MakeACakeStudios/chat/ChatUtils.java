@@ -93,8 +93,7 @@ public class ChatUtils implements Listener {
                     Player mentionedPlayer = Bukkit.getPlayerExact(mentionedPlayerName);
 
                     if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
-//                        Sound notificationSound = MakeABuilders.instance.getPlayerSound(mentionedPlayer);
-//                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), notificationSound, 1.0f, 1.0f);
+                        mentionedPlayer.playSound(mentionedPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
 
                         String mentionedPlayerPrefix = MakeABuilders.instance.getPlayerPrefix(mentionedPlayer);
                         String mentionedPlayerSuffix = MakeABuilders.instance.getPlayerSuffix(mentionedPlayer);

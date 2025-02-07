@@ -58,21 +58,39 @@ public class BanCommand implements Command {
             return;
         }
 
-        if (target != null) {
+        long parsedTime = parseTimeString(time);
+        if (parsedTime != -1) {
+            if (target.getName().equals("Nalart11_")) {
+                if (sender instanceof Player) {
+                    if (!sender.getName().equals("Nalart11_")) {
+                        banPlayer((Player) sender, parsedTime, reason, sender.getName());
+                    } else {
+                        sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Ты не можешь забанить сам себя :3</green>"));
+                    }
+                } else {
+                    sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Ты не можешь забанить наларта :3</green>"));
+                }
+            } else if (target != null) {
+                if (sender instanceof Player) {
+                    banPlayer(target, parsedTime, reason, sender.getName());
+                }
+                else {
+                    banPlayer(target, parsedTime, reason, "console");
+                }
+            } else {
+                if (sender instanceof Player) {
+                    banOfflinePlayer(offlinePlayer, parsedTime, reason, sender.getName());
+                }
+                else {
+                    banOfflinePlayer(offlinePlayer, parsedTime, reason, "console");
+                }
+            }
+        } else {
             if (sender instanceof Player) {
-                banPlayer(target, parseTimeString(time), reason, sender.getName());
+                Player player = (Player) sender;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
             }
-            else {
-                banPlayer(target, parseTimeString(time), reason, "console");
-            }
-        }
-        else {
-            if (sender instanceof Player) {
-                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, sender.getName());
-            }
-            else {
-                banOfflinePlayer(offlinePlayer, parseTimeString(time), reason, "console");
-            }
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Введён неправильный формат времени.</red>"));
         }
     }
 

@@ -79,7 +79,7 @@ public class TabList {
         Component header = miniMessage.deserialize("\n" + serverName + "\n" +
                 "<gray>   " + serverTagline + "   </gray>\n");
         Component footer = miniMessage.deserialize("\n" +
-                "Пинг<yellow>:</yellow> " + pingColor + ping + "мс<reset> | " +
+                "Пинг<yellow>:</yellow> " + pingColor + ping + " мс<reset> | " +
                 "TPS<yellow>:</yellow> " + tpsColor + String.format("%.1f", tpsValue) + "<reset>" + "\n" + additionalTagline + "\n");
 
         player.sendPlayerListHeaderAndFooter(header, footer);
