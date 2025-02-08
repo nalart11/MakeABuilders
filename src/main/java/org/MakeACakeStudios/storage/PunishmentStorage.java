@@ -5,6 +5,10 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +17,7 @@ public class PunishmentStorage {
     private Connection connection;
     private final String dbPath;
     public static PunishmentStorage instance;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public PunishmentStorage(String dbPath) {
         this.dbPath = dbPath;
@@ -143,6 +148,16 @@ public class PunishmentStorage {
         }
     }
 
+    public boolean isMuted(String player) {
+        String muteStatus = PunishmentStorage.instance.checkMute(player);
+        return !muteStatus.contains("не замьючен");
+    }
+
+    public boolean isBanned(String playerName) {
+        String banStatus = PunishmentStorage.instance.checkBan(playerName);
+        return !banStatus.contains("не забанен");
+    }
+
     public long getMuteEndTime(String player) {
         String query = "SELECT endTime FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -267,5 +282,26 @@ public class PunishmentStorage {
             System.err.println("Ошибка при получении списка забаненных игроков: " + e.getMessage());
         }
         return bannedPlayers;
+    }
+
+    public String getFormattedBanEndTime(String player) {
+        long endTime = getBanEndTime(player);
+        return formatTime(endTime);
+    }
+
+    public String getFormattedMuteEndTime(String player) {
+        long endTime = getMuteEndTime(player);
+        return formatTime(endTime);
+    }
+
+    private String formatTime(long endTime) {
+        if (endTime == -1) {
+            return "неизвестно";
+        }
+        if (endTime == Long.MAX_VALUE) {
+            return "навсегда";
+        }
+        LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(endTime), ZoneId.systemDefault());
+        return dateTime.format(FORMATTER);
     }
 }

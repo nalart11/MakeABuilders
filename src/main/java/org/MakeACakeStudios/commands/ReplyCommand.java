@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
@@ -28,21 +29,18 @@ public class ReplyCommand implements Command {
 
         Player target = MakeABuilders.instance.getLastMessaged(sender);
 
-        String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(sender.getName());
-        String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(sender.getName());
-        String senderName = senderPrefix + sender.getName() + senderSuffix;
+        String senderName = ChatUtils.getFormattedPlayerString(sender.getName(), true);
+        String senderFooter = ChatUtils.getFormattedPlayerString(sender.getName(), false);
 
-        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(target.getName());
-        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(target.getName());
-        String targetName = targetPrefix + target.getName() + targetSuffix;
+        String targetName = ChatUtils.getFormattedPlayerString(target.getName(), true);
 
         String formattedMessage = TagFormatter.format(message);
 
         String senderMessage = "<green>Вы</green> <yellow>→</yellow> "
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
         String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
-                + "<hover:show_text:'Нажм ите <green>ЛКМ</green>, чтобы ответить игроку "
-                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
+                + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
+                + senderFooter + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));

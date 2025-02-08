@@ -42,9 +42,7 @@ public class MailStorage {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "recipient TEXT, " +
-                "senderPrefix TEXT, " +
-                "sender TEXT, " +
-                "senderSuffix TEXT, " +
+                "senderName TEXT, " +
                 "message TEXT, " +
                 "is_read BOOLEAN DEFAULT 0)";
         try {
@@ -64,17 +62,14 @@ public class MailStorage {
         }
     }
 
-    public void addMessage(String recipient, String senderPrefix, String sender, String senderSuffix, String message) {
-        String sql = "INSERT INTO mail_messages (recipient, senderPrefix, sender, senderSuffix, message, is_read) VALUES (?, ?, ?, ?, ?, 0)";
+    public void addMessage(String recipient, String senderName, String message) {
+        String sql = "INSERT INTO mail_messages (recipient, senderName, message, is_read) VALUES (?, ?, ?, 0)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, recipient);
-            pstmt.setString(2, senderPrefix);
-            pstmt.setString(3, sender);
-            pstmt.setString(4, senderSuffix);
-            pstmt.setString(5, message);
+            pstmt.setString(2, senderName);
+            pstmt.setString(3, message);
             pstmt.executeUpdate();
 
-            // Получение сгенерированного ID для проверки
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     long messageId = generatedKeys.getLong(1);
@@ -99,19 +94,17 @@ public class MailStorage {
     }
 
     public List<String[]> getMessages(String recipient) {
-        String sql = "SELECT id, senderPrefix, sender, senderSuffix, message, is_read FROM mail_messages WHERE recipient = ?";
+        String sql = "SELECT id, senderName, message, is_read FROM mail_messages WHERE recipient = ?";
         List<String[]> messages = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, recipient);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String id = rs.getString("id");
-                String senderPrefix = rs.getString("senderPrefix");
-                String sender = rs.getString("sender");
-                String senderSuffix = rs.getString("senderSuffix");
+                String senderName = rs.getString("senderName");
                 String message = rs.getString("message");
                 String isRead = rs.getBoolean("is_read") ? "Прочитано" : "Непрочитано";
-                messages.add(new String[]{id, senderPrefix, sender, senderSuffix, message, isRead});
+                messages.add(new String[]{id, senderName, message, isRead});
             }
         } catch (SQLException e) {
             e.printStackTrace();

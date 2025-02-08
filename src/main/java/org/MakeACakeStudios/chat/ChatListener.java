@@ -3,6 +3,7 @@ package org.MakeACakeStudios.chat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -28,13 +29,13 @@ public class ChatListener implements Listener {
         Player player = event.getPlayer();
         player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#FF3D4D:#FCBDBD>С возвращением!</gradient>"));
 
-        String prefix = MakeABuilders.instance.getPlayerPrefix(player);
-        String suffix = MakeABuilders.instance.getPlayerSuffix(player);
         List<String> joinMessages = MakeABuilders.instance.config.getStringList("Messages.Join");
         String rawMessage = ChatUtils.getRandomMessage(joinMessages);
 
+        String parsedMessage;
         if (rawMessage != null) {
-            String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
+            parsedMessage = rawMessage.replace("<player>", ChatUtils.getFormattedPlayerString(player.getName(), true));
+
             Component joinMessage = MiniMessage.miniMessage().deserialize(parsedMessage);
 
             event.joinMessage(joinMessage);
@@ -56,13 +57,13 @@ public class ChatListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        String prefix = MakeABuilders.instance.getPlayerPrefix(player);
-        String suffix = MakeABuilders.instance.getPlayerSuffix(player);
         List<String> quitMessages = MakeABuilders.instance.config.getStringList("Messages.Quit");
         String rawMessage = ChatUtils.getRandomMessage(quitMessages);
 
+        String parsedMessage;
         if (rawMessage != null) {
-            String parsedMessage = rawMessage.replace("<player>", prefix + player.getName() + suffix);
+            parsedMessage = rawMessage.replace("<player>", ChatUtils.getFormattedPlayerString(player.getName(), true));
+
             Component quitMessage = MiniMessage.miniMessage().deserialize(parsedMessage);
 
             event.quitMessage(quitMessage);
@@ -79,13 +80,13 @@ public class ChatListener implements Listener {
             Component formattedDeathMessage = originalDeathMessage
                     .replaceText(builder -> builder
                             .matchLiteral(player.getName())
-                            .replacement(ChatUtils.getFormattedPlayerName(player))
+                            .replacement(ChatUtils.getFormattedPlayerComponent(player))
                     );
 
             if (killer != null) {
                 formattedDeathMessage = formattedDeathMessage.replaceText(builder -> builder
                         .matchLiteral(killer.getName())
-                        .replacement(ChatUtils.getFormattedPlayerName(killer))
+                        .replacement(ChatUtils.getFormattedPlayerComponent(killer))
                 );
             }
 
@@ -100,7 +101,7 @@ public class ChatListener implements Listener {
 
         if (originalMessage != null) {
             Component customAdvancementMessage = originalMessage.replaceText(builder ->
-                    builder.matchLiteral(player.getName()).replacement(ChatUtils.getFormattedPlayerName(player))
+                    builder.matchLiteral(player.getName()).replacement(ChatUtils.getFormattedPlayerComponent(player))
             );
 
             event.message(customAdvancementMessage);
@@ -110,7 +111,8 @@ public class ChatListener implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        String playerName = player.getDisplayName();
+        String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
+        String playerFooter = ChatUtils.getFormattedPlayerString(player.getName(), false);
         String message = event.getMessage();
 
         String muteStatus = PunishmentStorage.instance.checkMute(player.getName());
@@ -125,13 +127,11 @@ public class ChatListener implements Listener {
         message = TagFormatter.format(message);
         message = ChatUtils.replaceLocationTag(player, message);
         message = ChatUtils.replaceMentions(player, message);
-        String prefix = MakeABuilders.instance.getPlayerPrefix(player);
-        String suffix = MakeABuilders.instance.getPlayerSuffix(player);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String finalMessage = "<click:suggest_command:'/msg " + player.getName() + " '>"
-                    + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + prefix + playerName + suffix + ".'>"
-                    + prefix + playerName + suffix + "</hover></click> > " + message;
+                    + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + playerFooter + ".'>"
+                    + playerName + "</hover></click> > " + message;
 
             Component playerMessage = MiniMessage.miniMessage().deserialize(finalMessage);
             onlinePlayer.sendMessage(playerMessage);

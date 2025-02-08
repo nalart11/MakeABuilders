@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' // Подключаем Shadow
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'org.MakeACakeStudios'
-version = 'b0.3'
+version = 'b0.4'
 
 repositories {
     mavenCentral()

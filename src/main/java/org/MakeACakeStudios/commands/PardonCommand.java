@@ -2,6 +2,7 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.BanList;
@@ -50,9 +51,7 @@ public class PardonCommand implements Command {
             return;
         }
 
-        String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
-        String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
-        String formattedName = prefix + playerName + suffix;
+        String formattedName = ChatUtils.getFormattedPlayerString(playerName, true);
 
         PunishmentStorage.instance.pardonPlayer(playerName);
         Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);

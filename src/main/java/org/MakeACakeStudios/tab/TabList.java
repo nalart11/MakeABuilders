@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -34,10 +35,16 @@ public class TabList {
         String serverTagline = "<i>Делаем здесь что то every day...</i>";
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            String badge = PlayerDataStorage.instance.getHighestBadge(onlinePlayer.getName());
             String prefix = plugin.getPlayerPrefix(onlinePlayer);
             String suffix = plugin.getPlayerSuffix(onlinePlayer);
 
-            Component formattedName = miniMessage.deserialize(prefix + onlinePlayer.getName() + suffix);
+            Component formattedName;
+            if (badge.equals("")) {
+                formattedName = miniMessage.deserialize(prefix + onlinePlayer.getName() + suffix);
+            } else {
+                formattedName = miniMessage.deserialize(badge + " " + prefix + onlinePlayer.getName() + suffix);
+            }
 
             String legacyName = LegacyComponentSerializer.legacySection().serialize(formattedName);
 

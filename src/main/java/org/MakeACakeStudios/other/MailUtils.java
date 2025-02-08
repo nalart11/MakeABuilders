@@ -97,14 +97,12 @@ public class MailUtils {
     }
 
     public void sendFormattedMessage(Player player, String[] messageData) {
-        String senderPrefix = messageData[1];
-        String sender = messageData[2];
-        String senderSuffix = messageData[3];
-        String message = messageData[4];
-        String status = messageData[5].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<yellow>[Непрочитано]</yellow>";
+        String senderName = messageData[1];
+        String message = messageData[2];
+        String status = messageData[3].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<yellow>[Непрочитано]</yellow>";
 
         String formattedMessage = "<gray>--------------------------</gray>\n" +
-                "<green>Отправитель:</green> " + senderPrefix + sender + senderSuffix + "\n" +
+                "<green>Отправитель:</green> " + senderName + "\n" +
                 "<green>Сообщение:</green> " + message + "\n" +
                 status + "\n" +
                 "<gray>--------------------------</gray>";

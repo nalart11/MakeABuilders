@@ -4,14 +4,20 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -32,38 +38,42 @@ public class ProfileCommand implements Command, Listener {
                 manager.commandBuilder("profile")
                         .senderType(Player.class)
                         .optional("player", OfflinePlayerParser.offlinePlayerParser())
-                        .handler(ctx -> handle(ctx.sender(), ctx.get("player")))
+                        .handler(ctx -> {
+                            OfflinePlayer targetPlayer = ctx.getOrDefault("player", (OfflinePlayer) ctx.sender());
+                            handle((Player) ctx.sender(), targetPlayer);
+                        })
         );
     }
 
-    private void handle(@NotNull Player player, OfflinePlayer offlinePlayer) {
-        Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
-            Inventory inventory = Bukkit.createInventory(null, 27, "Профиль игрока " + offlinePlayer.getName());
+    private void handle(@NotNull Player player, @NotNull OfflinePlayer offlinePlayer) {
+        if (!offlinePlayer.isOnline() && offlinePlayer.hasPlayedBefore() == false) {
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не существует или не заходил на сервер!</red>"));
+        } else {
+            Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
+                Inventory inventory = Bukkit.createInventory(null, 27, "Профиль игрока " + offlinePlayer.getName());
 
-            if (offlinePlayer == null) {
-                inventory.setItem(13, getPlayerHead(player));
-                inventory.setItem(0, getPlaytimeClock(player));
-            } else {
                 inventory.setItem(13, getPlayerHead(offlinePlayer));
                 inventory.setItem(0, getPlaytimeClock(offlinePlayer));
-            }
+                inventory.setItem(18, getMuteColor(offlinePlayer));
+                if (PunishmentStorage.instance.isBanned(offlinePlayer.getName())) {
+                    inventory.setItem(19, getBanBarrier(offlinePlayer));
+                }
 
-            player.openInventory(inventory);
-        });
+                player.openInventory(inventory);
+            });
+        }
     }
 
 
-    private ItemStack getPlayerHead(@NotNull OfflinePlayer player) {
+    private static ItemStack getPlayerHead(@NotNull OfflinePlayer player) {
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
         if (meta != null) {
             meta.setOwningPlayer(player);
 
-            String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(player.getName());
-            String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(player.getName());
-            String senderName = senderPrefix + player.getName() + senderSuffix;
+            String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
 
-            Component formattedName = MiniMessage.miniMessage().deserialize("<!i>" + senderName);
+            Component formattedName = MiniMessage.miniMessage().deserialize("<!i>" + playerName);
             meta.displayName(formattedName);
 
             String roleName = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
@@ -93,7 +103,7 @@ public class ProfileCommand implements Command, Listener {
             }
 
             Component loreText1 = MiniMessage.miniMessage().deserialize("<!i><yellow>Роль: </yellow>" + playerRoleText);
-            Component loreText2 = MiniMessage.miniMessage().deserialize("<!i><yellow>Значки: </yellow>" + senderPrefix);
+            Component loreText2 = MiniMessage.miniMessage().deserialize("<!i><yellow>Значки: </yellow>" + PlayerDataStorage.instance.getPlayerBadges(player.getName()));
             meta.lore(List.of(loreText1, loreText2));
 
             skull.setItemMeta(meta);
@@ -101,7 +111,7 @@ public class ProfileCommand implements Command, Listener {
         return skull;
     }
 
-    public static ItemStack getPlaytimeClock(@NotNull OfflinePlayer player) {
+    private static ItemStack getPlaytimeClock(@NotNull OfflinePlayer player) {
         ItemStack clock = new ItemStack(Material.CLOCK);
         ItemMeta meta = clock.getItemMeta();
         if (meta != null) {
@@ -142,5 +152,66 @@ public class ProfileCommand implements Command, Listener {
     private static String formatDate(long millis) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         return sdf.format(new Date(millis));
+    }
+
+    private static ItemStack getMuteColor(@NotNull OfflinePlayer player) {
+        if (!PunishmentStorage.instance.isMuted(player.getName())) {
+            ItemStack limeDye = new ItemStack(Material.LIME_DYE);
+            ItemMeta meta = limeDye.getItemMeta();
+            if (meta != null) {
+                Component statusMessage = MiniMessage.miniMessage().deserialize("<!i><green>Не замьючен.</green>");
+                meta.displayName(statusMessage);
+
+                limeDye.setItemMeta(meta);
+            }
+            return limeDye;
+        } else {
+            ItemStack redDye = new ItemStack(Material.RED_DYE);
+            ItemMeta meta = redDye.getItemMeta();
+            if (meta != null) {
+                String formattedMuteEndTime = PunishmentStorage.instance.getFormattedMuteEndTime(player.getName());
+                String message = formattedMuteEndTime.equals("навсегда")
+                        ? "<!i><red>Игрок замьючен навсегда.</red>"
+                        : "<!i><red>Игрок замьючен до " + formattedMuteEndTime + ".</red>";
+
+                Component statusMessage = MiniMessage.miniMessage().deserialize(message);
+                meta.displayName(statusMessage);
+
+                redDye.setItemMeta(meta);
+            }
+            return redDye;
+        }
+    }
+
+    private static ItemStack getBanBarrier(@NotNull OfflinePlayer player) {
+        ItemStack barrier = new ItemStack(Material.BARRIER);
+        ItemMeta meta = barrier.getItemMeta();
+        if (meta != null) {
+            String formattedBanEndTime = PunishmentStorage.instance.getFormattedBanEndTime(player.getName());
+            String message = formattedBanEndTime.equals("навсегда")
+                    ? "<!i><red>Игрок забанен навсегда.</red>"
+                    : "<!i><red>Игрок забанен до " + formattedBanEndTime + ".</red>";
+
+            Component statusMessage = MiniMessage.miniMessage().deserialize(message);
+            meta.displayName(statusMessage);
+
+            barrier.setItemMeta(meta);
+        }
+        return barrier;
+    }
+
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getView().getTitle().startsWith("Профиль игрока")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getView().getTitle().startsWith("Профиль игрока")) {
+            event.setCancelled(true);
+        }
     }
 }

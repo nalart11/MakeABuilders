@@ -63,6 +63,9 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     public void onEnable() {
         instance = this;
 
+        Bukkit.getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new ProfileCommand(), this);
+
         saveDefaultConfig();
         config = getConfig();
 

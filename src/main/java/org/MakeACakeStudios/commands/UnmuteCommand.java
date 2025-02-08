@@ -2,6 +2,7 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.other.MuteExpirationTask;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
@@ -40,15 +41,12 @@ public class UnmuteCommand implements Command {
 
         String playerName = target.getName();
 
-        String banStatus = PunishmentStorage.instance.checkMute(playerName);
-        if (banStatus.contains("не замьючен")) {
+        if (!PunishmentStorage.instance.isMuted(target.getName())) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>✖ Игрок " + playerName + " не замьючен.</red>"));
             return;
         }
 
-        String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
-        String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
-        String formattedName = prefix + playerName + suffix;
+        String formattedName = ChatUtils.getFormattedPlayerString(playerName, true);
 
         PunishmentStorage.instance.unmutePlayer(playerName);
         MuteExpirationTask.instance.removePlayerFromMuteCheck(target.getName());

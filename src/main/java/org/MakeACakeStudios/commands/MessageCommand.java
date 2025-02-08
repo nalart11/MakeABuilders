@@ -5,7 +5,6 @@ import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,13 +29,10 @@ public class MessageCommand implements Command {
 
     private void handle(@NotNull Player sender, @NotNull Player target, String message) {
 
-        String senderPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(sender.getName());
-        String senderSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(sender.getName());
-        String senderName = senderPrefix + sender.getName() + senderSuffix;
+        String senderName = ChatUtils.getFormattedPlayerString(sender.getName(), true);
+        String senderFooter = ChatUtils.getFormattedPlayerString(sender.getName(), false);
 
-        String targetPrefix = PlayerDataStorage.instance.getPlayerPrefixByName(target.getName());
-        String targetSuffix = PlayerDataStorage.instance.getPlayerSuffixByName(target.getName());
-        String targetName = targetPrefix + target.getName() + targetSuffix;
+        String targetName = ChatUtils.getFormattedPlayerString(target.getName(), true);
 
 
         if (target == null) {
@@ -51,7 +47,7 @@ public class MessageCommand implements Command {
                 + targetName + ": <gray>" + formattedMessage + "</gray>";
         String targetMessage = "<click:suggest_command:'/msg " + sender.getName() + " '>"
                 + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы ответить игроку "
-                + senderName + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
+                + senderFooter + ".'>" + senderName + "</hover></click> <yellow>→</yellow> <green>Вы</green>: <gray>" + formattedMessage + "</gray>";
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(senderMessage));
         target.sendMessage(MiniMessage.miniMessage().deserialize(targetMessage));

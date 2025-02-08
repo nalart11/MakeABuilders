@@ -3,7 +3,10 @@ package org.MakeACakeStudios.chat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.entity.Boat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.Bukkit;
@@ -20,13 +23,33 @@ public class ChatUtils implements Listener {
         return messages.get(random.nextInt(messages.size()));
     }
 
-    public static Component getFormattedPlayerName(Player player) {
+    public static Component getFormattedPlayerComponent(Player player) {
+        String badge = PlayerDataStorage.instance.getHighestBadge(player.getName());
         String prefix = MakeABuilders.instance.getPlayerPrefix(player);
         String suffix = MakeABuilders.instance.getPlayerSuffix(player);
-        return MiniMessage.miniMessage().deserialize(prefix + player.getName() + suffix);
+        if (badge.equals("")) {
+            return MiniMessage.miniMessage().deserialize(prefix + player.getName() + suffix);
+        } else {
+            return MiniMessage.miniMessage().deserialize(badge + " " + prefix + player.getName() + suffix);
+        }
     }
 
-
+    public static String getFormattedPlayerString(String playerName, Boolean value) {
+        if (value == true) {
+            String badge = PlayerDataStorage.instance.getHighestBadge(playerName);
+            String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
+            String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
+            if (badge.equals("")) {
+                return prefix + playerName + suffix;
+            } else {
+                return badge + " " + prefix + playerName + suffix;
+            }
+        } else {
+            String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
+            String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
+            return prefix + playerName + suffix;
+        }
+    }
 
     public static void handleExternalCommandMessage(Player sender, String message) {
         String formattedMessage = TagFormatter.format(message);
@@ -95,10 +118,7 @@ public class ChatUtils implements Listener {
                     if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
                         mentionedPlayer.playSound(mentionedPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
 
-                        String mentionedPlayerPrefix = MakeABuilders.instance.getPlayerPrefix(mentionedPlayer);
-                        String mentionedPlayerSuffix = MakeABuilders.instance.getPlayerSuffix(mentionedPlayer);
-
-                        String formattedMention = "<yellow>@" + mentionedPlayerPrefix + mentionedPlayer.getName() + mentionedPlayerSuffix + "</yellow>";
+                        String formattedMention = "<yellow>@" + mentionedPlayer.getName() + "</yellow>";
                         message = message.replace(word, formattedMention);
                         return message;
                     } else {
