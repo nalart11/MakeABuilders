@@ -5,6 +5,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.storage.DonateStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
@@ -54,6 +55,7 @@ public class ProfileCommand implements Command, Listener {
 
                 inventory.setItem(13, getPlayerHead(offlinePlayer));
                 inventory.setItem(0, getPlaytimeClock(offlinePlayer));
+                inventory.setItem(9, getDonateItem(offlinePlayer));
                 inventory.setItem(18, getMuteColor(offlinePlayer));
                 if (PunishmentStorage.instance.isBanned(offlinePlayer.getName())) {
                     inventory.setItem(19, getBanBarrier(offlinePlayer));
@@ -73,7 +75,7 @@ public class ProfileCommand implements Command, Listener {
 
             String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
 
-            Component formattedName = MiniMessage.miniMessage().deserialize("<!i>" + playerName);
+            Component formattedName = MiniMessage.miniMessage().deserialize("<!i><white>" + playerName + "</white>");
             meta.displayName(formattedName);
 
             String roleName = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
@@ -90,7 +92,7 @@ public class ProfileCommand implements Command, Listener {
                     playerRoleText = "<gradient:#FF2323:#FF7878>Администратор</gradient>";
                     break;
                 case "developer":
-                    playerRoleText = "<gradient:#E43A96:#FF0000>Разработчик</gradient>";
+                    playerRoleText = "<gradient:#E43A96:#FF0000>Раз`работчик</gradient>";
                     break;
                 case "moderator":
                     playerRoleText = "<gradient:#23DBFF:#C8E9FF>Модератор</gradient>";
@@ -98,13 +100,22 @@ public class ProfileCommand implements Command, Listener {
                 case "sponsor":
                     playerRoleText = "<gradient:#00A53E:#C8FFD4>Спонсор</gradient>";
                     break;
+                case "donator":
+                    playerRoleText = "<gradient:#6EFFC9:#F0FFF7>Донатер</gradient>";
+                    break;
                 default:
                     playerRoleText = "<gray>Игрок</gray>";
             }
 
             Component loreText1 = MiniMessage.miniMessage().deserialize("<!i><yellow>Роль: </yellow>" + playerRoleText);
-            Component loreText2 = MiniMessage.miniMessage().deserialize("<!i><yellow>Значки: </yellow>" + PlayerDataStorage.instance.getPlayerBadges(player.getName()));
-            meta.lore(List.of(loreText1, loreText2));
+            List<String> badges = PlayerDataStorage.instance.getPlayerBadges(player.getName());
+            if (!badges.equals(List.of())) {
+                Component loreText2 = MiniMessage.miniMessage().deserialize("<!i><yellow>Значки: </yellow>" + PlayerDataStorage.instance.getPlayerBadges(player.getName()));
+                meta.lore(List.of(loreText1, loreText2));
+            } else {
+                meta.lore(List.of(loreText1));
+            }
+
 
             skull.setItemMeta(meta);
         }
@@ -198,6 +209,47 @@ public class ProfileCommand implements Command, Listener {
             barrier.setItemMeta(meta);
         }
         return barrier;
+    }
+
+    private static ItemStack getDonateItem(@NotNull OfflinePlayer player) {
+        int donate = DonateStorage.instance.getTotalDonations(player.getName());
+        if (donate >= 150 && donate < 2000) {
+            ItemStack diamond = new ItemStack(Material.DIAMOND);
+            ItemMeta meta = diamond.getItemMeta();
+            if (meta != null) {
+                Component roleMessage = MiniMessage.miniMessage().deserialize("<!i><gradient:#6EFFC9:#F0FFF7>Донатер</gradient>");
+                Component loreMessage = MiniMessage.miniMessage().deserialize("<!i><yellow>Сумма доната: <white>" + donate + "р</white></yellow>");
+                meta.displayName(roleMessage);
+                meta.lore(List.of(loreMessage));
+
+                diamond.setItemMeta(meta);
+            }
+            return diamond;
+        } else if (donate >= 2000) {
+            ItemStack netherite = new ItemStack(Material.NETHERITE_INGOT);
+            ItemMeta meta = netherite.getItemMeta();
+            if (meta != null) {
+                Component roleMessage = MiniMessage.miniMessage().deserialize("<!i><gradient:#00A53E:#C8FFD4>Спонсор</gradient>");
+                Component loreMessage = MiniMessage.miniMessage().deserialize("<!i><yellow>Сумма доната: <white>" + donate + "р</white></yellow>");
+                meta.displayName(roleMessage);
+                meta.lore(List.of(loreMessage));
+
+                netherite.setItemMeta(meta);
+            }
+            return netherite;
+        } else {
+            ItemStack gold_nugget = new ItemStack(Material.GOLD_NUGGET);
+            ItemMeta meta = gold_nugget.getItemMeta();
+            if (meta != null) {
+                Component roleMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Игрок</gray>");
+                Component loreMessage = MiniMessage.miniMessage().deserialize("<!i><yellow>Сумма доната: <white>0р</white></yellow>");
+                meta.displayName(roleMessage);
+                meta.lore(List.of(loreMessage));
+
+                gold_nugget.setItemMeta(meta);
+            }
+            return gold_nugget;
+        }
     }
 
 

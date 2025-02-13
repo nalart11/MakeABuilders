@@ -24,9 +24,10 @@ public class PlayerDataStorage {
         groupWeights.put("javadper", 5);
         groupWeights.put("lemon", 5);
         groupWeights.put("admin", 4);
-        groupWeights.put("developer", 3);
-        groupWeights.put("moderator", 2);
-        groupWeights.put("sponsor", 1);
+        groupWeights.put("developer", 4);
+        groupWeights.put("moderator", 3);
+        groupWeights.put("sponsor", 2);
+        groupWeights.put("donator", 1);
 
         groupRoles.put("iam", "owner");
         groupRoles.put("javadper", "custom");
@@ -35,14 +36,15 @@ public class PlayerDataStorage {
         groupRoles.put("developer", "developer");
         groupRoles.put("moderator", "moderator");
         groupRoles.put("sponsor", "sponsor");
+        groupRoles.put("donator", "donator");
 
         groupBadges.put("iam", "<yellow>✦</yellow>");
         groupBadges.put("javadper", "<blue>\uD83D\uDEE0</blue>");
-        groupBadges.put("lemon", "<gradient:#FFFB3D:#FCF9BD>🍋</gradient>");
         groupBadges.put("admin", "<blue>⛨</blue>");
         groupBadges.put("developer", "<blue>\uD83D\uDEE0</blue>");
         groupBadges.put("moderator", "<blue>⛨</blue>");
         groupBadges.put("sponsor", "<gold>$</gold>");
+        groupBadges.put("donator", "<color:#03d7fc>$</color>");
     }
 
     public PlayerDataStorage() {
@@ -60,14 +62,15 @@ public class PlayerDataStorage {
                     "suffix TEXT, " +
                     "role TEXT, " +
                     "badges TEXT, " +
-                    "highest_badge TEXT DEFAULT '')");
+                    "highest_badge TEXT DEFAULT '', " +
+                    "donate INTEGER DEFAULT 0)");
             stmt.close();
 
             try {
                 Statement alterStmt = connection.createStatement();
-                alterStmt.execute("ALTER TABLE player_data ADD COLUMN highest_badge TEXT DEFAULT ''");
+                alterStmt.execute("ALTER TABLE player_data ADD COLUMN donate INTEGER DEFAULT 0");
                 alterStmt.close();
-            } catch (SQLException e) {
+            } catch (SQLException ignored) {
             }
         } catch (SQLException e) {
             MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка подключения к базе данных", e);
@@ -98,14 +101,12 @@ public class PlayerDataStorage {
                     if (groupWeights.containsKey(groupName)) {
                         int weight = groupWeights.get(groupName);
 
-                        // Определяем самую высокую группу и ее бейдж
                         if (weight > highestWeight) {
                             highestWeight = weight;
                             highestGroup = groupName;
-                            highestBadge = groupBadges.getOrDefault(groupName, ""); // Если нет бейджа, будет ""
+                            highestBadge = groupBadges.getOrDefault(groupName, "");
                         }
 
-                        // Добавляем бейдж, если он есть и его еще нет в списке
                         String badge = groupBadges.get(groupName);
                         if (badge != null && !badge.isEmpty() && !badgesList.contains(badge)) {
                             badgesList.add(badge);
@@ -115,7 +116,6 @@ public class PlayerDataStorage {
             }
         }
 
-        // Если у игрока нет бейджей, оставляем highestBadge пустым
         if (badgesList.isEmpty()) {
             highestBadge = "";
         }

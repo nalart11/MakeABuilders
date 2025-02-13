@@ -4,6 +4,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.chat.ChatListener;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.commands.*;
+import org.MakeACakeStudios.donates.EffectManager;
+import org.MakeACakeStudios.donates.effects.StarEffect;
 import org.MakeACakeStudios.motd.DynamicMotd;
 import org.MakeACakeStudios.tab.TabList;
 import org.MakeACakeStudios.other.MuteExpirationTask;
@@ -69,6 +71,11 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         saveDefaultConfig();
         config = getConfig();
 
+//        SakuraLeavesEffect.register();
+//        ZeusEffect.register();
+//        StarEffect.register();
+        EffectManager.startAllEffects();
+
         commandManager = new LegacyPaperCommandManager<CommandSender>(
                 this,
                 ExecutionCoordinator.asyncCoordinator(),
@@ -88,7 +95,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new MailCommand(),
                 new MailCheckCommand(),
                 new MailReadCommand(),
-                new ProfileCommand()
+                new ProfileCommand(),
+                new DonateCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();
