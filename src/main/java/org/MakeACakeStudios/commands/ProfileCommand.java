@@ -67,17 +67,9 @@ public class ProfileCommand implements Command, Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        if (event.getView().getTitle().startsWith("Профиль игрока " + player.getName())) {
-
-            int clickedSlot = event.getRawSlot();
-
-            if (clickedSlot == 9) {
-                player.closeInventory();
-                player.performCommand("donate menu");
-            }
+        if (event.getView().getTitle().startsWith("Профиль игрока")) {
+            event.setCancelled(true);
         }
-        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
