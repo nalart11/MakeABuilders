@@ -1,9 +1,8 @@
 package org.MakeACakeStudios.storage;
 
 import java.sql.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -11,7 +10,6 @@ import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class DonateStorage {
@@ -22,6 +20,13 @@ public class DonateStorage {
         instance = this;
         initializeDatabase();
     }
+
+    public static final Map<String, Integer> DONATE_EFFECTS = new HashMap<>() {{
+        put("Zeus", 1);
+        put("Star", 2);
+        put("Sakura", 3);
+        put("Vanila", 4);
+    }};
 
     private void initializeDatabase() {
         String sql = "CREATE TABLE IF NOT EXISTS donations (" +
@@ -77,7 +82,6 @@ public class DonateStorage {
             stmt.executeUpdate();
             System.out.println("Сумма донатов для " + playerName + " обновлена: " + newAmount);
 
-            // Проверяем и выдаем группу через LuckPerms
             updatePlayerGroup(playerName, newAmount);
 
         } catch (SQLException e) {
@@ -117,6 +121,11 @@ public class DonateStorage {
         return new HashSet<>();
     }
 
+    public boolean hasDonation(String playerName, int donationId) {
+        Set<String> donationSet = getPurchasedDonations(playerName);
+        return donationSet.contains(String.valueOf(donationId));
+    }
+
     private void updatePurchasedDonations(String playerName, Set<String> donationSet) {
         String sql = "INSERT INTO donations (player_name, total_donations, purchased_donations) " +
                 "VALUES (?, 0, ?) " +
@@ -136,13 +145,13 @@ public class DonateStorage {
 
     private void updatePlayerGroup(String playerName, int donationAmount) {
         LuckPerms luckPerms = LuckPermsProvider.get();
-        Player player = Bukkit.getPlayerExact(playerName); // Получаем игрока из Bukkit API
+        Player player = Bukkit.getPlayerExact(playerName);
         if (player == null) {
             System.out.println("LuckPerms: Игрок " + playerName + " не найден на сервере!");
             return;
         }
 
-        UUID playerUUID = player.getUniqueId(); // Получаем UUID игрока
+        UUID playerUUID = player.getUniqueId();
         CompletableFuture<User> userFuture = luckPerms.getUserManager().loadUser(playerUUID);
 
         userFuture.thenAccept(user -> {
@@ -151,10 +160,8 @@ public class DonateStorage {
                 return;
             }
 
-            // Удаляем старые донат-группы
             user.data().clear(node -> node.getKey().equals("group.donator") || node.getKey().equals("group.sponsor"));
 
-            // Назначаем новую группу в зависимости от суммы донатов
             if (donationAmount >= 2000) {
                 user.data().add(Node.builder("group.sponsor").build());
                 System.out.println("Игроку " + playerName + " назначена группа: Sponsor");
@@ -163,7 +170,6 @@ public class DonateStorage {
                 System.out.println("Игроку " + playerName + " назначена группа: Donator");
             }
 
-            // Сохраняем пользователя в LuckPerms
             luckPerms.getUserManager().saveUser(user);
         });
     }

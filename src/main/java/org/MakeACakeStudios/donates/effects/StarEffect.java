@@ -1,31 +1,52 @@
 package org.MakeACakeStudios.donates.effects;
 
-import org.MakeACakeStudios.donates.EffectManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.MakeACakeStudios.MakeABuilders;
 
-public class StarEffect {
-    private static final String TARGET_PLAYER_NAME = "Nalart11_"; // Имя игрока, на которого действует эффект
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-    public static void startEffect() {
-        new BukkitRunnable() {
+public class StarEffect {
+    private static final Map<UUID, BukkitRunnable> activeEffects = new HashMap<>();
+
+    public static void startEffect(String playerName) {
+        Player player = Bukkit.getPlayer(playerName);
+        if (player == null || !player.isOnline()) return;
+
+        UUID playerUUID = player.getUniqueId();
+
+        if (activeEffects.containsKey(playerUUID)) {
+            return;
+        }
+
+        BukkitRunnable effectTask = new BukkitRunnable() {
             @Override
             public void run() {
-                Player player = Bukkit.getPlayer(TARGET_PLAYER_NAME);
-                if (player == null || !player.isOnline()) {
-                    return; // Если игрок оффлайн, просто пропускаем тик
+                Player p = Bukkit.getPlayer(playerUUID);
+                if (p != null && p.isOnline()) {
+                    p.getWorld().spawnParticle(Particle.FIREWORK, p.getLocation().add(0, 2, 0), 5, 0.5, 0.5, 0.5, 0.1);
+                } else {
+                    stopEffect(playerName);
                 }
-
-                // Создаём эффект над игроком
-                player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation().add(0, 2, 0), 5, 0.5, 0.5, 0.5, 0.1);
             }
-        }.runTaskTimer(MakeABuilders.instance, 0L, 5L); // Запускаем каждые 5 тиков (0.25 секунды)
+        };
+
+        effectTask.runTaskTimer(MakeABuilders.instance, 0L, 5L);
+        activeEffects.put(playerUUID, effectTask);
     }
 
-    public static void register() {
-        EffectManager.registerEffect("firework", StarEffect::startEffect);
+    public static void stopEffect(String playerName) {
+        Player player = Bukkit.getPlayer(playerName);
+        if (player == null) return;
+
+        UUID playerUUID = player.getUniqueId();
+        BukkitRunnable task = activeEffects.remove(playerUUID);
+        if (task != null) {
+            task.cancel();
+        }
     }
 }

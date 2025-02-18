@@ -15,8 +15,10 @@ import org.bukkit.Sound;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
 import org.MakeACakeStudios.other.PlayerBanListener;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -67,14 +69,10 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
         Bukkit.getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ProfileCommand(), this);
+        Bukkit.getPluginManager().registerEvents(new DonateCommand(), this);
 
         saveDefaultConfig();
         config = getConfig();
-
-//        SakuraLeavesEffect.register();
-//        ZeusEffect.register();
-//        StarEffect.register();
-        EffectManager.startAllEffects();
 
         commandManager = new LegacyPaperCommandManager<CommandSender>(
                 this,
@@ -96,7 +94,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new MailCheckCommand(),
                 new MailReadCommand(),
                 new ProfileCommand(),
-                new DonateCommand()
+                new DonateCommand(),
+                new AutoDonateCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();
@@ -133,6 +132,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        if (DonateStorage.instance.hasDonation(player.getName(), 1) && EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(1)) {
+            Location location = player.getLocation();
+            World world = location.getWorld();
+
+            LightningStrike lightning = world.strikeLightningEffect(location);
+        }
     }
 
     @EventHandler

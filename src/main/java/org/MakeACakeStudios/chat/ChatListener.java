@@ -129,8 +129,8 @@ public class ChatListener implements Listener {
         message = ChatUtils.replaceMentions(player, message);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            String finalMessage = "<click:suggest_command:'/msg " + player.getName() + " '>"
-                    + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " + playerFooter + ".'>"
+            String finalMessage = "<click:run_command:'/profile " + player.getName() + "'>"
+                    + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть профиль игрока " + playerFooter + ".'>"
                     + playerName + "</hover></click> > " + message;
 
             Component playerMessage = MiniMessage.miniMessage().deserialize(finalMessage);

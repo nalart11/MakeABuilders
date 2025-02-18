@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.Bukkit;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ChatUtils implements Listener {
@@ -54,14 +55,14 @@ public class ChatUtils implements Listener {
     public static void handleExternalCommandMessage(Player sender, String message) {
         String formattedMessage = TagFormatter.format(message);
 
-        String prefix = MakeABuilders.instance.getPlayerPrefix(sender);
-        String suffix = MakeABuilders.instance.getPlayerSuffix(sender);
+        String playerName = getFormattedPlayerString(sender.getName(), false);
+        String playerNameBadge = getFormattedPlayerString(sender.getName(), true);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String clickableName = "<click:suggest_command:'/msg " + sender.getName() + " '>" +
                         "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы отправить сообщение игроку " +
-                        prefix + sender.getName() + suffix + ".'>" +
-                        prefix + sender.getName() + suffix + "</hover></click>";
+                        playerName + ".'>" +
+                        playerNameBadge + "</hover></click>";
 
             String finalMessage = clickableName + " > " + formattedMessage;
 
@@ -69,6 +70,13 @@ public class ChatUtils implements Listener {
         }
     }
 
+    public static void broadcastMessage(String message) {
+        String formattedMessage = TagFormatter.format(message);
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(formattedMessage));
+        }
+    }
 
     public static String replaceLocationTag(Player sender, String message) {
         if (message.contains(":loc:")) {
@@ -129,5 +137,10 @@ public class ChatUtils implements Listener {
             }
         }
         return message;
+    }
+
+    public static String formatDate(long millis) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        return sdf.format(new Date(millis));
     }
 }
