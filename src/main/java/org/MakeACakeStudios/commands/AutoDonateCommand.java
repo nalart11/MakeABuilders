@@ -5,6 +5,7 @@ import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.storage.DonateStorage;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
@@ -43,10 +44,22 @@ public class AutoDonateCommand implements Command {
         int cost = EFFECT_PRICES.get(effect);
         int effectId = DonateStorage.DONATE_EFFECTS.get(effect);
 
+        Player target = Bukkit.getPlayerExact(nickname);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(nickname);
+
+        if (!offlinePlayer.hasPlayedBefore() && !offlinePlayer.isOnline()) {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));
+            return;
+        }
+
+        if (DonateStorage.instance.hasDonation(nickname, effectId)) {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Игрок уже имеет эффект <green>" + effect + "</green>!</yellow>"));
+            return;
+        }
+
         DonateStorage.instance.addDonationAmount(nickname, cost);
         DonateStorage.instance.addDonation(nickname, effectId);
 
-        Player target = Bukkit.getPlayerExact(nickname);
         String formattedName = ChatUtils.getFormattedPlayerString(nickname, true);
         if (target != null) {
             target.sendMessage(MiniMessage.miniMessage().deserialize("<green>Вы получили эффект <yellow>" + effect + "</yellow>!</green>"));

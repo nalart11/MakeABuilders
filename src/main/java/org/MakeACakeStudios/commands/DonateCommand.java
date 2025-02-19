@@ -93,6 +93,18 @@ public class DonateCommand implements Command, @NotNull Listener {
                         .required("effect", StringParser.stringParser())
                         .handler(ctx -> handleRemoveEffect(ctx.sender(), ctx.get("player"), ctx.get("effect")))
         );
+
+        manager.command(
+                manager.commandBuilder("donate")
+                        .senderType(Player.class)
+                        .literal("toggle")
+                        .required("effect", StringParser.stringParser())
+                        .handler(ctx -> {
+                            Player player = ctx.sender();
+                            toggleEffect(player, ctx.get("effect"));
+                        })
+        );
+
     }
 
 
@@ -164,6 +176,24 @@ public class DonateCommand implements Command, @NotNull Listener {
             });
         } else {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нету эффектов, чтобы их можно было отобразить в меню донатов :(</red>"));
+        }
+    }
+
+    private void toggleEffect(@NotNull Player player, @NotNull String effect) {
+        Integer effectId = DONATE_EFFECTS.get(effect);
+        if (effectId == null) {
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Такого эффекта не существует!</red>"));
+            return;
+        }
+
+        boolean isEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(effectId);
+
+        if (isEnabled) {
+            EffectManager.stopEffectForDonation(effectId, player.getName());
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Эффект " + effect + " выключен!</red>"));
+        } else {
+            EffectManager.startEffectForDonation(effectId, player.getName());
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Эффект " + effect + " включен!</green>"));
         }
     }
 
