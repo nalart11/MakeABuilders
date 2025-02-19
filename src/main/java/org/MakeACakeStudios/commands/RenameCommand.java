@@ -2,116 +2,86 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
+import org.MakeACakeStudios.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.incendo.cloud.parser.standard.IntegerParser;
+import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-public class RenameCommand implements CommandExecutor, TabCompleter {
+public class RenameCommand implements Command {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(miniMessage.deserialize("Эту команду может использовать только игрок."));
-            return true;
-        }
+    public void register(LegacyPaperCommandManager<CommandSender> manager) {
+        manager.command(
+                manager.commandBuilder("rename")
+                        .senderType(Player.class)
+                        .literal("name")
+                        .required("newName", StringParser.greedyStringParser())
+                        .handler(ctx -> renameItem(ctx.sender(), ctx.get("newName")))
+        );
 
-        Player player = (Player) sender;
+        manager.command(
+                manager.commandBuilder("rename")
+                        .senderType(Player.class)
+                        .literal("lore")
+                        .required("line", IntegerParser.integerParser())
+                        .required("text", StringParser.greedyStringParser())
+                        .handler(ctx -> changeLore(ctx.sender(), ctx.get("line"), ctx.get("text")))
+        );
+    }
 
+    private void renameItem(@NotNull Player player, String newName) {
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (player.getInventory().getItem(player.getActiveItemHand()) == null || player.getInventory().getItem(player.getActiveItemHand()).isEmpty()) {
+
+        if (item.isEmpty()) {
             player.sendMessage(miniMessage.deserialize("<red>Вы должны держать предмет в руке, чтобы его переименовать.</red>"));
-            return true;
+            return;
         }
 
         ItemMeta meta = item.getItemMeta();
+        Component parsedName = miniMessage.deserialize(newName);
+        meta.displayName(parsedName);
+        item.setItemMeta(meta);
 
-        if (args.length > 1 && args[0].equalsIgnoreCase("name")) {
-            StringBuilder newName = new StringBuilder();
-            for (int i = 1; i < args.length; i++) {
-                newName.append(args[i]).append(" ");
-            }
-
-            Component parsedName = miniMessage.deserialize(newName.toString().trim());
-            meta.displayName(parsedName);
-            item.setItemMeta(meta);
-
-            player.sendMessage(miniMessage.deserialize("<green>Название предмета изменено на: </green>").append(item.displayName()));
-
-            return true;
-        }
-
-        if (args.length > 2 && args[0].equalsIgnoreCase("lore")) {
-            int lineIndex;
-
-            try {
-                lineIndex = Integer.parseInt(args[1]) - 1;
-            } catch (NumberFormatException e) {
-                player.sendMessage(miniMessage.deserialize("<red>Номер строки должен быть числом.</red>"));
-                return true;
-            }
-
-            if (lineIndex < 0 || lineIndex >= 11) {
-                player.sendMessage(miniMessage.deserialize("<red>Номер строки должен быть от 1 до 11.</red>"));
-                return true;
-            }
-
-            StringBuilder loreText = new StringBuilder();
-            for (int i = 2; i < args.length; i++) {
-                loreText.append(args[i]).append(" ");
-            }
-
-            List<Component> lore = meta.lore();
-            if (lore == null) {
-                lore = new ArrayList<>();
-            }
-
-            while (lore.size() <= lineIndex) {
-                lore.add(Component.text(""));
-            }
-
-            Component parsedLore = miniMessage.deserialize(loreText.toString().trim());
-            lore.set(lineIndex, parsedLore);
-            meta.lore(lore);
-            item.setItemMeta(meta);
-
-            player.sendMessage(miniMessage.deserialize("<green>Лор предмета изменён на: </green>").append(item.displayName()));
-
-            return true;
-        }
-
-        player.sendMessage(miniMessage.deserialize("<red>Использование: /rename <name/lore> <аргументы></red>"));
-        return true;
+        player.sendMessage(miniMessage.deserialize("<green>Название предмета изменено на: </green>").append(item.displayName()));
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player)) {
-            return Collections.emptyList();
+    private void changeLore(@NotNull Player player, int lineIndex, String loreText) {
+        if (lineIndex < 1 || lineIndex > 10) {
+            player.sendMessage(miniMessage.deserialize("<red>Номер строки должен быть от 1 до 10.</red>"));
+            return;
         }
 
-        if (args.length == 1) {
-            return Arrays.asList("name", "lore");
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.isEmpty()) {
+            player.sendMessage(miniMessage.deserialize("<red>Вы должны держать предмет в руке, чтобы изменить его лор.</red>"));
+            return;
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("lore")) {
-            List<String> loreLines = new ArrayList<>();
-            for (int i = 1; i <= 10; i++) {
-                loreLines.add(String.valueOf(i));
-            }
-            return loreLines;
+        ItemMeta meta = item.getItemMeta();
+        List<Component> lore = meta.lore();
+        if (lore == null) {
+            lore = new ArrayList<>();
         }
 
-        return Collections.emptyList();
+        while (lore.size() < lineIndex) {
+            lore.add(Component.text(""));
+        }
+
+        Component parsedLore = miniMessage.deserialize(loreText);
+        lore.set(lineIndex - 1, parsedLore);
+        meta.lore(lore);
+        item.setItemMeta(meta);
+
+        player.sendMessage(miniMessage.deserialize("<green>Лор предмета изменён:</green>").append(parsedLore));
     }
 }

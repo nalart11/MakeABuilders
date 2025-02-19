@@ -49,7 +49,7 @@ public class ChatCommand implements Command {
         String role = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
 
         if (mode == ChatMode.ADMIN) {
-            if (!role.equals("owner") && !role.equals("admin") && !role.equals("moderator") && !role.equals("developer")) {
+            if (!role.equals("owner") && !role.equals("admin") && !role.equals("moderator") && !role.equals("developer") && !role.equals("custom")) {
                 player.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет доступа к админскому чату!</red>"));
                 return;
             }

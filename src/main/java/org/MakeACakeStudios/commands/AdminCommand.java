@@ -6,6 +6,9 @@ import org.MakeACakeStudios.MakeABuilders;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +22,7 @@ public class AdminCommand implements Command {
 
     private final HashMap<UUID, ItemStack[]> savedInventories = new HashMap<>();
     private final HashMap<UUID, GameMode> savedGameModes = new HashMap<>();
+    private final HashMap<UUID, BossBar> adminBossBars = new HashMap<>();
 
     @Override
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
@@ -45,9 +49,13 @@ public class AdminCommand implements Command {
                 player.setFlying(false);
             }
 
-
             savedInventories.remove(playerId);
             savedGameModes.remove(playerId);
+
+            if (adminBossBars.containsKey(playerId)) {
+                adminBossBars.get(playerId).removeAll();
+                adminBossBars.remove(playerId);
+            }
 
             player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Вы вышли из <red>админ-режима</red>.</gray>"));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
@@ -59,6 +67,10 @@ public class AdminCommand implements Command {
             player.setInvulnerable(true);
             player.setAllowFlight(true);
             player.setFlying(true);
+
+            BossBar bossBar = Bukkit.createBossBar("Вы находитесь в режиме §cадминистратора", BarColor.RED, BarStyle.SOLID);
+            bossBar.addPlayer(player);
+            adminBossBars.put(playerId, bossBar);
 
             player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Вы вошли в <green>админ-режим</green>.</gray>"));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);

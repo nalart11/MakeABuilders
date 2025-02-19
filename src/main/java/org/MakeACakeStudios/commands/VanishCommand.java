@@ -7,6 +7,9 @@ import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.donates.EffectManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
@@ -18,6 +21,7 @@ public class VanishCommand implements Command {
 
     private static final Set<UUID> vanishedPlayers = new HashSet<>();
     private static final Map<UUID, Set<Integer>> vanishedEffects = new HashMap<>();
+    private static final Map<UUID, BossBar> vanishedBossBars = new HashMap<>();
 
     @Override
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
@@ -46,6 +50,11 @@ public class VanishCommand implements Command {
                 }
             }
 
+            if (vanishedBossBars.containsKey(playerId)) {
+                vanishedBossBars.get(playerId).removeAll();
+                vanishedBossBars.remove(playerId);
+            }
+
             List<String> joinMessages = MakeABuilders.instance.config.getStringList("Messages.Join");
             String rawMessage = ChatUtils.getRandomMessage(joinMessages);
             if (rawMessage != null) {
@@ -62,11 +71,15 @@ public class VanishCommand implements Command {
 
             Set<Integer> activeEffects = EffectManager.getEnabledEffectsForPlayer(player.getName());
             if (!activeEffects.isEmpty()) {
-                vanishedEffects.put(playerId, new HashSet<>(activeEffects)); // Сохраняем текущие эффекты
+                vanishedEffects.put(playerId, new HashSet<>(activeEffects));
                 for (int effect : activeEffects) {
                     EffectManager.stopEffectForDonation(effect, player.getName());
                 }
             }
+
+            BossBar bossBar = Bukkit.createBossBar("Вы находитесь в §bванише", BarColor.WHITE, BarStyle.SOLID);
+            bossBar.addPlayer(player);
+            vanishedBossBars.put(playerId, bossBar);
 
             List<String> quitMessages = MakeABuilders.instance.config.getStringList("Messages.Quit");
             String rawMessage = ChatUtils.getRandomMessage(quitMessages);

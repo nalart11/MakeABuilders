@@ -100,7 +100,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new AutoDonateCommand(),
                 new AdminCommand(),
                 new VanishCommand(),
-                new ChatCommand()
+                new ChatCommand(),
+                new RenameCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();
@@ -142,24 +143,26 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
             World world = location.getWorld();
 
             LightningStrike lightning = world.strikeLightningEffect(location);
-        }
-        Location loc = player.getLocation();
-        World world = player.getWorld();
+        } else if (DonateStorage.instance.hasDonation(player.getName(), 12) && EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(12)) {
+            Location loc = player.getLocation();
+            World world = player.getWorld();
 
-        new BukkitRunnable() {
-            int count = 0;
-            final int maxCount = 3 * 20 / 5;
+            new BukkitRunnable() {
+                int count = 0;
+                final int maxCount = 3 * 20 / 5;
 
-            @Override
-            public void run() {
-                if (count >= maxCount) {
-                    cancel();
-                    return;
+                @Override
+                public void run() {
+                    if (count >= maxCount) {
+                        cancel();
+                        return;
+                    }
+                    spawnFirework(loc, world);
+                    count++;
                 }
-                spawnFirework(loc, world);
-                count++;
-            }
-        }.runTaskTimer(this, 0L, 5L);
+            }.runTaskTimer(this, 0L, 5L);
+        }
+
     }
 
     @EventHandler
