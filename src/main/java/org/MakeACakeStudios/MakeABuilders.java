@@ -9,22 +9,22 @@ import org.MakeACakeStudios.donates.effects.StarEffect;
 import org.MakeACakeStudios.motd.DynamicMotd;
 import org.MakeACakeStudios.tab.TabList;
 import org.MakeACakeStudios.other.MuteExpirationTask;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
 import org.MakeACakeStudios.other.PlayerBanListener;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.checkerframework.checker.units.qual.A;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -98,7 +99,8 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new DonateCommand(),
                 new AutoDonateCommand(),
                 new AdminCommand(),
-                new VanishCommand()
+                new VanishCommand(),
+                new ChatCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();
@@ -141,6 +143,23 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
             LightningStrike lightning = world.strikeLightningEffect(location);
         }
+        Location loc = player.getLocation();
+        World world = player.getWorld();
+
+        new BukkitRunnable() {
+            int count = 0;
+            final int maxCount = 3 * 20 / 5;
+
+            @Override
+            public void run() {
+                if (count >= maxCount) {
+                    cancel();
+                    return;
+                }
+                spawnFirework(loc, world);
+                count++;
+            }
+        }.runTaskTimer(this, 0L, 5L);
     }
 
     @EventHandler
@@ -196,5 +215,27 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
     public Player getLastMessaged(Player player) {
         return lastMessaged.get(player);
+    }
+
+    private void spawnFirework(Location loc, World world) {
+        Firework firework = (Firework) world.spawn(loc.add(0, 0, 0), Firework.class);
+        FireworkMeta meta = firework.getFireworkMeta();
+
+        List<Color> colors = Arrays.asList(
+                Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW,
+                Color.PURPLE, Color.ORANGE, Color.AQUA, Color.WHITE
+        );
+
+        FireworkEffect effect = FireworkEffect.builder()
+                .flicker(true)
+                .trail(true)
+                .with(FireworkEffect.Type.BALL_LARGE)
+                .withColor(colors)
+                .withFade(colors)
+                .build();
+
+        meta.addEffect(effect);
+        meta.setPower(1);
+        firework.setFireworkMeta(meta);
     }
 }

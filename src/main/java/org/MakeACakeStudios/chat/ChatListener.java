@@ -139,6 +139,12 @@ public class ChatListener implements Listener {
         message = ChatUtils.replaceLocationTag(player, message);
         message = ChatUtils.replaceMentions(player, message);
 
+        if (AdminChat.isInAdminChat(player)) {
+            AdminChat.sendAdminMessage(player, message);
+            event.setCancelled(true);
+            return;
+        }
+
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String finalMessage = "<click:run_command:'/profile " + player.getName() + "'>"
                     + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть профиль игрока " + playerFooter + ".'>"

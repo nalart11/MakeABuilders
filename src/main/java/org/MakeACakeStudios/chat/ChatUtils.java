@@ -125,8 +125,9 @@ public class ChatUtils implements Listener {
 
                     if (mentionedPlayer != null && mentionedPlayer.isOnline()) {
                         mentionedPlayer.playSound(mentionedPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
+                        String playerFooter = ChatUtils.getFormattedPlayerString(mentionedPlayer.getName(), false);
 
-                        String formattedMention = "<yellow>@" + mentionedPlayer.getName() + "</yellow>";
+                        String formattedMention = "<click:run_command:'/profile " + mentionedPlayer.getName() + "'>" + "<hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы открыть профиль игрока " + playerFooter + ".'>" + "<yellow>@" + mentionedPlayer.getName() + "</yellow></hover></click>";
                         message = message.replace(word, formattedMention);
                         return message;
                     } else {

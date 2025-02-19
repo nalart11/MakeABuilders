@@ -40,8 +40,11 @@ public class AdminCommand implements Command {
             restoreInventory(player);
             player.setGameMode(savedGameModes.get(playerId));
             player.setInvulnerable(false);
-            player.setAllowFlight(false);
-            player.setFlying(false);
+            if (savedGameModes.get(playerId) == GameMode.SURVIVAL) {
+                player.setAllowFlight(false);
+                player.setFlying(false);
+            }
+
 
             savedInventories.remove(playerId);
             savedGameModes.remove(playerId);
@@ -53,7 +56,6 @@ public class AdminCommand implements Command {
             savedGameModes.put(playerId, player.getGameMode());
 
             player.getInventory().clear();
-            player.setGameMode(GameMode.CREATIVE);
             player.setInvulnerable(true);
             player.setAllowFlight(true);
             player.setFlying(true);

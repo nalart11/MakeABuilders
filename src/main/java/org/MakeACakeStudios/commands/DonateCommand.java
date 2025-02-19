@@ -161,7 +161,7 @@ public class DonateCommand implements Command, @NotNull Listener {
             Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
                 Inventory inventory = Bukkit.createInventory(null, 54, "Меню донатов");
 
-                Set<Integer> excludeSlots = new HashSet<>(Set.of(4, 19, 20, 21));
+                Set<Integer> excludeSlots = new HashSet<>(Set.of(4, 19, 20, 21, 40));
                 for (int i = 0; i < 54; i++) {
                     if (!excludeSlots.contains(i)) {
                         inventory.setItem(i, ItemStorage.getPlaceHolderItem());
@@ -171,6 +171,7 @@ public class DonateCommand implements Command, @NotNull Listener {
                 inventory.setItem(19, ItemStorage.getSakuraEffect(sender));
                 inventory.setItem(20, ItemStorage.getZeusEffect(sender));
                 inventory.setItem(21, ItemStorage.getStarEffect(sender));
+                inventory.setItem(40, ItemStorage.getBirthdayEffect(sender));
 
                 sender.openInventory(inventory);
             });
@@ -240,6 +241,18 @@ public class DonateCommand implements Command, @NotNull Listener {
                             EffectManager.startEffectForDonation(2, player.getName());
                         }
                         event.getInventory().setItem(21, ItemStorage.getStarEffect(player));
+                        player.updateInventory();
+                    }
+                } else if (slot == 40) {
+                    if (DonateStorage.instance.hasDonation(player.getName(), 12)) {
+                        boolean isBirthdayEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(12);
+
+                        if (isBirthdayEnabled) {
+                            EffectManager.stopEffectForDonation(12, player.getName());
+                        } else {
+                            EffectManager.startEffectForDonation(12, player.getName());
+                        }
+                        event.getInventory().setItem(40, ItemStorage.getBirthdayEffect(player));
                         player.updateInventory();
                     }
                 }

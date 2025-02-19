@@ -1,5 +1,6 @@
 package org.MakeACakeStudios.donates;
 
+import org.MakeACakeStudios.donates.effects.BirthdayEffect;
 import org.MakeACakeStudios.donates.effects.SakuraLeavesEffect;
 import org.MakeACakeStudios.donates.effects.StarEffect;
 import org.MakeACakeStudios.donates.effects.ZeusEffect;
@@ -15,7 +16,9 @@ public class EffectManager {
         put("Zeus", 1);
         put("Star", 2);
         put("Sakura", 3);
-        put("Vanila", 4);
+        put("Iam", 11);
+        put("Birthday", 12);
+        put("Vanila", 13);
     }};
 
     private static final Map<String, Set<Integer>> enabledEffects = new HashMap<>();
@@ -25,6 +28,7 @@ public class EffectManager {
             case 1 -> ZeusEffect.startEffect(playerName);
             case 2 -> StarEffect.startEffect(playerName);
             case 3 -> SakuraLeavesEffect.startEffect(playerName);
+            case 12 -> BirthdayEffect.startEffect(playerName);
         }
         enabledEffects.computeIfAbsent(playerName, k -> new HashSet<>()).add(donationId);
     }
@@ -34,6 +38,7 @@ public class EffectManager {
             case 1 -> ZeusEffect.stopEffect(playerName);
             case 2 -> StarEffect.stopEffect(playerName);
             case 3 -> SakuraLeavesEffect.stopEffect(playerName);
+            case 12 -> BirthdayEffect.stopEffect(playerName);
         }
         Set<Integer> effects = enabledEffects.get(playerName);
         if (effects != null) {

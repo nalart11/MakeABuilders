@@ -391,6 +391,48 @@ public class ItemStorage {
         }
     }
 
+    public static ItemStack getBirthdayEffect(@NotNull Player player) {
+        if (DonateStorage.instance.hasDonation(player.getName(), 12)) {
+            ItemStack diamond = new ItemStack(Material.DIAMOND);
+            ItemMeta meta = diamond.getItemMeta();
+            if (meta != null) {
+                Component birthdayEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения</gradient>");
+                Component birthdayDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
+                Component birthdayDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
+                Component statusEffectMessage;
+
+                boolean isBirthdayEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(12);
+
+                if (isBirthdayEnabled) {
+                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><green>Включен</green>");
+                } else {
+                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><red>Выключен</red>");
+                }
+
+                meta.displayName(birthdayEffectMessage);
+                meta.lore(List.of(birthdayDescriptionMessage1, birthdayDescriptionMessage2, Component.empty(), statusEffectMessage));
+
+                diamond.setItemMeta(meta);
+            }
+            return diamond;
+        } else {
+            ItemStack gray_dye = new ItemStack(Material.GRAY_DYE);
+            ItemMeta meta = gray_dye.getItemMeta();
+            if (meta != null) {
+                Component birthdayEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения!</gradient>");
+                Component birthdayDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
+                Component birthdayDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
+                Component statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Можно получить только на свой день рождения</gray>");
+
+                meta.displayName(birthdayEffectMessage);
+                meta.lore(List.of(birthdayDescriptionMessage1, birthdayDescriptionMessage2, Component.empty(), statusEffectMessage));
+
+                gray_dye.setItemMeta(meta);
+            }
+            return gray_dye;
+        }
+    }
+
     public static ItemStack getUnavailableBarrier() {
         ItemStack barrier = new ItemStack(Material.BARRIER);
         ItemMeta meta = barrier.getItemMeta();

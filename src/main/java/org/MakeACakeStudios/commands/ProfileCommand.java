@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -32,12 +33,12 @@ public class ProfileCommand implements Command, Listener {
                         .optional("player", OfflinePlayerParser.offlinePlayerParser())
                         .handler(ctx -> {
                             OfflinePlayer targetPlayer = ctx.getOrDefault("player", (OfflinePlayer) ctx.sender());
-                            handle((Player) ctx.sender(), targetPlayer);
+                            handleMenu((Player) ctx.sender(), targetPlayer);
                         })
         );
     }
 
-    private void handle(@NotNull Player player, @NotNull OfflinePlayer offlinePlayer) {
+    private void handleMenu(@NotNull Player player, @NotNull OfflinePlayer offlinePlayer) {
         if (!offlinePlayer.isOnline() && offlinePlayer.hasPlayedBefore() == false) {
             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не существует или не заходил на сервер!</red>"));
         } else {

@@ -25,7 +25,9 @@ public class DonateStorage {
         put("Zeus", 1);
         put("Star", 2);
         put("Sakura", 3);
-        put("Vanila", 4);
+        put("Iam", 11);
+        put("Birthday", 12);
+        put("Vanila", 13);
     }};
 
     private void initializeDatabase() {
@@ -165,7 +167,7 @@ public class DonateStorage {
             if (donationAmount >= 2000) {
                 user.data().add(Node.builder("group.sponsor").build());
                 System.out.println("Игроку " + playerName + " назначена группа: Sponsor");
-            } else if (donationAmount >= 150) {
+            } else if (donationAmount >= 149) {
                 user.data().add(Node.builder("group.donator").build());
                 System.out.println("Игроку " + playerName + " назначена группа: Donator");
             }
