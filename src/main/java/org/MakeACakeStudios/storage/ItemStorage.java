@@ -3,6 +3,7 @@ package org.MakeACakeStudios.storage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.commands.VanishCommand;
 import org.MakeACakeStudios.donates.EffectManager;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -168,9 +169,10 @@ public class ItemStorage {
             String firstJoinDate = formatDate(firstJoinMillis);
 
             boolean isOnline = player.isOnline();
+            boolean isVanished = isOnline && VanishCommand.isVanished((Player) player);
             String lastOnlineText;
 
-            if (isOnline) {
+            if (isOnline && !isVanished) {
                 lastOnlineText = "<!i><aqua>Последний онлайн: <green>сейчас";
             } else {
                 long lastJoinMillis = player.getLastPlayed();

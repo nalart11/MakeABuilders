@@ -53,6 +53,7 @@ public class DonateCommand implements Command, @NotNull Listener {
         manager.command(
                 manager.commandBuilder("donate")
                         .senderType(Player.class)
+                        .permission("makeabuilders.donates")
                         .literal("add")
                         .literal("amount")
                         .required("player", PlayerParser.playerParser())
@@ -63,6 +64,7 @@ public class DonateCommand implements Command, @NotNull Listener {
         manager.command(
                 manager.commandBuilder("donate")
                         .senderType(Player.class)
+                        .permission("makeabuilders.donates")
                         .literal("remove")
                         .literal("amount")
                         .required("player", PlayerParser.playerParser())
@@ -73,6 +75,7 @@ public class DonateCommand implements Command, @NotNull Listener {
         manager.command(
                 manager.commandBuilder("donate")
                         .senderType(Player.class)
+                        .permission("makeabuilders.donates")
                         .literal("add")
                         .literal("effect")
                         .required("player", PlayerParser.playerParser())
@@ -83,6 +86,7 @@ public class DonateCommand implements Command, @NotNull Listener {
         manager.command(
                 manager.commandBuilder("donate")
                         .senderType(Player.class)
+                        .permission("makeabuilders.donates")
                         .literal("remove")
                         .literal("effect")
                         .required("player", PlayerParser.playerParser())
@@ -102,36 +106,19 @@ public class DonateCommand implements Command, @NotNull Listener {
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Сумма донатов игрока <yellow>" + target.getName() + "</yellow>: <yellow>" + amount + "</yellow></green>"));
     }
 
-    private static final String DONATE_CHANGE_PERMISSION = "MakeABuilders.donates.reorder";
-
     private void handleAddDonate(@NotNull Player sender, @NotNull Player target, int amount) {
-        if (!sender.hasPermission(DONATE_CHANGE_PERMISSION)) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет прав на использование этой команды!</red>"));
-            return;
-        }
-
         storage.addDonationAmount(target.getName(), amount);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Добавлено <yellow>" + amount + "</yellow> рублей игроку <yellow>" + target.getName() + "</yellow></green>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<green>Вам добавлено <yellow>" + amount + "</yellow> рублей!</green>"));
     }
 
     private void handleRemoveDonate(@NotNull Player sender, @NotNull Player target, int amount) {
-        if (!sender.hasPermission(DONATE_CHANGE_PERMISSION)) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет прав на использование этой команды!</red>"));
-            return;
-        }
-
         storage.removeDonationAmount(target.getName(), amount);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Убрано <yellow>" + amount + "</yellow> рублей у игрока <yellow>" + target.getName() + "</yellow></red>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас списано <yellow>" + amount + "</yellow> рублей!</red>"));
     }
 
     private void handleAddEffect(@NotNull Player sender, @NotNull Player target, String effect) {
-        if (!sender.hasPermission(DONATE_CHANGE_PERMISSION)) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет прав на использование этой команды!</red>"));
-            return;
-        }
-
         Integer effectId = DONATE_EFFECTS.get(effect);
         if (effectId == null) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Такого эффекта не существует!</red>"));
@@ -144,11 +131,6 @@ public class DonateCommand implements Command, @NotNull Listener {
     }
 
     private void handleRemoveEffect(@NotNull Player sender, @NotNull Player target, String effect) {
-        if (!sender.hasPermission(DONATE_CHANGE_PERMISSION)) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет прав на использование этой команды!</red>"));
-            return;
-        }
-
         Integer effectId = DONATE_EFFECTS.get(effect);
         if (effectId == null) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Такого эффекта не существует!</red>"));
@@ -180,6 +162,8 @@ public class DonateCommand implements Command, @NotNull Listener {
 
                 sender.openInventory(inventory);
             });
+        } else {
+            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нету эффектов, чтобы их можно было отобразить в меню донатов :(</red>"));
         }
     }
 

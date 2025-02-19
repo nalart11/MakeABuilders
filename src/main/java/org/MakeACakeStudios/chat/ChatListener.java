@@ -3,6 +3,7 @@ package org.MakeACakeStudios.chat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.commands.VanishCommand;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
@@ -28,6 +29,11 @@ public class ChatListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         player.sendMessage(MiniMessage.miniMessage().deserialize("<gradient:#FF3D4D:#FCBDBD>С возвращением!</gradient>"));
+
+        if (VanishCommand.isVanished(player)) {
+            event.joinMessage(null); // ОТКЛЮЧАЕМ сообщение о входе
+            return;
+        }
 
         List<String> joinMessages = MakeABuilders.instance.config.getStringList("Messages.Join");
         String rawMessage = ChatUtils.getRandomMessage(joinMessages);
@@ -59,6 +65,11 @@ public class ChatListener implements Listener {
         Player player = event.getPlayer();
         List<String> quitMessages = MakeABuilders.instance.config.getStringList("Messages.Quit");
         String rawMessage = ChatUtils.getRandomMessage(quitMessages);
+
+        if (VanishCommand.isVanished(player)) {
+            event.quitMessage(null);
+            return;
+        }
 
         String parsedMessage;
         if (rawMessage != null) {

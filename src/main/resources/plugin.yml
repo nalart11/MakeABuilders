@@ -2,3 +2,24 @@ name: MakeABuilders
 version: b0.4
 main: org.MakeACakeStudios.MakeABuilders
 api-version: "1.21"
+permissions:
+  makeabuilders.admin:
+    default: op
+
+  makeabuilders.vanish:
+    default: op
+
+  makeabuilders.ban:
+    default: op
+
+  makeabuilders.pardon:
+    default: op
+
+  makeabuilders.mute:
+    default: op
+
+  makeabuilders.unmute:
+    default: op
+
+  makeabuilders.donates:
+    default: op

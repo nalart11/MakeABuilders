@@ -22,6 +22,7 @@ public class UnmuteCommand implements Command {
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
                 manager.commandBuilder("unmute")
+                        .permission("makeabuilders.unmute")
                         .required("player", OfflinePlayerParser.offlinePlayerParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player")))
                         .build()

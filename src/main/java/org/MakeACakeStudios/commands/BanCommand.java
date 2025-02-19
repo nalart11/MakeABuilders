@@ -30,6 +30,7 @@ public class BanCommand implements Command {
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
                 manager.commandBuilder("ban")
+                        .permission("makeabuilders.ban")
                         .required("player", OfflinePlayerParser.offlinePlayerParser())
                         .required("time", StringParser.stringParser())
                         .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
@@ -228,7 +229,7 @@ public class BanCommand implements Command {
                 PunishmentStorage.instance.getNextBanNumber(),
                 admin,
                 timeText,
-                reason
+                TagFormatter.format(reason)
         );
     }
 

@@ -25,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.units.qual.A;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
@@ -95,7 +96,9 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new MailReadCommand(),
                 new ProfileCommand(),
                 new DonateCommand(),
-                new AutoDonateCommand()
+                new AutoDonateCommand(),
+                new AdminCommand(),
+                new VanishCommand()
         ).forEach(cmd -> cmd.register(commandManager));
 
         playerDataStorage = new PlayerDataStorage();

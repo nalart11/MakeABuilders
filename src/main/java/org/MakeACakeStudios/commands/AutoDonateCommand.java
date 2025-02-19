@@ -27,6 +27,7 @@ public class AutoDonateCommand implements Command {
         manager.command(
                 manager.commandBuilder("autodonate")
                         .senderType(CommandSender.class)
+                        .permission("makeabuilders.donates")
                         .required("nickname", StringParser.stringParser())
                         .required("effect", StringParser.stringParser())
                         .handler(ctx -> handleAutoDonate(ctx.sender(), ctx.get("nickname"), ctx.get("effect")))

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.commands.VanishCommand; // Импортируем команду vanish
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,7 +33,7 @@ public class TabList {
 
     private void updateTab(Player player) {
         String serverName = "<b><gradient:#FF3D4D:#FCBDBD>MakeABuilders</gradient></b>";
-        String serverTagline = "<i>Делаем здесь что то every day...</i>";
+        String serverTagline = "<i>Делаем здесь что-то every day...</i>";
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             String badge = PlayerDataStorage.instance.getHighestBadge(onlinePlayer.getName());
@@ -72,15 +73,19 @@ public class TabList {
             tpsColor = "<gradient:#00FF1A:#7EFF91>";
         }
 
-        int onlinePlayers = Bukkit.getOnlinePlayers().size();
-        String additionalTagline;
+        // 📌 Подсчёт игроков онлайн БЕЗ ваниша
+        int visiblePlayers = (int) Bukkit.getOnlinePlayers().stream()
+                .filter(p -> !VanishCommand.isVanished(p))
+                .count();
 
-        if (onlinePlayers % 10 == 1) {
-            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игрок онлайн";
-        } else if (onlinePlayers % 10 == 2 || onlinePlayers % 10 == 3 || onlinePlayers % 10 == 4) {
-            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игрока онлайн";
+        String additionalTagline;
+        if (visiblePlayers % 10 == 1 && visiblePlayers % 100 != 11) {
+            additionalTagline = "<color:#00FF1A>" + visiblePlayers + "</color> игрок онлайн";
+        } else if (visiblePlayers % 10 >= 2 && visiblePlayers % 10 <= 4 &&
+                (visiblePlayers % 100 < 10 || visiblePlayers % 100 >= 20)) {
+            additionalTagline = "<color:#00FF1A>" + visiblePlayers + "</color> игрока онлайн";
         } else {
-            additionalTagline = "<color:#00FF1A>" + onlinePlayers + "</color> игроков онлайн";
+            additionalTagline = "<color:#00FF1A>" + visiblePlayers + "</color> игроков онлайн";
         }
 
         Component header = miniMessage.deserialize("\n" + serverName + "\n" +
@@ -94,10 +99,6 @@ public class TabList {
 
     private double getServerTPS() {
         double[] tps = Bukkit.getServer().getTPS();
-        if (tps[0] > 20.0) {
-            return 20.0;
-        } else {
-            return tps[0];
-        }
+        return Math.min(tps[0], 20.0);
     }
 }

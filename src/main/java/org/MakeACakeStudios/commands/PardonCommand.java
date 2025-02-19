@@ -25,6 +25,7 @@ public class PardonCommand implements Command {
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
                 manager.commandBuilder("pardon")
+                        .permission("makeabuilders.pardon")
                         .required("player", OfflinePlayerParser.offlinePlayerParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player")))
                         .build()

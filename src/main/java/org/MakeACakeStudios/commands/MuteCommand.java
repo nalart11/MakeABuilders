@@ -27,6 +27,7 @@ public class MuteCommand implements Command {
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
                 manager.commandBuilder("mute")
+                        .permission("makeabuilders.mute")
                         .required("player", OfflinePlayerParser.offlinePlayerParser())
                         .required("time", StringParser.stringParser())
                         .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
