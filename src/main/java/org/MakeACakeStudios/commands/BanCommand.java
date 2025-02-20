@@ -229,7 +229,7 @@ public class BanCommand implements Command {
                 PunishmentStorage.instance.getNextBanNumber(),
                 admin,
                 timeText,
-                TagFormatter.format(reason)
+                reason
         );
     }
 

@@ -14,7 +14,6 @@ public class AdminChat {
 
     private static final Set<Player> adminChatPlayers = new HashSet<>();
 
-    // ✅ Добавляем список администраторов, которые видят оба чата
     private static boolean isAdmin(Player player) {
         String role = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
         return role.equals("owner") || role.equals("admin") || role.equals("moderator") || role.equals("developer");

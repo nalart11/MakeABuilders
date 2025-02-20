@@ -6,12 +6,15 @@ import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.donates.EffectManager;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,9 +22,10 @@ import java.util.*;
 
 public class VanishCommand implements Command {
 
-    private static final Set<UUID> vanishedPlayers = new HashSet<>();
-    private static final Map<UUID, Set<Integer>> vanishedEffects = new HashMap<>();
-    private static final Map<UUID, BossBar> vanishedBossBars = new HashMap<>();
+    public static final NamespacedKey VANISH_KEY = new NamespacedKey(MakeABuilders.instance, "vanish");
+    public static final Set<UUID> vanishedPlayers = new HashSet<>();
+    public static final Map<UUID, Set<Integer>> vanishedEffects = new HashMap<>();
+    public static final Map<UUID, BossBar> vanishedBossBars = new HashMap<>();
 
     @Override
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
@@ -38,10 +42,12 @@ public class VanishCommand implements Command {
 
     private void toggleVanish(@NotNull Player player) {
         UUID playerId = player.getUniqueId();
+        PersistentDataContainer data = player.getPersistentDataContainer();
         String parsedMessage = "";
 
         if (vanishedPlayers.contains(playerId)) {
             vanishedPlayers.remove(playerId);
+            data.set(VANISH_KEY, PersistentDataType.BYTE, (byte) 0);
 
             Set<Integer> effectsToRestore = vanishedEffects.remove(playerId);
             if (effectsToRestore != null) {
@@ -68,6 +74,7 @@ public class VanishCommand implements Command {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
         } else {
             vanishedPlayers.add(playerId);
+            data.set(VANISH_KEY, PersistentDataType.BYTE, (byte) 1); // Сохраняем состояние
 
             Set<Integer> activeEffects = EffectManager.getEnabledEffectsForPlayer(player.getName());
             if (!activeEffects.isEmpty()) {

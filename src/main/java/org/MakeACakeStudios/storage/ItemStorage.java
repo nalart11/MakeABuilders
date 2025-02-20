@@ -1,10 +1,15 @@
 package org.MakeACakeStudios.storage;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.commands.VanishCommand;
 import org.MakeACakeStudios.donates.EffectManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
@@ -14,10 +19,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.MakeACakeStudios.chat.ChatUtils.formatDate;
@@ -431,6 +434,40 @@ public class ItemStorage {
             }
             return gray_dye;
         }
+    }
+
+    public static ItemStack getTelegramHead() {
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+        if (meta != null) {
+            PlayerProfile profile = Bukkit.getServer().createProfile("Telegram");
+
+            profile.setProperty(new ProfileProperty("textures",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2ViM2E1Mzk5MzdmOGU4ZTExNzAzNGE3MTczYmRkZWQ1YTAzMjNjOTc5NGFhZWRmMTkxODczMWY0Zjg3MjliYiJ9fX0="));
+
+            meta.setPlayerProfile(profile);
+            head.setItemMeta(meta);
+        }
+
+        return head;
+    }
+
+    public static ItemStack getDiscordHead() {
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+        if (meta != null) {
+            PlayerProfile profile = Bukkit.createProfile("Discord");
+
+            profile.setProperty(new ProfileProperty("textures",
+                    "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzg3M2MxMmJmZmI1MjUxYTBiODhkNWFlNzVjNzI0N2NiMzlhNzVmZjFhODFjYmU0YzhhMzliMzExZGRlZGEifX19"));
+
+            meta.setPlayerProfile(profile);
+            head.setItemMeta(meta);
+        }
+
+        return head;
     }
 
     public static ItemStack getUnavailableBarrier() {

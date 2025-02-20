@@ -5,7 +5,6 @@ import org.MakeACakeStudios.chat.ChatListener;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.donates.EffectManager;
-import org.MakeACakeStudios.donates.effects.StarEffect;
 import org.MakeACakeStudios.motd.DynamicMotd;
 import org.MakeACakeStudios.tab.TabList;
 import org.MakeACakeStudios.other.MuteExpirationTask;
@@ -13,6 +12,9 @@ import org.bukkit.*;
 import org.MakeACakeStudios.storage.*;
 import org.MakeACakeStudios.other.*;
 import org.MakeACakeStudios.other.PlayerBanListener;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Firework;
@@ -23,19 +25,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.checkerframework.checker.units.qual.A;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+
+import static org.MakeACakeStudios.commands.VanishCommand.vanishedBossBars;
+import static org.MakeACakeStudios.commands.VanishCommand.vanishedPlayers;
 
 @SuppressWarnings("ALL")
 public final class MakeABuilders extends JavaPlugin implements @NotNull Listener {
@@ -138,6 +141,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        PersistentDataContainer data = player.getPersistentDataContainer();
+
+        if (data.has(VanishCommand.VANISH_KEY, PersistentDataType.BYTE) &&
+                data.get(VanishCommand.VANISH_KEY, PersistentDataType.BYTE) == 1) {
+            restoreVanish(player);
+        }
         if (DonateStorage.instance.hasDonation(player.getName(), 1) && EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(1)) {
             Location location = player.getLocation();
             World world = location.getWorld();
@@ -240,5 +249,35 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         meta.addEffect(effect);
         meta.setPower(1);
         firework.setFireworkMeta(meta);
+    }
+
+    public void restoreVanish(@NotNull Player player) {
+        UUID playerId = player.getUniqueId();
+
+        if (!VanishCommand.vanishedPlayers.contains(playerId)) {
+            VanishCommand.vanishedPlayers.add(playerId);
+        }
+
+        if (VanishCommand.vanishedBossBars.containsKey(playerId)) {
+            VanishCommand.vanishedBossBars.get(playerId).removeAll();
+            VanishCommand.vanishedBossBars.remove(playerId);
+        }
+
+        BossBar bossBar = Bukkit.createBossBar("Вы находитесь в §bванише", BarColor.WHITE, BarStyle.SOLID);
+        bossBar.addPlayer(player);
+        VanishCommand.vanishedBossBars.put(playerId, bossBar);
+
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (!online.isOp()) {
+                online.hidePlayer(MakeABuilders.instance, player);
+            }
+        }
+
+        if (!player.getPersistentDataContainer().has(VanishCommand.VANISH_KEY, PersistentDataType.BYTE) ||
+                player.getPersistentDataContainer().get(VanishCommand.VANISH_KEY, PersistentDataType.BYTE) != 1) {
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Вы <red>исчезли</red>! Теперь вас не видно для обычных игроков.</gray>"));
+        }
+
+        player.getPersistentDataContainer().set(VanishCommand.VANISH_KEY, PersistentDataType.BYTE, (byte) 1);
     }
 }

@@ -17,7 +17,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
-import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -52,8 +51,8 @@ public class ProfileCommand implements Command, Listener {
                 inventory.setItem(9, ItemStorage.getDonateItem(offlinePlayer));
                 inventory.setItem(18, ItemStorage.getMuteColor(offlinePlayer));
                 if (PunishmentStorage.instance.isBanned(offlinePlayer.getName())) {
-                    inventory.setItem(19, ItemStorage.getBanBarrier(offlinePlayer));
-                    excludeSlots.add(19);
+                    inventory.setItem(23, ItemStorage.getBanBarrier(offlinePlayer));
+                    excludeSlots.add(23);
                 }
                 for (int i = 0; i < 27; i++) {
                     if (!excludeSlots.contains(i)) {
