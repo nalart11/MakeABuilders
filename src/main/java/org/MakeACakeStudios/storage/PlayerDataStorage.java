@@ -4,6 +4,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.MakeACakeStudios.MakeABuilders;
 
@@ -86,7 +87,7 @@ public class PlayerDataStorage {
         }
     }
 
-    public void updatePlayerData(Player player) {
+    public void updatePlayerData(OfflinePlayer player) {
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
         String highestGroup = "default";
         int highestWeight = 0;

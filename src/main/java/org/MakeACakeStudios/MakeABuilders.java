@@ -1,7 +1,6 @@
 package org.MakeACakeStudios;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.chat.ChatListener;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.donates.EffectManager;
@@ -36,9 +35,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.util.*;
-
-import static org.MakeACakeStudios.commands.VanishCommand.vanishedBossBars;
-import static org.MakeACakeStudios.commands.VanishCommand.vanishedPlayers;
 
 @SuppressWarnings("ALL")
 public final class MakeABuilders extends JavaPlugin implements @NotNull Listener {
@@ -211,12 +207,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         return null;
     }
 
-    public String getPlayerPrefix(Player player) {
+    public String getPlayerPrefix(OfflinePlayer player) {
         playerDataStorage.updatePlayerData(player);
         return playerDataStorage.getPlayerPrefixByName(player.getName());
     }
 
-    public String getPlayerSuffix(Player player) {
+    public String getPlayerSuffix(OfflinePlayer player) {
         playerDataStorage.updatePlayerData(player);
         return playerDataStorage.getPlayerSuffixByName(player.getName());
     }

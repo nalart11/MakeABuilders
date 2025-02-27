@@ -28,7 +28,7 @@ public class ChatUtils implements Listener {
         String badge = PlayerDataStorage.instance.getHighestBadge(player.getName());
         String prefix = MakeABuilders.instance.getPlayerPrefix(player);
         String suffix = MakeABuilders.instance.getPlayerSuffix(player);
-        if (badge.equals("")) {
+        if (badge.isEmpty()) {
             return MiniMessage.miniMessage().deserialize(prefix + player.getName() + suffix);
         } else {
             return MiniMessage.miniMessage().deserialize(badge + " " + prefix + player.getName() + suffix);
@@ -36,11 +36,11 @@ public class ChatUtils implements Listener {
     }
 
     public static String getFormattedPlayerString(String playerName, Boolean value) {
-        if (value == true) {
+        if (value) {
             String badge = PlayerDataStorage.instance.getHighestBadge(playerName);
             String prefix = PlayerDataStorage.instance.getPlayerPrefixByName(playerName);
             String suffix = PlayerDataStorage.instance.getPlayerSuffixByName(playerName);
-            if (badge.equals("")) {
+            if (badge.isEmpty()) {
                 return prefix + playerName + suffix;
             } else {
                 return badge + " " + prefix + playerName + suffix;
@@ -78,16 +78,16 @@ public class ChatUtils implements Listener {
         }
     }
 
-    public static String replaceLocationTag(Player sender, String message) {
+    public static String replaceLocationTag(OfflinePlayer sender, String message) {
         if (message.contains(":loc:")) {
             int x = sender.getLocation().getBlockX();
             int y = sender.getLocation().getBlockY();
             int z = sender.getLocation().getBlockZ();
-            String worldName = sender.getWorld().getName();
+            String worldName = sender.getLocation().getWorld().getName();
 
             String prefix = MakeABuilders.instance.getPlayerPrefix(sender);
             String suffix = MakeABuilders.instance.getPlayerSuffix(sender);
-            String playerName = sender.getDisplayName();
+            String playerName = sender.getName();
 
             String formattedPlayerName = prefix + playerName + suffix;
 

@@ -5,6 +5,6 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
 public interface Command {
     default void register(LegacyPaperCommandManager<CommandSender> manager) {
-        throw new IllegalArgumentException("command not implemented");
+        throw new IllegalArgumentException("Command not implemented");
     }
 }
