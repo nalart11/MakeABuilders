@@ -94,19 +94,22 @@ public class ChatUtils implements Listener {
             String color;
             switch (worldName) {
                 case "world":
+                    worldName = "overworld";
                     color = "<gradient:#00FF1A:#7EFF91>";
                     break;
                 case "world_nether":
+                    worldName = "the_nether";
                     color = "<gradient:#FF0000:#FF7E7E>";
                     break;
                 case "world_the_end":
+                    worldName = "the_end";
                     color = "<gradient:#ED00FF:#DE7EFF>";
                     break;
                 default:
                     color = "<gradient:#FFFFFF:#FFFFFF>";
             }
 
-            String location = color + "<click:run_command:'/goto " + worldName + " " + x + " " + y + " " + z + "'>["
+            String location = color + "<click:run_command:'/execute in minecraft:" + worldName + " run tp " + x + " " + y + " " + z + "'>["
                     + x + "x/" + y + "y/" + z + "z, " + worldName + "]</click></gradient>";
             String locationHover = "<hover:show_text:'Координаты игрока " + formattedPlayerName + ".\nНажмите <green>ЛКМ</green> чтобы телепортироваться.'>" + location + "</hover>";
 

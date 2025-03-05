@@ -1,9 +1,5 @@
 package org.MakeACakeStudios.chat;
 
-import org.MakeACakeStudios.MakeABuilders;
-import org.bukkit.entity.Player;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-
 public class TagFormatter {
 
     public static String format(String message) {
