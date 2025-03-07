@@ -2,14 +2,19 @@ package org.MakeACakeStudios.commands;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
-import org.MakeACakeStudios.chat.AdminChat;
-import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.chat0.AdminChat;
+import org.MakeACakeStudios.player.NicknameBuilder;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.parser.standard.StringParser;
+import org.jetbrains.annotations.NotNull;
+
+import static org.MakeACakeStudios.utils.Formatter.*;
 
 public class ChatCommand implements Command {
 
@@ -49,24 +54,34 @@ public class ChatCommand implements Command {
         String role = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
 
         if (mode == ChatMode.ADMIN) {
-            if (!role.equals("owner") && !role.equals("admin") && !role.equals("moderator") && !role.equals("developer") && !role.equals("custom")) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас нет доступа к админскому чату!</red>"));
+            if (!AdminChat.isAdmin(player) && !role.equals("custom")) {
+                player.sendMessage(red("У вас нет доступа к админскому чату!"));
                 return;
             }
 
-            AdminChat.toggleAdminChat(player);
+            AdminChat.players.remove(player.getUniqueId());
             return;
         }
 
-        AdminChat.removeFromAdminChat(player);
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Вы переключились в <yellow>глобальный</yellow> чат.</green>"));
+        AdminChat.toggle(player);
+        player.sendMessage(green("Вы переключились в ", yellow("глобальный"), " чат."));
     }
 
-    private void handleAdmin(Player player, String message) {
-        AdminChat.sendAdminMessage(player, message);
+    private void handleAdmin(@NotNull Player sender, @NotNull String text) {
+        var message = AdminChat.formatMessage(sender, text);
+        for (Player user : AdminChat.collectOnlineUsers()) {
+            user.sendMessage(message);
+        }
     }
 
-    private void handleGlobal(Player player, String message) {
-        ChatUtils.handleExternalCommandMessage(player, message);
+    private void handleGlobal(@NotNull Player player, @NotNull String message) {
+        var formatted = MiniMessage.miniMessage().deserialize(TagFormatter.format(message));
+        var displayName = NicknameBuilder.displayName(player, false, false).hoverEvent(
+                NicknameBuilder.replyHoverLines(player)
+        );
+        var component = single(displayName, text(" > "), formatted);
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.sendMessage(component);
+        }
     }
 }

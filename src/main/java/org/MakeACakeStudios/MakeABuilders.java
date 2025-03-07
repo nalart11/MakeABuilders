@@ -1,8 +1,8 @@
 package org.MakeACakeStudios;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.chat.ChatListener;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.chat0.ChatHandler;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.donates.EffectManager;
 import org.MakeACakeStudios.motd.DynamicMotd;
@@ -37,9 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.util.*;
 
-import static org.MakeACakeStudios.commands.VanishCommand.vanishedBossBars;
-import static org.MakeACakeStudios.commands.VanishCommand.vanishedPlayers;
-
 @SuppressWarnings("ALL")
 public final class MakeABuilders extends JavaPlugin implements @NotNull Listener {
 
@@ -49,7 +46,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
     public LegacyPaperCommandManager<CommandSender> commandManager;
     public static MakeABuilders instance;
-    private ChatListener chatListener;
+    private ChatHandler chatListener;
     public FileConfiguration config;
     private TabList tabList;
     private MailStorage mailStorage;
@@ -115,7 +112,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
         tagFormatter = new TagFormatter();
-        chatListener = new ChatListener();
+        chatListener = new ChatHandler();
 
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
         muteExpirationTask.runTaskTimer(this, 0L, 20L);
@@ -129,7 +126,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
         getServer().getPluginManager().registerEvents(new PlayerBanListener(punishmentStorage), this);
 
-        getLogger().info("MakeABuilders плагин активирован!");
+        this.getLogger().info("MakeABuilders плагин активирован!");
     }
 
     @Override
@@ -211,12 +208,12 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         return null;
     }
 
-    public String getPlayerPrefix(Player player) {
+    public String getPlayerPrefix(OfflinePlayer player) {
         playerDataStorage.updatePlayerData(player);
         return playerDataStorage.getPlayerPrefixByName(player.getName());
     }
 
-    public String getPlayerSuffix(Player player) {
+    public String getPlayerSuffix(OfflinePlayer player) {
         playerDataStorage.updatePlayerData(player);
         return playerDataStorage.getPlayerSuffixByName(player.getName());
     }
