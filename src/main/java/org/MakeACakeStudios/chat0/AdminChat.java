@@ -8,6 +8,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -22,6 +23,10 @@ public class AdminChat {
     public static boolean isAdmin(@NotNull Player player) {
         String role = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
         return role.equals("owner") || role.equals("admin") || role.equals("moderator") || role.equals("developer");
+    }
+
+    public static Collection<? extends Player> collectOnlineUsers() {
+        return Bukkit.getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).toList();
     }
     
     public static void toggle(@NotNull Player player) {

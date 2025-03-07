@@ -6,14 +6,12 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.chat.ChatUtils;
-import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.chat0.formatter.ChatFormatter;
 import org.MakeACakeStudios.commands.VanishCommand;
 import org.MakeACakeStudios.player.NicknameBuilder;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.MakeACakeStudios.utils.Formatter;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -72,10 +70,8 @@ public class ChatHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(@NotNull AsyncChatEvent e) {
         e.setCancelled(true);
-
         var player = e.getPlayer();
         boolean muted = PunishmentStorage.instance.isMuted(player.getName());
-        var displayName = NicknameBuilder.displayName(player, true, true);
 
         if (muted) {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0F, 1.0F);
@@ -84,15 +80,14 @@ public class ChatHandler implements Listener {
         }
 
         var plainMessage = Formatter.flatten(e.message());
-        var message = this.formatMessage(player, e.message());
 
         if (AdminChat.isUsing(player)) {
-            AdminChat.sendMessage(player, plainMessage);
+            var message = AdminChat.formatMessage(player, plainMessage);
+            AdminChat.collectOnlineUsers().forEach(user -> user.sendMessage(message));
             return;
         }
 
-        var finalMessage = single(displayName, text(" > "), message);
-        Bukkit.getOnlinePlayers().forEach(players -> players.sendMessage(finalMessage));
+        Bukkit.getOnlinePlayers().forEach(players -> players.sendMessage(ChatFormatter.format(player, plainMessage, players)));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -153,11 +148,4 @@ public class ChatHandler implements Listener {
         }
     }
 
-    public static @NotNull Component formatMessage(@NotNull OfflinePlayer player, @NotNull Component c) {
-        var string = Formatter.flatten(c);
-        string = TagFormatter.format(string);
-        string = ChatUtils.replaceLocationTag(player, string);
-        string = ChatUtils.replaceMentions(player, string);
-        return MiniMessage.miniMessage().deserialize(string);
-    }
 }

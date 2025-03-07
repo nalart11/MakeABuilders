@@ -2,6 +2,14 @@ name: MakeABuilders
 version: b0.4
 main: org.MakeACakeStudios.MakeABuilders
 api-version: "1.21"
+authors: [nalart11]
+dependencies:
+  server:
+    LuckPerms:
+      load: BEFORE
+      required: true
+      join-classpath: true
+
 permissions:
   makeabuilders.admin:
     default: op

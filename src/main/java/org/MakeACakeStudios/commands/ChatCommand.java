@@ -67,8 +67,11 @@ public class ChatCommand implements Command {
         player.sendMessage(green("Вы переключились в ", yellow("глобальный"), " чат."));
     }
 
-    private void handleAdmin(@NotNull Player player, @NotNull String message) {
-        AdminChat.sendMessage(player, message);
+    private void handleAdmin(@NotNull Player sender, @NotNull String text) {
+        var message = AdminChat.formatMessage(sender, text);
+        for (Player user : AdminChat.collectOnlineUsers()) {
+            user.sendMessage(message);
+        }
     }
 
     private void handleGlobal(@NotNull Player player, @NotNull String message) {

@@ -9,22 +9,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 
-import static org.MakeACakeStudios.utils.Formatter.miniMessage;
-import static org.MakeACakeStudios.utils.Formatter.runCommand;
+import static org.MakeACakeStudios.utils.Formatter.*;
 
 public enum ChatReplacements {
     // Emojis Scope
-    CRY(":cry:", (player, component) -> builder(":cry:", miniMessage("<yellow>☹</yellow><aqua>,</aqua>"))),
-    SKULL(":skull:", (player, component) -> builder(":skull:", miniMessage("☠"))),
-    SKULLEY(":skulley:", (player, component) -> builder(":skulley:", miniMessage("<red>☠'ey</red>"))),
-    LOVE("<3", (player, component) -> builder("<3", miniMessage("<red>❤</red>"))),
-    HEART(":heart:", (player, component) -> builder(":heart:", miniMessage("<red>❤</red>"))),
-    FIRE(":fire:", (player, component) -> builder(":cry:", miniMessage("<color:#FF7800>\uD83D\uDD25</color>"))),
-    STAR(":star:", (player, component) -> builder(":cry:", miniMessage("<yellow>★</yellow>"))),
-    STOP(":stop:", (player, component) -> builder(":cry:", miniMessage("<red>⚠</red>"))),
+    CRY((player, component) -> builder(":cry:", miniMessage("<yellow>☹</yellow><aqua>,</aqua>"))),
+    SKULL((player, component) -> builder(":skull:", miniMessage("☠"))),
+    SKULLEY((player, component) -> builder(":skulley:", miniMessage("<red>☠'ey</red>"))),
+    LOVE((player, component) -> builder("<3", miniMessage("<red>❤</red>"))),
+    HEART((player, component) -> builder(":heart:", miniMessage("<red>❤</red>"))),
+    FIRE((player, component) -> builder(":cry:", miniMessage("<color:#FF7800>\uD83D\uDD25</color>"))),
+    STAR((player, component) -> builder(":cry:", miniMessage("<yellow>★</yellow>"))),
+    STOP((player, component) -> builder(":cry:", miniMessage("<red>⚠</red>"))),
 
     // Additional
-    LOC(":loc:", ((player, component) -> {
+    LOC(((player, component) -> {
         var environment = player.getWorld().getEnvironment();
         var worldName = player.getWorld().getName();
         final String gradientOpenTag = switch (environment) {
@@ -33,7 +32,7 @@ public enum ChatReplacements {
             case THE_END -> "<gradient:#ED00FF:#DE7EFF>";
             case CUSTOM -> "<gradient:#FFFFFF:#FFFFFF>";
         };
-        final String gradientCloseTag = "</gradient";
+        final String gradientCloseTag = "</gradient>";
         final int blockX = player.getLocation().getBlockX();
         final int blockY = player.getLocation().getBlockY();
         final int blockZ = player.getLocation().getBlockZ();
@@ -42,33 +41,27 @@ public enum ChatReplacements {
                 + worldName + "]" + gradientCloseTag
         );
         var builtComponent = runCommand(miniMessage, "/goto " + worldName + " " + blockX + " " + blockY + " " + blockZ);
-        return TextReplacementConfig.builder().match(":loc:").replacement(builtComponent).build();
+        return builder(":loc:", builtComponent);
     }));
 
 
-    private final @NotNull String tag;
     private final @NotNull BiFunction<Player, Component, TextReplacementConfig> invokeResult;
 
     public static final @NotNull ChatReplacements[] entries = ChatReplacements.values();
 
-    ChatReplacements(@NotNull String tag, @NotNull BiFunction<Player, Component, TextReplacementConfig> builder) {
-        this.tag = tag;
+    ChatReplacements(@NotNull BiFunction<Player, Component, TextReplacementConfig> builder) {
         this.invokeResult = builder;
     }
 
     public @NotNull Component replace(@NotNull Player player, @NotNull Component text) {
-        return text.replaceText(this.invoke(player, text));
+        return text.replaceText(this.apply(player, text));
     }
 
-    public @NotNull TextReplacementConfig invoke(@NotNull Player player, @NotNull Component originalMessage) {
+    public @NotNull TextReplacementConfig apply(@NotNull Player player, @NotNull Component originalMessage) {
         return invokeResult.apply(player, originalMessage);
     }
 
     public static @NotNull TextReplacementConfig builder(@RegExp @NotNull String literal, @NotNull Component replacement) {
-        return TextReplacementConfig.builder().match(literal).replacement(replacement).build();
-    }
-
-    public @NotNull String getTag() {
-        return this.tag;
+        return TextReplacementConfig.builder().match(literal).replacement(reset(replacement)).build();
     }
 }
