@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.donates.EffectManager;
+import org.MakeACakeStudios.parsers.AsyncPlayerParser;
 import org.MakeACakeStudios.storage.DonateStorage;
 import org.MakeACakeStudios.storage.ItemStorage;
 import org.bukkit.Bukkit;
@@ -39,7 +40,7 @@ public class DonateCommand implements Command, @NotNull Listener {
         manager.command(
                 manager.commandBuilder("donate")
                         .senderType(Player.class)
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .handler(ctx -> handleGetDonate(ctx.sender(), ctx.get("player")))
         );
 
@@ -56,7 +57,7 @@ public class DonateCommand implements Command, @NotNull Listener {
                         .permission("makeabuilders.donates")
                         .literal("add")
                         .literal("amount")
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .required("amount", IntegerParser.integerParser())
                         .handler(ctx -> handleAddDonate(ctx.sender(), ctx.get("player"), ctx.get("amount")))
         );
@@ -67,7 +68,7 @@ public class DonateCommand implements Command, @NotNull Listener {
                         .permission("makeabuilders.donates")
                         .literal("remove")
                         .literal("amount")
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .required("amount", IntegerParser.integerParser())
                         .handler(ctx -> handleRemoveDonate(ctx.sender(), ctx.get("player"), ctx.get("amount")))
         );
@@ -78,7 +79,7 @@ public class DonateCommand implements Command, @NotNull Listener {
                         .permission("makeabuilders.donates")
                         .literal("add")
                         .literal("effect")
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .required("effect", StringParser.stringParser())
                         .handler(ctx -> handleAddEffect(ctx.sender(), ctx.get("player"), ctx.get("effect")))
         );
@@ -89,7 +90,7 @@ public class DonateCommand implements Command, @NotNull Listener {
                         .permission("makeabuilders.donates")
                         .literal("remove")
                         .literal("effect")
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .required("effect", StringParser.stringParser())
                         .handler(ctx -> handleRemoveEffect(ctx.sender(), ctx.get("player"), ctx.get("effect")))
         );

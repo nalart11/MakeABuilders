@@ -1,13 +1,14 @@
 package org.MakeACakeStudios.commands;
 
-import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
-import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.other.BanExpirationTask;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
+import org.MakeACakeStudios.player.NicknameBuilder;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
@@ -16,13 +17,14 @@ import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.component.DefaultValue;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
+
+import static org.MakeACakeStudios.utils.Formatter.gradient;
 
 
 public class BanCommand implements Command {
@@ -32,7 +34,7 @@ public class BanCommand implements Command {
         manager.command(
                 manager.commandBuilder("ban")
                         .permission("makeabuilders.ban")
-                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .required("time", StringParser.stringParser())
                         .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("time"), ctx.get("reason")))
@@ -81,9 +83,9 @@ public class BanCommand implements Command {
             return;
         }
 
-        if ((target != null && target.getName().equals("Nalart11_")) || offlinePlayer.getName().equals("Nalart11_")) {
+        if (target != null && target.getName().equals("Post_Scriptum_") || target == null && offlinePlayer.getName().equals("Post_Scriptum_")) {
             if (sender instanceof Player) {
-                if (!sender.getName().equals("Nalart11_")) {
+                if (!sender.getName().equals("Post_Scriptum_")) {
                     banPlayer((Player) sender, parsedTime, reason, sender.getName());
                 } else {
                     sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Ты не можешь забанить сам себя :3</green>"));
@@ -147,6 +149,8 @@ public class BanCommand implements Command {
         BanExpirationTask.instance.addPlayerToBanCheck(player.getName());
         PunishmentStorage.instance.addBan(player.getName(), admin, reason, String.valueOf(banEndTime));
 
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(player.getUniqueId());
+
         Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
             Bukkit.getBanList(BanList.Type.NAME).addBan(player.getName(), reason, null, admin);
 
@@ -155,17 +159,18 @@ public class BanCommand implements Command {
 
         Integer BanNumber = PunishmentStorage.instance.getBanNumber(player.getName());
 
-        String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
+        Component playerName = NicknameBuilder.createDisplayName(offlinePlayer, true);
 
-        String adminName;
+        Component adminName;
         Player adminPlayer;
 
         if (!admin.equals("console")) {
-            adminName = ChatUtils.getFormattedPlayerString(admin, true);
-
             adminPlayer = Bukkit.getPlayer(admin);
+
+            OfflinePlayer adminOfflinePlayer = Bukkit.getOfflinePlayer(adminPlayer.getUniqueId());
+            adminName = NicknameBuilder.createDisplayName(adminOfflinePlayer, true);
         } else {
-            adminName = "<gradient:#FF3D4D:#FCBDBD>console.mkbuilders.ru</gradient>";
+            adminName = gradient("FF3D4D", "FCBDBD", "console.mkbuilders.ru");
             adminPlayer = Bukkit.getPlayer("Nalart11_");
         }
 

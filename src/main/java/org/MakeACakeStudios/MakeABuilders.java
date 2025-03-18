@@ -1,7 +1,6 @@
 package org.MakeACakeStudios;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.chat0.ChatHandler;
 import org.MakeACakeStudios.commands.*;
 import org.MakeACakeStudios.donates.EffectManager;
@@ -57,7 +56,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private MuteExpirationTask muteExpirationTask;
     private BanExpirationTask banExpirationTask;
     private PlayerBanListener playerBanListener;
-    private TagFormatter tagFormatter;
 
     private Connection connection;
 
@@ -75,6 +73,15 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
 
         saveDefaultConfig();
         config = getConfig();
+
+        playerDataStorage = new PlayerDataStorage();
+        MiniMessage miniMessage = MiniMessage.miniMessage();
+        String dbPath = getDataFolder().getAbsolutePath();
+        mailStorage = new MailStorage(dbPath);
+        punishmentStorage = new PunishmentStorage(dbPath);
+        tabList = new TabList(this);
+        dynamicMotd = new DynamicMotd(this);
+        chatListener = new ChatHandler();
 
         commandManager = new LegacyPaperCommandManager<CommandSender>(
                 this,
@@ -103,16 +110,6 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
                 new ChatCommand(),
                 new RenameCommand()
         ).forEach(cmd -> cmd.register(commandManager));
-
-        playerDataStorage = new PlayerDataStorage();
-        MiniMessage miniMessage = MiniMessage.miniMessage();
-        String dbPath = getDataFolder().getAbsolutePath();
-        mailStorage = new MailStorage(dbPath);
-        punishmentStorage = new PunishmentStorage(dbPath);
-        tabList = new TabList(this);
-        dynamicMotd = new DynamicMotd(this);
-        tagFormatter = new TagFormatter();
-        chatListener = new ChatHandler();
 
         this.muteExpirationTask = new MuteExpirationTask(punishmentStorage, miniMessage);
         muteExpirationTask.runTaskTimer(this, 0L, 20L);

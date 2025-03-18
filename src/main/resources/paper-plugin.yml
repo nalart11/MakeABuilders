@@ -2,7 +2,7 @@ name: MakeABuilders
 version: b0.4
 main: org.MakeACakeStudios.MakeABuilders
 api-version: "1.21"
-authors: [nalart11]
+authors: [Post_Scriptum_]
 dependencies:
   server:
     LuckPerms:

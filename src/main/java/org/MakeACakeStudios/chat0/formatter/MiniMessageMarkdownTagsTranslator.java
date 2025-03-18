@@ -18,22 +18,27 @@ public class MiniMessageMarkdownTagsTranslator {
     enum MarkdownTag {
         BOLD("\\*\\*", "<b>", "</b>"),
         ITALIC("\\*", "<i>", "</i>"),
-
         ITALIC_US("_", "<i>", "</i>"),
         BOLD_ITALIC_DS("\\*\\*\\*", "<b><i>", "</b></i>"),
-
         STRIKETHROUGH("~", "<st>", "</st>"),
         UNDERLINED("__", "<u>", "</u>"),
-        TEST("%", "<red>", "</red>")
-        ;
+        SPOILER("\\|\\|", "<obf>", "</obf>") {
+            @Override
+            public @NotNull String stripTags(@NotNull String s) {
+                var regex = tag + "(.*?)" + tag;
+                return s.replaceAll(regex, "<hover:show_text:'$1'><obf>$1</obf></hover>");
+            }
+        };
 
-        public final @NotNull String tag, openTag, closingTag;
+        public final @NotNull String tag;
+        public final @NotNull String openTag;
+        public final @NotNull String closingTag;
         public static final @NotNull List<@NotNull MarkdownTag> entries = Arrays.stream(MarkdownTag.values()).toList();
 
-        MarkdownTag(
-                @NotNull String tag, @NotNull String openTag, @NotNull String closingTag
-        ) {
-            this.tag = tag; this.openTag = openTag; this.closingTag = closingTag;
+        MarkdownTag(@NotNull String tag, @NotNull String openTag, @NotNull String closingTag) {
+            this.tag = tag;
+            this.openTag = openTag;
+            this.closingTag = closingTag;
         }
 
         public @NotNull String stripTags(@NotNull String s) {

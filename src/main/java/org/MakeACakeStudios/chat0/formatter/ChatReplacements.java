@@ -21,6 +21,21 @@ public enum ChatReplacements {
     FIRE((player, component) -> builder(":cry:", miniMessage("<color:#FF7800>\uD83D\uDD25</color>"))),
     STAR((player, component) -> builder(":cry:", miniMessage("<yellow>★</yellow>"))),
     STOP((player, component) -> builder(":cry:", miniMessage("<red>⚠</red>"))),
+    SUN(((player, component) -> builder(":sun:", miniMessage("<yellow>☀</yellow>")))),
+    MAIL(((player, component) -> builder(":mail:", miniMessage("<yellow>✉</yellow>")))),
+    HAPPY(((player, component) -> builder(":happy:", miniMessage("<yellow>☺</yellow>")))),
+    SAD(((player, component) -> builder(":sad:", miniMessage("<yellow>☹</yellow>")))),
+    UMBRELLA(((player, component) -> builder(":umbrella:", miniMessage("<blue>☂</blue>")))),
+    TADA(((player, component) -> builder(":tada:", miniMessage("<color:#FF00FF>\uD83C\uDF89</color>")))),
+    NYABOOM(((player, component) -> builder(":nyaboom:", miniMessage("<rainbow>NYABOOM</rainbow> <aqua>:333</aqua>")))),
+    NO(((player, component) -> builder(":no:", miniMessage("<red>✖</red>")))),
+    YES(((player, component) -> builder(":yes:", miniMessage("<green>✔</green>")))),
+    SHRUG(((player, component) -> builder(":shrug:", miniMessage("¯\\_(ツ)_/¯")))),
+    TABLEFLIP(((player, component) -> builder(":tableflip:", miniMessage("<red>(╯°□°)╯︵ ┻━┻</red>")))),
+    UNFLIP(((player, component) -> builder(":unflip:", miniMessage("┬─┬ノ( º _ ºノ)")))),
+    QUESTIONMARK(((player, component) -> builder(":unflip:", miniMessage("<b>???<b>")))),
+    SADGE(((player, component) -> builder(":sadge:", miniMessage("<yellow>ⓈⒶⒹⒼⒺ</yellow><aqua>...</aqua>")))),
+
 
     // Additional
     LOC(((player, component) -> {
@@ -32,6 +47,12 @@ public enum ChatReplacements {
             case THE_END -> "<gradient:#ED00FF:#DE7EFF>";
             case CUSTOM -> "<gradient:#FFFFFF:#FFFFFF>";
         };
+        final String checkWorldName = switch (environment) {
+            case NORMAL -> "overworld";
+            case NETHER -> "the_nether";
+            case THE_END -> "the_end";
+            case CUSTOM -> worldName;
+        };
         final String gradientCloseTag = "</gradient>";
         final int blockX = player.getLocation().getBlockX();
         final int blockY = player.getLocation().getBlockY();
@@ -40,7 +61,7 @@ public enum ChatReplacements {
                 gradientOpenTag + "[" + blockX + "x/" + blockY + "y/" + blockZ + "z/, "
                 + worldName + "]" + gradientCloseTag
         );
-        var builtComponent = runCommand(miniMessage, "/goto " + worldName + " " + blockX + " " + blockY + " " + blockZ);
+        var builtComponent = runCommand(miniMessage, "/execute in minecraft:" + checkWorldName + " run tp " + blockX + " " + blockY + " " + blockZ);
         return builder(":loc:", builtComponent);
     }));
 

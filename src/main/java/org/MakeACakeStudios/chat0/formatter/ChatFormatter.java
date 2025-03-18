@@ -3,6 +3,7 @@ package org.MakeACakeStudios.chat0.formatter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.player.NicknameBuilder;
+import org.MakeACakeStudios.utils.Formatter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,9 @@ public class ChatFormatter {
 
     public static @NotNull Component formatMessage(@NotNull Player sender, @NotNull Component text, @NotNull Player viewer) {
         var displayName = NicknameBuilder.displayName(sender, true, true);
-        return single(displayName, Component.space(), gray(">"), Component.space(), text);
+
+        displayName = Formatter.runCommand(displayName, "/profile " + sender.getName());
+
+        return Formatter.single(displayName, Component.space(), Formatter.gray(">"), Component.space(), text);
     }
 }

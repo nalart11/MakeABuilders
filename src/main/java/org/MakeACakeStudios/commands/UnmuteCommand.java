@@ -4,7 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.other.MuteExpirationTask;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -12,7 +12,6 @@ import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +22,7 @@ public class UnmuteCommand implements Command {
         manager.command(
                 manager.commandBuilder("unmute")
                         .permission("makeabuilders.unmute")
-                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player")))
                         .build()
         );

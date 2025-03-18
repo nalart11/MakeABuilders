@@ -5,10 +5,10 @@ import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.parsers.AsyncPlayerParser;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +21,7 @@ public class MessageCommand implements Command {
         manager.command(
                 manager.commandBuilder("message", "msg")
                         .senderType(Player.class)
-                        .required("player", PlayerParser.playerParser())
+                        .required("player", AsyncPlayerParser.asyncPlayerParser())
                         .required("text", StringParser.greedyStringParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("text")))
         );

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
 import org.MakeACakeStudios.storage.MailStorage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.Bukkit;
@@ -11,7 +12,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ public class MailCommand implements Command {
         manager.command(
                 manager.commandBuilder("mail")
                         .senderType(Player.class)
-                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .required("message", StringParser.greedyStringParser())
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("message")))
                         .build()

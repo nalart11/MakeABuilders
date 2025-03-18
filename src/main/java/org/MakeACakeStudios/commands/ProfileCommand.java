@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.MakeABuilders;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
 import org.MakeACakeStudios.storage.ItemStorage;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
@@ -15,7 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class ProfileCommand implements Command, Listener {
         manager.command(
                 manager.commandBuilder("profile")
                         .senderType(Player.class)
-                        .optional("player", OfflinePlayerParser.offlinePlayerParser())
+                        .optional("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .handler(ctx -> {
                             OfflinePlayer targetPlayer = ctx.getOrDefault("player", (OfflinePlayer) ctx.sender());
                             handleMenu((Player) ctx.sender(), targetPlayer);
@@ -54,6 +54,7 @@ public class ProfileCommand implements Command, Listener {
                     inventory.setItem(23, ItemStorage.getBanBarrier(offlinePlayer));
                     excludeSlots.add(23);
                 }
+
                 for (int i = 0; i < 27; i++) {
                     if (!excludeSlots.contains(i)) {
                         inventory.setItem(i, ItemStorage.getPlaceHolderItem());

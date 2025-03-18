@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static org.MakeACakeStudios.utils.Formatter.*;
+
 public class AdminCommand implements Command, Listener {
 
     private final HashMap<UUID, ItemStack[]> savedInventories = new HashMap<>();
@@ -66,7 +68,7 @@ public class AdminCommand implements Command, Listener {
 
             data.remove(ADMIN_MODE_KEY);
 
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Вы вышли из <red>админ-режима</red>.</gray>"));
+            player.sendMessage(gray("Вы вышли из ").append(red("админ-режима").append(gray("."))));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
         } else {
             savedInventories.put(playerId, player.getInventory().getContents().clone());
@@ -83,7 +85,7 @@ public class AdminCommand implements Command, Listener {
 
             data.set(ADMIN_MODE_KEY, PersistentDataType.BYTE, (byte) 1);
 
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Вы вошли в <green>админ-режим</green>.</gray>"));
+            player.sendMessage(gray("Вы вошли в ").append(green("админ-режим")).append(gray(".")));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
         }
     }

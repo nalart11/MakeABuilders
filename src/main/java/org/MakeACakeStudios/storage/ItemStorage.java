@@ -2,10 +2,7 @@ package org.MakeACakeStudios.storage;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.commands.VanishCommand;
 import org.MakeACakeStudios.donates.EffectManager;
@@ -19,11 +16,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.MakeACakeStudios.chat.ChatUtils.formatDate;
+import static org.MakeACakeStudios.utils.Formatter.miniMessage;
 
 public class ItemStorage {
     public static ItemStorage instance;
@@ -59,11 +56,11 @@ public class ItemStorage {
                         .map(Map.Entry::getKey)
                         .findFirst()
                         .orElse("Неизвестный эффект"))
-                .map(effectName -> MiniMessage.miniMessage().deserialize("<!i><white>- " + effectName + "</white>"))
+                .map(effectName -> miniMessage("<!i><white>- " + effectName + "</white>"))
                 .collect(Collectors.toList());
 
         if (effectsList.isEmpty()) {
-            effectsList.add(MiniMessage.miniMessage().deserialize("<gray>- Нет эффектов</gray>"));
+            effectsList.add(miniMessage("<gray>- Нет эффектов</gray>"));
         }
 
         ItemStack item;
@@ -71,21 +68,21 @@ public class ItemStorage {
 
         if (donate >= 2000) {
             item = new ItemStack(Material.NETHERITE_INGOT);
-            roleMessage = MiniMessage.miniMessage().deserialize("<!i><gradient:#00A53E:#C8FFD4>Спонсор</gradient>");
+            roleMessage = miniMessage("<!i><gradient:#00A53E:#C8FFD4>Спонсор</gradient>");
         } else if (donate >= 150) {
             item = new ItemStack(Material.DIAMOND);
-            roleMessage = MiniMessage.miniMessage().deserialize("<!i><gradient:#6EFFC9:#F0FFF7>Донатер</gradient>");
+            roleMessage = miniMessage("<!i><gradient:#6EFFC9:#F0FFF7>Донатер</gradient>");
         } else {
             item = new ItemStack(Material.GOLD_NUGGET);
-            roleMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Игрок</gray>");
+            roleMessage = miniMessage("<!i><gray>Игрок</gray>");
         }
 
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            Component donateMessage = MiniMessage.miniMessage().deserialize("<!i><color:#57EEB2>Донаты</color>");
-            Component loreMessage = MiniMessage.miniMessage().deserialize(
+            Component donateMessage = miniMessage("<!i><color:#57EEB2>Донаты</color>");
+            Component loreMessage = miniMessage(
                     "<!i><yellow>Сумма доната: <white>" + donate + "р</white></yellow>");
-            Component effectsTitle = MiniMessage.miniMessage().deserialize("<!i><yellow>Эффекты:</yellow>");
+            Component effectsTitle = miniMessage("<!i><yellow>Эффекты:</yellow>");
 
             List<Component> lore = List.of(roleMessage, Component.empty(), loreMessage, effectsTitle);
             lore = new java.util.ArrayList<>(lore);
@@ -108,7 +105,7 @@ public class ItemStorage {
                     ? "<!i><red>Игрок забанен навсегда.</red>"
                     : "<!i><red>Игрок забанен до " + formattedBanEndTime + ".</red>";
 
-            Component statusMessage = MiniMessage.miniMessage().deserialize(message);
+            Component statusMessage = miniMessage(message);
             meta.displayName(statusMessage);
 
             barrier.setItemMeta(meta);
@@ -121,7 +118,7 @@ public class ItemStorage {
             ItemStack limeDye = new ItemStack(Material.LIME_DYE);
             ItemMeta meta = limeDye.getItemMeta();
             if (meta != null) {
-                Component statusMessage = MiniMessage.miniMessage().deserialize("<!i><color:#57EEB2>Не замьючен.</color>");
+                Component statusMessage = miniMessage("<!i><color:#57EEB2>Не замьючен.</color>");
                 meta.displayName(statusMessage);
 
                 limeDye.setItemMeta(meta);
@@ -136,7 +133,7 @@ public class ItemStorage {
                         ? "<!i><red>Игрок замьючен навсегда.</red>"
                         : "<!i><red>Игрок замьючен до " + formattedMuteEndTime + ".</red>";
 
-                Component statusMessage = MiniMessage.miniMessage().deserialize(message);
+                Component statusMessage = miniMessage(message);
                 meta.displayName(statusMessage);
 
                 redDye.setItemMeta(meta);
@@ -183,10 +180,10 @@ public class ItemStorage {
                 lastOnlineText = "<!i><aqua>Последний онлайн: <green>" + lastJoinDate;
             }
 
-            Component title = MiniMessage.miniMessage().deserialize("<!i><color:#57EEB2>Игровое время</color>");
-            Component timePlayedMessage = MiniMessage.miniMessage().deserialize("<!i><gold>Время в игре: <yellow>" + hoursPlayed + " ч " + (minutesPlayed % 60) + " мин");
-            Component firstJoinMessage = MiniMessage.miniMessage().deserialize("<!i><aqua>Первый онлайн: <green>" + firstJoinDate);
-            Component lastOnlineMessage = MiniMessage.miniMessage().deserialize(lastOnlineText);
+            Component title = miniMessage("<!i><color:#57EEB2>Игровое время</color>");
+            Component timePlayedMessage = miniMessage("<!i><gold>Время в игре: <yellow>" + hoursPlayed + " ч " + (minutesPlayed % 60) + " мин");
+            Component firstJoinMessage = miniMessage("<!i><aqua>Первый онлайн: <green>" + firstJoinDate);
+            Component lastOnlineMessage = miniMessage(lastOnlineText);
 
             meta.displayName(title);
             meta.lore(List.of(timePlayedMessage, Component.empty(), firstJoinMessage, lastOnlineMessage));
@@ -204,7 +201,7 @@ public class ItemStorage {
 
             String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
 
-            Component formattedName = MiniMessage.miniMessage().deserialize("<!i><white>" + playerName + "</white>");
+            Component formattedName = miniMessage("<!i><white>" + playerName + "</white>");
             meta.displayName(formattedName);
 
             String roleName = PlayerDataStorage.instance.getPlayerRoleByName(player.getName());
@@ -236,10 +233,10 @@ public class ItemStorage {
                     playerRoleText = "<gray>Игрок</gray>";
             }
 
-            Component loreText1 = MiniMessage.miniMessage().deserialize("<!i><yellow>Роль: </yellow>" + playerRoleText);
+            Component loreText1 = miniMessage("<!i><yellow>Роль: </yellow>" + playerRoleText);
             List<String> badges = PlayerDataStorage.instance.getPlayerBadges(player.getName());
             if (!badges.equals(List.of())) {
-                Component loreText2 = MiniMessage.miniMessage().deserialize("<!i><yellow>Значки: </yellow>" + PlayerDataStorage.instance.getPlayerBadges(player.getName()));
+                Component loreText2 = miniMessage("<!i><yellow>Значки: </yellow>" + PlayerDataStorage.instance.getPlayerBadges(player.getName()));
                 meta.lore(List.of(loreText1, loreText2));
             } else {
                 meta.lore(List.of(loreText1));
@@ -256,8 +253,8 @@ public class ItemStorage {
         ItemMeta meta = cake.getItemMeta();
         int donate = DonateStorage.instance.getTotalDonations(player.getName());
         if (meta != null) {
-            Component donatesCountMessage = MiniMessage.miniMessage().deserialize("<!i><color:#57EEB2>Вы задонатили нам " + donate + " рублей</color>");
-            Component donatesThanksMessage = MiniMessage.miniMessage().deserialize("<!i><yellow>Спасибо большое за вашу поддержку!</yellow>");
+            Component donatesCountMessage = miniMessage("<!i><color:#57EEB2>Вы задонатили нам " + donate + " рублей</color>");
+            Component donatesThanksMessage = miniMessage("<!i><yellow>Спасибо большое за вашу поддержку!</yellow>");
 
             meta.displayName(donatesCountMessage);
             meta.lore(List.of(donatesThanksMessage));
@@ -273,17 +270,17 @@ public class ItemStorage {
             ItemStack sakura = new ItemStack(Material.CHERRY_SAPLING);
             ItemMeta meta = sakura.getItemMeta();
             if (meta != null) {
-                Component sakuraEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#FBE0FF:#F739E0>Сакура</gradient>");
-                Component sakuraDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#f2ace9>Нежный, как первая любовь,</color>");
-                Component sakuraDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#f2ace9>и прекрасный, как весенний рассвет.</color>");
+                Component sakuraEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#FBE0FF:#F739E0>Сакура</gradient>");
+                Component sakuraDescriptionMessage1 = miniMessage("<color:#f2ace9>Нежный, как первая любовь,</color>");
+                Component sakuraDescriptionMessage2 = miniMessage("<color:#f2ace9>и прекрасный, как весенний рассвет.</color>");
                 Component statusEffectMessage;
 
                 boolean isSakuraEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(3);
 
                 if (isSakuraEnabled) {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><green>Включен</green>");
+                    statusEffectMessage = miniMessage("<!i><green>Включен</green>");
                 } else {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><red>Выключен</red>");
+                    statusEffectMessage = miniMessage("<!i><red>Выключен</red>");
                 }
 
                 meta.displayName(sakuraEffectMessage);
@@ -296,10 +293,10 @@ public class ItemStorage {
             ItemStack gray_dye = new ItemStack(Material.GRAY_DYE);
             ItemMeta meta = gray_dye.getItemMeta();
             if (meta != null) {
-                Component sakuraEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#FBE0FF:#F739E0>Сакура</gradient>");
-                Component sakuraDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#f2ace9>Нежные, как первая любовь,</color>");
-                Component sakuraDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#f2ace9>и прекрасные, как весенний рассвет.</color>");
-                Component statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Не куплен</gray>");
+                Component sakuraEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#FBE0FF:#F739E0>Сакура</gradient>");
+                Component sakuraDescriptionMessage1 = miniMessage("<color:#f2ace9>Нежные, как первая любовь,</color>");
+                Component sakuraDescriptionMessage2 = miniMessage("<color:#f2ace9>и прекрасные, как весенний рассвет.</color>");
+                Component statusEffectMessage = miniMessage("<!i><gray>Не куплен</gray>");
 
                 meta.displayName(sakuraEffectMessage);
                 meta.lore(List.of(sakuraDescriptionMessage1, sakuraDescriptionMessage2, Component.empty(), statusEffectMessage));
@@ -315,17 +312,17 @@ public class ItemStorage {
             ItemStack tridient = new ItemStack(Material.TRIDENT);
             ItemMeta meta = tridient.getItemMeta();
             if (meta != null) {
-                Component zeusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#B46E10:#C31717>Зевс</gradient>");
-                Component zeusDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#a62907>Грозовые тучи сгущаются,</color>");
-                Component zeusDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#a62907>а гнев самого Зевса сверкает вокруг тебя.</color>");
+                Component zeusEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#B46E10:#C31717>Зевс</gradient>");
+                Component zeusDescriptionMessage1 = miniMessage("<color:#a62907>Грозовые тучи сгущаются,</color>");
+                Component zeusDescriptionMessage2 = miniMessage("<color:#a62907>а гнев самого Зевса сверкает вокруг тебя.</color>");
                 Component statusEffectMessage;
 
                 boolean isZeusEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(1);
 
                 if (isZeusEnabled) {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><green>Включен</green>");
+                    statusEffectMessage = miniMessage("<!i><green>Включен</green>");
                 } else {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><red>Выключен</red>");
+                    statusEffectMessage = miniMessage("<!i><red>Выключен</red>");
                 }
 
                 meta.displayName(zeusEffectMessage);
@@ -338,10 +335,10 @@ public class ItemStorage {
             ItemStack gray_dye = new ItemStack(Material.GRAY_DYE);
             ItemMeta meta = gray_dye.getItemMeta();
             if (meta != null) {
-                Component zeusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#B46E10:#C31717>Зевс</gradient>");
-                Component zeusDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#a62907>Грозовые тучи сгущаются,</color>");
-                Component zeusDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#a62907>а гнев самого Зевса сверкает вокруг тебя.</color>");
-                Component statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Не куплен</gray>");
+                Component zeusEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#B46E10:#C31717>Зевс</gradient>");
+                Component zeusDescriptionMessage1 = miniMessage("<color:#a62907>Грозовые тучи сгущаются,</color>");
+                Component zeusDescriptionMessage2 = miniMessage("<color:#a62907>а гнев самого Зевса сверкает вокруг тебя.</color>");
+                Component statusEffectMessage = miniMessage("<!i><gray>Не куплен</gray>");
 
                 meta.displayName(zeusEffectMessage);
                 meta.lore(List.of(zeusDescriptionMessage1, zeusDescriptionMessage2, Component.empty(), statusEffectMessage));
@@ -357,17 +354,17 @@ public class ItemStorage {
             ItemStack star = new ItemStack(Material.NETHER_STAR);
             ItemMeta meta = star.getItemMeta();
             if (meta != null) {
-                Component starEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#F0F7B9:#E8921A>Звезда</gradient>");
-                Component starDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#ffe47a>Ослепительный звездный свет озаряет тебя,</color>");
-                Component starDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#ffe47a>оставляя за тобой след волшебного сияния.</color>");
+                Component starEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#F0F7B9:#E8921A>Звезда</gradient>");
+                Component starDescriptionMessage1 = miniMessage("<color:#ffe47a>Ослепительный звездный свет озаряет тебя,</color>");
+                Component starDescriptionMessage2 = miniMessage("<color:#ffe47a>оставляя за тобой след волшебного сияния.</color>");
                 Component statusEffectMessage;
 
                 boolean isStarEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(2);
 
                 if (isStarEnabled) {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><green>Включен</green>");
+                    statusEffectMessage = miniMessage("<!i><green>Включен</green>");
                 } else {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><red>Выключен</red>");
+                    statusEffectMessage = miniMessage("<!i><red>Выключен</red>");
                 }
 
                 meta.displayName(starEffectMessage);
@@ -380,10 +377,10 @@ public class ItemStorage {
             ItemStack gray_dye = new ItemStack(Material.GRAY_DYE);
             ItemMeta meta = gray_dye.getItemMeta();
             if (meta != null) {
-                Component starEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#F0F7B9:#E8921A>Звезда</gradient>");
-                Component starDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#ffe47a>Ослепительный звездный свет озаряет тебя,</color>");
-                Component starDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#ffe47a>оставляя за тобой след волшебного сияния.</color>");
-                Component statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Не куплен</gray>");
+                Component starEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#F0F7B9:#E8921A>Звезда</gradient>");
+                Component starDescriptionMessage1 = miniMessage("<color:#ffe47a>Ослепительный звездный свет озаряет тебя,</color>");
+                Component starDescriptionMessage2 = miniMessage("<color:#ffe47a>оставляя за тобой след волшебного сияния.</color>");
+                Component statusEffectMessage = miniMessage("<!i><gray>Не куплен</gray>");
 
                 meta.displayName(starEffectMessage);
                 meta.lore(List.of(starDescriptionMessage1, starDescriptionMessage2, Component.empty(), statusEffectMessage));
@@ -399,17 +396,17 @@ public class ItemStorage {
             ItemStack diamond = new ItemStack(Material.DIAMOND);
             ItemMeta meta = diamond.getItemMeta();
             if (meta != null) {
-                Component birthdayEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения</gradient>");
-                Component birthdayDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
-                Component birthdayDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
+                Component birthdayEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения</gradient>");
+                Component birthdayDescriptionMessage1 = miniMessage("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
+                Component birthdayDescriptionMessage2 = miniMessage("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
                 Component statusEffectMessage;
 
                 boolean isBirthdayEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(12);
 
                 if (isBirthdayEnabled) {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><green>Включен</green>");
+                    statusEffectMessage = miniMessage("<!i><green>Включен</green>");
                 } else {
-                    statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><red>Выключен</red>");
+                    statusEffectMessage = miniMessage("<!i><red>Выключен</red>");
                 }
 
                 meta.displayName(birthdayEffectMessage);
@@ -422,10 +419,10 @@ public class ItemStorage {
             ItemStack gray_dye = new ItemStack(Material.GRAY_DYE);
             ItemMeta meta = gray_dye.getItemMeta();
             if (meta != null) {
-                Component birthdayEffectMessage = MiniMessage.miniMessage().deserialize("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения!</gradient>");
-                Component birthdayDescriptionMessage1 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
-                Component birthdayDescriptionMessage2 = MiniMessage.miniMessage().deserialize("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
-                Component statusEffectMessage = MiniMessage.miniMessage().deserialize("<!i><gray>Можно получить только на свой день рождения</gray>");
+                Component birthdayEffectMessage = miniMessage("<!i><white>Эффект</white> <gradient:#22DCEE:#11ED7C>День рождения!</gradient>");
+                Component birthdayDescriptionMessage1 = miniMessage("<color:#7aebdd>Яркие искры фейерверков вспыхивают вокруг тебя,</color>");
+                Component birthdayDescriptionMessage2 = miniMessage("<color:#7aebdd>словно праздничный салют, озаряя момент радости и веселья!</color>");
+                Component statusEffectMessage = miniMessage("<!i><gray>Можно получить только на свой день рождения</gray>");
 
                 meta.displayName(birthdayEffectMessage);
                 meta.lore(List.of(birthdayDescriptionMessage1, birthdayDescriptionMessage2, Component.empty(), statusEffectMessage));
@@ -474,7 +471,7 @@ public class ItemStorage {
         ItemStack barrier = new ItemStack(Material.BARRIER);
         ItemMeta meta = barrier.getItemMeta();
         if (meta != null) {
-            Component unavailableMessage = MiniMessage.miniMessage().deserialize("<!i><red>Недоступно</red>");
+            Component unavailableMessage = miniMessage("<!i><red>Недоступно</red>");
             meta.displayName(unavailableMessage);
 
             barrier.setItemMeta(meta);

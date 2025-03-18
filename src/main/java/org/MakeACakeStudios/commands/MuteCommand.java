@@ -5,7 +5,7 @@ import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.ChatUtils;
 import org.MakeACakeStudios.chat.TagFormatter;
 import org.MakeACakeStudios.other.MuteExpirationTask;
-import org.MakeACakeStudios.storage.PlayerDataStorage;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
 import org.MakeACakeStudios.storage.PunishmentStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -13,7 +13,6 @@ import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.incendo.cloud.bukkit.parser.OfflinePlayerParser;
 import org.incendo.cloud.component.DefaultValue;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.parser.standard.StringParser;
@@ -28,7 +27,7 @@ public class MuteCommand implements Command {
         manager.command(
                 manager.commandBuilder("mute")
                         .permission("makeabuilders.mute")
-                        .required("player", OfflinePlayerParser.offlinePlayerParser())
+                        .required("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .required("time", StringParser.stringParser())
                         .optional("reason", StringParser.greedyStringParser(), DefaultValue.constant("Не указано."))
                         .handler(ctx -> handle(ctx.sender(), ctx.get("player"), ctx.get("time"), ctx.get("reason")))

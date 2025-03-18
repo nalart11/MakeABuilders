@@ -56,7 +56,7 @@ tasks {
     }
 
     shadowJar {
-        archiveClassifier.set("shadow")
+        archiveClassifier.set("shad")
         mergeServiceFiles()
     }
 

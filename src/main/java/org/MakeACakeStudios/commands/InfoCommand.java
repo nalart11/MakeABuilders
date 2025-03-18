@@ -12,7 +12,7 @@ public class InfoCommand implements Command {
     @Override
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
-                manager.commandBuilder("info")
+                manager.commandBuilder("mkver")
                         .senderType(Player.class)
                         .handler(ctx -> handle(ctx.sender()))
         );
