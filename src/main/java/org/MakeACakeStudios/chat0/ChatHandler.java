@@ -60,7 +60,7 @@ public class ChatHandler implements Listener {
         }
 
         var message = this.getRandomMessage(
-                MakeABuilders.instance.config.getStringList("Messages.Join"),
+                MakeABuilders.instance.config.getStringList("Messages.Quit"),
                 NicknameBuilder.displayName(player, true, true)
         );
 
