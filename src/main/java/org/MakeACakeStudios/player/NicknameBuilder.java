@@ -37,14 +37,14 @@ public class NicknameBuilder {
 
     public static @NotNull HoverEvent<Component> hoverLines(@NotNull OfflinePlayer player) {
         var component = createDisplayName(player, false);
-        return HoverEvent.showText(runCommand(
+        return HoverEvent.showText(
                 single(
                         text("Нажмите "),
                         green("ЛКМ"),
                         text(" чтобы открыть профиль игрока "),
                         component,
                         text(".")
-                ), "/profile " + player.getName())
+                )
         );
     }
 
