@@ -1,6 +1,8 @@
 package org.MakeACakeStudios.other;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.storage.PlayerDataStorage;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -98,11 +100,15 @@ public class MailUtils {
 
     public void sendFormattedMessage(Player player, String[] messageData) {
         String senderName = messageData[1];
+        String formattedName = ChatUtils.getFormattedPlayerString(senderName, true);
         String message = messageData[2];
         String status = messageData[3].equals("Прочитано") ? "<gray>[Прочитано]</gray>" : "<yellow>[Непрочитано]</yellow>";
+        String sentAt = messageData.length >= 5 ? messageData[4] : "неизвестно";
 
         String formattedMessage = "<gray>--------------------------</gray>\n" +
-                "<green>Отправитель:</green> " + senderName + "\n" +
+                "<green>Отправитель:</green> <click:run_command:/profile " + senderName +
+                "><hover:show_text:'Нажмите <green>ЛКМ</green> чтобы открыть профиль " + formattedName + "'><aqua>" + formattedName + "</aqua></hover></click>\n" +
+                "<green>Отправлено:</green> " + sentAt + "\n" +
                 "<green>Сообщение:</green> " + message + "\n" +
                 status + "\n" +
                 "<gray>--------------------------</gray>";

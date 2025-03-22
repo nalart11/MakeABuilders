@@ -3,6 +3,7 @@ package org.MakeACakeStudios.commands;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.Command;
 import org.MakeACakeStudios.chat.ChatUtils;
+import org.MakeACakeStudios.parsers.AsyncOfflinePlayerParser;
 import org.MakeACakeStudios.storage.DonateStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -29,13 +30,13 @@ public class AutoDonateCommand implements Command {
                 manager.commandBuilder("autodonate")
                         .senderType(CommandSender.class)
                         .permission("makeabuilders.donates")
-                        .required("nickname", StringParser.stringParser())
+                        .required("player", AsyncOfflinePlayerParser.asyncOfflinePlayerParser())
                         .required("effect", StringParser.stringParser())
-                        .handler(ctx -> handleAutoDonate(ctx.sender(), ctx.get("nickname"), ctx.get("effect")))
+                        .handler(ctx -> handleAutoDonate(ctx.sender(), ctx.get("player"), ctx.get("effect")))
         );
     }
 
-    private void handleAutoDonate(@NotNull CommandSender sender, String nickname, String effect) {
+    private void handleAutoDonate(@NotNull CommandSender sender, OfflinePlayer offlinePlayer, String effect) {
         if (!EFFECT_PRICES.containsKey(effect)) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Ошибка: эффект <yellow>" + effect + "</yellow> не найден!</red>"));
             return;
@@ -44,8 +45,8 @@ public class AutoDonateCommand implements Command {
         int cost = EFFECT_PRICES.get(effect);
         int effectId = DonateStorage.DONATE_EFFECTS.get(effect);
 
+        String nickname = offlinePlayer.getName();
         Player target = Bukkit.getPlayerExact(nickname);
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(nickname);
 
         if (!offlinePlayer.hasPlayedBefore() && !offlinePlayer.isOnline()) {
             sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Игрок не найден!</red>"));

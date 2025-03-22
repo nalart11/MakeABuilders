@@ -27,8 +27,6 @@ import java.util.Set;
 import static org.MakeACakeStudios.storage.DonateStorage.DONATE_EFFECTS;
 
 public class DonateCommand implements Command, @NotNull Listener {
-    private final DonateStorage storage = new DonateStorage();
-
     @Override
     public void register(LegacyPaperCommandManager<CommandSender> manager) {
         manager.command(
@@ -110,23 +108,23 @@ public class DonateCommand implements Command, @NotNull Listener {
 
 
     private void handleGetDonate(@NotNull Player sender) {
-        int amount = storage.getTotalDonations(sender.getName());
+        int amount = DonateStorage.instance.getTotalDonations(sender.getName());
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Ваша сумма донатов: <yellow>" + amount + "</yellow></green>"));
     }
 
     private void handleGetDonate(@NotNull Player sender, @NotNull Player target) {
-        int amount = storage.getTotalDonations(target.getName());
+        int amount = DonateStorage.instance.getTotalDonations(target.getName());
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Сумма донатов игрока <yellow>" + target.getName() + "</yellow>: <yellow>" + amount + "</yellow></green>"));
     }
 
     private void handleAddDonate(@NotNull Player sender, @NotNull Player target, int amount) {
-        storage.addDonationAmount(target.getName(), amount);
+        DonateStorage.instance.addDonationAmount(target.getName(), amount);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Добавлено <yellow>" + amount + "</yellow> рублей игроку <yellow>" + target.getName() + "</yellow></green>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<green>Вам добавлено <yellow>" + amount + "</yellow> рублей!</green>"));
     }
 
     private void handleRemoveDonate(@NotNull Player sender, @NotNull Player target, int amount) {
-        storage.removeDonationAmount(target.getName(), amount);
+        DonateStorage.instance.removeDonationAmount(target.getName(), amount);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Убрано <yellow>" + amount + "</yellow> рублей у игрока <yellow>" + target.getName() + "</yellow></red>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас списано <yellow>" + amount + "</yellow> рублей!</red>"));
     }
@@ -138,7 +136,7 @@ public class DonateCommand implements Command, @NotNull Listener {
             return;
         }
 
-        storage.addDonation(target.getName(), effectId);
+        DonateStorage.instance.addDonation(target.getName(), effectId);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Добавлен донатный эффект <yellow>" + effect + "</yellow> игроку <yellow>" + target.getName() + "</yellow></green>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<green>Вам добавлен донатный эффект <yellow>" + effect + "</yellow>!</green>"));
     }
@@ -150,7 +148,7 @@ public class DonateCommand implements Command, @NotNull Listener {
             return;
         }
 
-        storage.removeDonation(target.getName(), effectId);
+        DonateStorage.instance.removeDonation(target.getName(), effectId);
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Удалён донатный эффект <yellow>" + effect + "</yellow> у игрока <yellow>" + target.getName() + "</yellow></red>"));
         target.sendMessage(MiniMessage.miniMessage().deserialize("<red>У вас удалён донатный эффект <yellow>" + effect + "</yellow>!</red>"));
     }

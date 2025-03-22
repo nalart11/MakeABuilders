@@ -51,6 +51,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
     private MailStorage mailStorage;
     private PlayerDataStorage playerDataStorage;
     private PunishmentStorage punishmentStorage;
+    private DonateStorage donateStorage;
     private DynamicMotd dynamicMotd;
     private MuteCommand muteCommand;
     private MuteExpirationTask muteExpirationTask;
@@ -79,6 +80,7 @@ public final class MakeABuilders extends JavaPlugin implements @NotNull Listener
         String dbPath = getDataFolder().getAbsolutePath();
         mailStorage = new MailStorage(dbPath);
         punishmentStorage = new PunishmentStorage(dbPath);
+        donateStorage = new DonateStorage(dbPath);
         tabList = new TabList(this);
         dynamicMotd = new DynamicMotd(this);
         chatListener = new ChatHandler();

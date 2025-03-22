@@ -4,8 +4,8 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import net.luckperms.api.node.types.InheritanceNode;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.MakeACakeStudios.MakeABuilders;
 
 import java.sql.*;
@@ -58,7 +58,8 @@ public class PlayerDataStorage {
             connection = DriverManager.getConnection("jdbc:sqlite:" + MakeABuilders.instance.getDataFolder() + "/player_data.db");
             Statement stmt = connection.createStatement();
             stmt.execute("CREATE TABLE IF NOT EXISTS player_data (" +
-                    "player_name TEXT PRIMARY KEY, " +
+                    "player_uuid TEXT PRIMARY KEY, " +
+                    "player_name TEXT, " +
                     "prefix TEXT, " +
                     "suffix TEXT, " +
                     "role TEXT, " +
@@ -159,32 +160,34 @@ public class PlayerDataStorage {
         String role = getRoleByGroup(highestGroup);
         String badges = String.join(", ", badgesList);
 
-        setPlayerData(player.getName(), prefix, suffix, role, badges, highestBadge);
+        setPlayerData(player.getUniqueId().toString(), player.getName(), prefix, suffix, role, badges, highestBadge);
     }
 
     private String getRoleByGroup(String group) {
         return groupRoles.getOrDefault(group, "player");
     }
 
-    public void setPlayerData(String playerName, String prefix, String suffix, String role, String badges, String highestBadge) {
-        String query = "INSERT OR REPLACE INTO player_data (player_name, prefix, suffix, role, badges, highest_badge) VALUES (?, ?, ?, ?, ?, ?)";
+    public void setPlayerData(String playerUuid, String playerName, String prefix, String suffix, String role, String badges, String highestBadge) {
+        String query = "INSERT OR REPLACE INTO player_data (player_uuid, player_name, prefix, suffix, role, badges, highest_badge) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, playerName);
-            stmt.setString(2, prefix);
-            stmt.setString(3, suffix);
-            stmt.setString(4, role);
-            stmt.setString(5, badges);
-            stmt.setString(6, highestBadge);
+            stmt.setString(1, playerUuid);
+            stmt.setString(2, playerName);
+            stmt.setString(3, prefix);
+            stmt.setString(4, suffix);
+            stmt.setString(5, role);
+            stmt.setString(6, badges);
+            stmt.setString(7, highestBadge);
             stmt.executeUpdate();
         } catch (SQLException e) {
             MakeABuilders.instance.getLogger().log(Level.SEVERE, "Ошибка при сохранении данных игрока в базе данных", e);
         }
     }
 
-
     public String getPlayerPrefixByName(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT prefix FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT prefix FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("prefix");
@@ -196,8 +199,10 @@ public class PlayerDataStorage {
     }
 
     public String getPlayerSuffixByName(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT suffix FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT suffix FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("suffix");
@@ -209,8 +214,10 @@ public class PlayerDataStorage {
     }
 
     public String getPlayerRoleByName(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT role FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT role FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("role");
@@ -222,8 +229,10 @@ public class PlayerDataStorage {
     }
 
     public boolean playerExistsInDatabase(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1) > 0;
@@ -235,10 +244,12 @@ public class PlayerDataStorage {
     }
 
     public List<String> getPlayerBadges(String playerName) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
         Map<String, Integer> badgeWeightMap = new HashMap<>(); // Бейдж -> вес роли
 
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT badges FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT badges FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 String badges = rs.getString("badges");
@@ -266,8 +277,10 @@ public class PlayerDataStorage {
     }
 
     public String getHighestBadge(String playerName) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT highest_badge FROM player_data WHERE player_name = ?")) {
-            stmt.setString(1, playerName);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        String uuid = offlinePlayer.getUniqueId().toString();
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT highest_badge FROM player_data WHERE player_uuid = ?")) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("highest_badge");

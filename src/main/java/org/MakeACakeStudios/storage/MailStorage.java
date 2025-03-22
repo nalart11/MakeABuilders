@@ -1,7 +1,12 @@
 package org.MakeACakeStudios.storage;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MailStorage {
@@ -42,9 +47,12 @@ public class MailStorage {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS mail_messages (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "recipient TEXT, " +
+                "recipient_uuid TEXT, " +
                 "senderName TEXT, " +
+                "sender_uuid TEXT, " +
                 "message TEXT, " +
-                "is_read BOOLEAN DEFAULT 0)";
+                "is_read BOOLEAN DEFAULT 0, " +
+                "sent_at TEXT)";
         try {
             connection.createStatement().execute(createTableSQL);
             System.out.println("Таблица для хранения сообщений создана или уже существует.");
@@ -63,11 +71,21 @@ public class MailStorage {
     }
 
     public void addMessage(String recipient, String senderName, String message) {
-        String sql = "INSERT INTO mail_messages (recipient, senderName, message, is_read) VALUES (?, ?, ?, 0)";
+        OfflinePlayer recipientPlayer = Bukkit.getOfflinePlayer(recipient);
+        String recipientUuid = recipientPlayer.getUniqueId().toString();
+        OfflinePlayer senderPlayer = Bukkit.getOfflinePlayer(senderName);
+        String senderUuid = senderPlayer.getUniqueId().toString();
+
+        String timestamp = new SimpleDateFormat("dd.MM.yyyy, HH:mm").format(new Date());
+
+        String sql = "INSERT INTO mail_messages (recipient, recipient_uuid, senderName, sender_uuid, message, is_read, sent_at) VALUES (?, ?, ?, ?, ?, 0, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, recipient);
-            pstmt.setString(2, senderName);
-            pstmt.setString(3, message);
+            pstmt.setString(2, recipientUuid);
+            pstmt.setString(3, senderName);
+            pstmt.setString(4, senderUuid);
+            pstmt.setString(5, message);
+            pstmt.setString(6, timestamp);
             pstmt.executeUpdate();
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -82,9 +100,11 @@ public class MailStorage {
     }
 
     public boolean deleteReadMessages(String recipient) {
-        String sql = "DELETE FROM mail_messages WHERE recipient = ? AND is_read = 1";
+        OfflinePlayer recipientPlayer = Bukkit.getOfflinePlayer(recipient);
+        String recipientUuid = recipientPlayer.getUniqueId().toString();
+        String sql = "DELETE FROM mail_messages WHERE recipient_uuid = ? AND is_read = 1";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, recipient);
+            pstmt.setString(1, recipientUuid);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -94,17 +114,20 @@ public class MailStorage {
     }
 
     public List<String[]> getMessages(String recipient) {
-        String sql = "SELECT id, senderName, message, is_read FROM mail_messages WHERE recipient = ?";
+        OfflinePlayer recipientPlayer = Bukkit.getOfflinePlayer(recipient);
+        String recipientUuid = recipientPlayer.getUniqueId().toString();
+        String sql = "SELECT id, senderName, message, is_read, sent_at FROM mail_messages WHERE recipient_uuid = ?";
         List<String[]> messages = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, recipient);
+            pstmt.setString(1, recipientUuid);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String id = rs.getString("id");
                 String senderName = rs.getString("senderName");
                 String message = rs.getString("message");
                 String isRead = rs.getBoolean("is_read") ? "Прочитано" : "Непрочитано";
-                messages.add(new String[]{id, senderName, message, isRead});
+                String sentAt = rs.getString("sent_at");
+                messages.add(new String[]{id, senderName, message, isRead, sentAt});
             }
         } catch (SQLException e) {
             e.printStackTrace();

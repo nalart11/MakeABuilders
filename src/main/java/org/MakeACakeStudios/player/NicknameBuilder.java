@@ -1,6 +1,7 @@
 package org.MakeACakeStudios.player;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.MakeACakeStudios.storage.PlayerDataStorage;
@@ -14,7 +15,10 @@ import static org.MakeACakeStudios.utils.Formatter.text;
 public class NicknameBuilder {
     public static @NotNull Component displayName(@NotNull OfflinePlayer player, boolean withBadge, boolean withHover) {
         var base = createDisplayName(player, withBadge);
-        if (withHover) { base = base.hoverEvent(hoverLines(player)); }
+        if (withHover) {
+            base = base.hoverEvent(hoverLines(player))
+                    .clickEvent(ClickEvent.runCommand("/profile " + player.getName()));
+        }
         return base;
     }
 
@@ -33,14 +37,14 @@ public class NicknameBuilder {
 
     public static @NotNull HoverEvent<Component> hoverLines(@NotNull OfflinePlayer player) {
         var component = createDisplayName(player, false);
-        return HoverEvent.showText(
+        return HoverEvent.showText(runCommand(
                 single(
                         text("Нажмите "),
                         green("ЛКМ"),
                         text(" чтобы открыть профиль игрока "),
                         component,
                         text(".")
-                )
+                ), "/profile " + player.getName())
         );
     }
 

@@ -40,16 +40,21 @@ public class MailCommand implements Command {
 
         message = TagFormatter.format(message);
         message = ChatUtils.replaceLocationTag(sender, message);
-        String formattedName = ChatUtils.getFormattedPlayerString(sender.getName(), true);
 
-        MailStorage.instance.addMessage(target.getName(), formattedName, message);
+        String senderName = sender.getName();
+        MailStorage.instance.addMessage(target.getName(), senderName, message);
+
         sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Сообщение отправлено.</green>"));
 
         Player targetPlayer = Bukkit.getPlayer(target.getUniqueId());
         if (targetPlayer != null) {
             List<String[]> messages = MailStorage.instance.getMessages(targetPlayer.getName());
             int lastId = messages.size();
-            targetPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green><click:run_command:/mailread " + lastId + "><hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы прочитать последнее сообщение от " + formattedName + ".'>У вас есть новое сообщение!</click></green>"));
+            String formattedSender = ChatUtils.getFormattedPlayerString(sender.getName(), true); // Добавляем оформление только при отображении
+            targetPlayer.sendMessage(MiniMessage.miniMessage().deserialize(
+                    "<green><click:run_command:/mailread " + lastId +
+                            "><hover:show_text:'Нажмите <green>ЛКМ</green>, чтобы прочитать последнее сообщение от " + formattedSender + ".'>У вас есть новое сообщение!</click></green>"
+            ));
             targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1.0f, 1.0f);
         }
     }

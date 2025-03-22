@@ -1,15 +1,16 @@
 package org.MakeACakeStudios.parsers;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apiguardian.api.API;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.bukkit.BukkitCaptionKeys;
-import org.incendo.cloud.bukkit.BukkitCommandContextKeys;
 import org.incendo.cloud.caption.CaptionVariable;
 import org.incendo.cloud.component.CommandComponent;
 import org.incendo.cloud.context.CommandContext;
@@ -59,7 +60,6 @@ public final class AsyncOfflinePlayerParser<C> implements ArgumentParser<C, Offl
             }
         });
 
-        // Блокируем выполнение потока, но не основного, а текущего метода
         return future.join();
     }
 
@@ -68,12 +68,18 @@ public final class AsyncOfflinePlayerParser<C> implements ArgumentParser<C, Offl
             final @NonNull CommandContext<C> commandContext,
             final @NonNull CommandInput input
     ) {
-        final CommandSender bukkit = commandContext.get(BukkitCommandContextKeys.BUKKIT_COMMAND_SENDER);
-        return Bukkit.getOnlinePlayers().stream()
-                .filter(player -> !(bukkit instanceof Player && !((Player) bukkit).canSee(player)))
-                .map(Player::getName)
+        return Stream.concat(
+                        Bukkit.getOnlinePlayers().stream(),
+                        Arrays.stream(Bukkit.getOfflinePlayers())
+                )
+                .filter(Objects::nonNull)
+                .map(OfflinePlayer::getName)
+                .filter(Objects::nonNull)
+                .filter(name -> !name.isEmpty())
+                .distinct()
                 .collect(Collectors.toList());
     }
+
 
     public static final class OfflinePlayerParseException extends ParserException {
 

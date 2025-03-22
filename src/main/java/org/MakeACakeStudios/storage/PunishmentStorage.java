@@ -1,8 +1,7 @@
 package org.MakeACakeStudios.storage;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 
 import java.sql.*;
 import java.time.Instant;
@@ -41,9 +40,11 @@ public class PunishmentStorage {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "type TEXT, " +
                 "endTime INTEGER, " +
-                "reason TEXT," +
+                "reason TEXT, " +
                 "player TEXT, " +
+                "player_uuid TEXT, " +
                 "admin TEXT, " +
+                "admin_uuid TEXT, " +
                 "ban_number INTEGER, " +
                 "is_valid BOOLEAN DEFAULT 0)";
         try {
@@ -76,80 +77,100 @@ public class PunishmentStorage {
         return 1;
     }
 
-    public void addMute(String player, String admin, String reason, String endTime) {
-        String insertSQL = "INSERT INTO punishments (type, endTime, reason, player, admin, is_valid) VALUES (?, ?, ?, ?, ?, ?)";
+    public void addMute(String playerName, String adminName, String reason, String endTime) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        OfflinePlayer adminObj = Bukkit.getOfflinePlayer(adminName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String adminUuid = adminObj.getUniqueId().toString();
+
+        String insertSQL = "INSERT INTO punishments (type, endTime, reason, player, player_uuid, admin, admin_uuid, is_valid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
             pstmt.setString(1, "MUTE");
             pstmt.setString(2, endTime);
             pstmt.setString(3, reason);
-            pstmt.setString(4, player);
-            pstmt.setString(5, admin);
-            pstmt.setBoolean(6, true);
+            pstmt.setString(4, playerName);
+            pstmt.setString(5, playerUuid);
+            pstmt.setString(6, adminName);
+            pstmt.setString(7, adminUuid);
+            pstmt.setBoolean(8, true);
             pstmt.executeUpdate();
-            System.out.println("Mute added successfully for player: " + player);
-            System.out.println("End time:" + endTime);
+            System.out.println("Mute добавлен для игрока: " + playerName);
+            System.out.println("End time: " + endTime);
         } catch (SQLException e) {
             System.err.println("Error adding mute: " + e.getMessage());
         }
     }
 
-    public void addBan(String player, String admin, String reason, String endTime) {
+    public void addBan(String playerName, String adminName, String reason, String endTime) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        OfflinePlayer adminObj = Bukkit.getOfflinePlayer(adminName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String adminUuid = adminObj.getUniqueId().toString();
+
         int nextBanNumber = getNextBanNumber();
-        String insertSQL = "INSERT INTO punishments (type, endTime, reason, player, admin, ban_number, is_valid) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertSQL = "INSERT INTO punishments (type, endTime, reason, player, player_uuid, admin, admin_uuid, ban_number, is_valid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
             pstmt.setString(1, "BAN");
             pstmt.setString(2, endTime);
             pstmt.setString(3, reason);
-            pstmt.setString(4, player);
-            pstmt.setString(5, admin);
-            pstmt.setInt(6, nextBanNumber);
-            pstmt.setBoolean(7, true);
+            pstmt.setString(4, playerName);
+            pstmt.setString(5, playerUuid);
+            pstmt.setString(6, adminName);
+            pstmt.setString(7, adminUuid);
+            pstmt.setInt(8, nextBanNumber);
+            pstmt.setBoolean(9, true);
             pstmt.executeUpdate();
-            System.out.println("Ban added successfully for player: " + player + " with ban number: " + nextBanNumber);
-            System.out.println("End time:" + endTime);
+            System.out.println("Ban добавлен для игрока: " + playerName + " с номером бана: " + nextBanNumber);
+            System.out.println("End time: " + endTime);
         } catch (SQLException e) {
             System.err.println("Error adding ban: " + e.getMessage());
         }
     }
 
-    public void pardonPlayer(String player) {
-        String updateSQL = "UPDATE punishments SET is_valid = ? WHERE player = ? AND is_valid = ?";
+    public void pardonPlayer(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+
+        String updateSQL = "UPDATE punishments SET is_valid = ? WHERE player_uuid = ? AND is_valid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updateSQL)) {
             pstmt.setBoolean(1, false);
-            pstmt.setString(2, player);
+            pstmt.setString(2, playerUuid);
             pstmt.setBoolean(3, true);
             int rowsUpdated = pstmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Игрок " + player + " был разбанен.");
-                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(player);
+                System.out.println("Игрок " + playerName + " был разбанен.");
+                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(playerName);
             } else {
-                System.out.println("Игрок " + player + " не забанен.");
+                System.out.println("Игрок " + playerName + " не забанен.");
             }
         } catch (SQLException e) {
             System.err.println("Error pardoning player: " + e.getMessage());
         }
     }
 
-    public String checkMute(String player) {
-        String query = "SELECT admin, endTime, reason FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
+    public String checkMute(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT admin, admin_uuid, endTime, reason FROM punishments WHERE player_uuid = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return "Игрок " + player + " замьючен " + rs.getString("admin") +
-                        " до " + rs.getString("endTime") + " по причине: " + rs.getString("reason");
+                return "Игрок " + playerName + " замьючен " + rs.getString("admin") +
+                        " (UUID: " + rs.getString("admin_uuid") + ") до " + rs.getString("endTime") +
+                        " по причине: " + rs.getString("reason");
             } else {
-                return "Игрок " + player + " не замьючен.";
+                return "Игрок " + playerName + " не замьючен.";
             }
         } catch (SQLException e) {
             System.err.println("Error checking mute: " + e.getMessage());
-            return "Error checking mute for player " + player;
+            return "Error checking mute for player " + playerName;
         }
     }
 
-    public boolean isMuted(String player) {
-        String muteStatus = PunishmentStorage.instance.checkMute(player);
+    public boolean isMuted(String playerName) {
+        String muteStatus = PunishmentStorage.instance.checkMute(playerName);
         return !muteStatus.contains("не замьючен");
     }
 
@@ -158,10 +179,12 @@ public class PunishmentStorage {
         return !banStatus.contains("не забанен");
     }
 
-    public long getMuteEndTime(String player) {
-        String query = "SELECT endTime FROM punishments WHERE player = ? AND type = 'MUTE' AND is_valid = true";
+    public long getMuteEndTime(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT endTime FROM punishments WHERE player_uuid = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 String endTime = rs.getString("endTime");
@@ -176,10 +199,12 @@ public class PunishmentStorage {
         return -1;
     }
 
-    public long getBanEndTime(String player) {
-        String query = "SELECT endTime FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+    public long getBanEndTime(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT endTime FROM punishments WHERE player_uuid = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 String endTime = rs.getString("endTime");
@@ -194,47 +219,53 @@ public class PunishmentStorage {
         return -1;
     }
 
-    public void unmutePlayer(String player) {
-        String updateSQL = "UPDATE punishments SET is_valid = false WHERE player = ? AND type = 'MUTE' AND is_valid = true";
+    public void unmutePlayer(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String updateSQL = "UPDATE punishments SET is_valid = false WHERE player_uuid = ? AND type = 'MUTE' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(updateSQL)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             int rowsUpdated = pstmt.executeUpdate();
 
             if (rowsUpdated > 0) {
-                System.out.println("Игрок " + player + " был успешно размьючен.");
+                System.out.println("Игрок " + playerName + " был успешно размьючен.");
             } else {
-                System.out.println("Игрок " + player + " не замьючен.");
+                System.out.println("Игрок " + playerName + " не замьючен.");
             }
         } catch (SQLException e) {
-            System.err.println("Error unmuting player " + player + ": " + e.getMessage());
+            System.err.println("Error unmuting player " + playerName + ": " + e.getMessage());
         }
     }
 
-    public String checkBan(String player) {
-        String query = "SELECT admin, endTime, reason, ban_number FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+    public String checkBan(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT admin, admin_uuid, endTime, reason, ban_number FROM punishments WHERE player_uuid = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return "Игрок " + player + " забанен " + rs.getString("admin") +
-                        " (номер бана: " + rs.getInt("ban_number") + ") до " + rs.getString("endTime") +
+                return "Игрок " + playerName + " забанен " + rs.getString("admin") +
+                        " (UUID: " + rs.getString("admin_uuid") + ", номер бана: " + rs.getInt("ban_number") + ") до " + rs.getString("endTime") +
                         " по причине: " + rs.getString("reason");
             } else {
-                return "Игрок " + player + " не забанен.";
+                return "Игрок " + playerName + " не забанен.";
             }
         } catch (SQLException e) {
             System.err.println("Error checking ban: " + e.getMessage());
-            return "Error checking ban for player " + player;
+            return "Error checking ban for player " + playerName;
         }
     }
 
-    public String getBanAdmin(String player) {
-        String query = "SELECT admin FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+    public String getBanAdmin(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT admin, admin_uuid FROM punishments WHERE player_uuid = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getString("admin");
+                return rs.getString("admin") + " (UUID: " + rs.getString("admin_uuid") + ")";
             }
         } catch (SQLException e) {
             System.err.println("Ошибка при получении администратора бана: " + e.getMessage());
@@ -242,10 +273,12 @@ public class PunishmentStorage {
         return "Неизвестно";
     }
 
-    public String getBanReason(String player) {
-        String query = "SELECT reason FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+    public String getBanReason(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT reason FROM punishments WHERE player_uuid = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("reason");
@@ -256,10 +289,12 @@ public class PunishmentStorage {
         return "Не указана";
     }
 
-    public int getBanNumber(String player) {
-        String query = "SELECT ban_number FROM punishments WHERE player = ? AND type = 'BAN' AND is_valid = true";
+    public int getBanNumber(String playerName) {
+        OfflinePlayer playerObj = Bukkit.getOfflinePlayer(playerName);
+        String playerUuid = playerObj.getUniqueId().toString();
+        String query = "SELECT ban_number FROM punishments WHERE player_uuid = ? AND type = 'BAN' AND is_valid = true";
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setString(1, player);
+            pstmt.setString(1, playerUuid);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("ban_number");
@@ -271,12 +306,12 @@ public class PunishmentStorage {
     }
 
     public List<String> getBannedPlayerNames() {
-        String query = "SELECT DISTINCT player FROM punishments WHERE type = 'BAN' AND is_valid = true";
+        String query = "SELECT DISTINCT player, player_uuid FROM punishments WHERE type = 'BAN' AND is_valid = true";
         List<String> bannedPlayers = new ArrayList<>();
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                bannedPlayers.add(rs.getString("player"));
+                bannedPlayers.add(rs.getString("player") + " (UUID: " + rs.getString("player_uuid") + ")");
             }
         } catch (SQLException e) {
             System.err.println("Ошибка при получении списка забаненных игроков: " + e.getMessage());
@@ -284,13 +319,13 @@ public class PunishmentStorage {
         return bannedPlayers;
     }
 
-    public String getFormattedBanEndTime(String player) {
-        long endTime = getBanEndTime(player);
+    public String getFormattedBanEndTime(String playerName) {
+        long endTime = getBanEndTime(playerName);
         return formatTime(endTime);
     }
 
-    public String getFormattedMuteEndTime(String player) {
-        long endTime = getMuteEndTime(player);
+    public String getFormattedMuteEndTime(String playerName) {
+        long endTime = getMuteEndTime(playerName);
         return formatTime(endTime);
     }
 

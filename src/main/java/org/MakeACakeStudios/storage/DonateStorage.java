@@ -8,19 +8,18 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.CompletableFuture;
 
 public class DonateStorage {
-    private static final String URL = "jdbc:sqlite:donations.db";
+
+    private Connection connection;
+    private final String dbPath;
     public static DonateStorage instance;
 
-    public DonateStorage() {
-        instance = this;
-        initializeDatabase();
-    }
-
+    // Таблица эффектов донатов
     public static final Map<String, Integer> DONATE_EFFECTS = new HashMap<>() {{
         put("Zeus", 1);
         put("Star", 2);
@@ -30,27 +29,54 @@ public class DonateStorage {
         put("Vanila", 13);
     }};
 
-    private void initializeDatabase() {
-        String sql = "CREATE TABLE IF NOT EXISTS donations (" +
-                "player_name TEXT PRIMARY KEY, " +
-                "total_donations INTEGER DEFAULT 0, " +
-                "purchased_donations TEXT DEFAULT '')";
+    public DonateStorage(String dbPath) {
+        this.dbPath = dbPath;
+        instance = this;
+        connectToDatabase();
+        initializeDatabase();
+    }
 
-        try (Connection conn = DriverManager.getConnection(URL);
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-            System.out.println("База данных готова!");
+    private void connectToDatabase() {
+        try {
+            // Формируем URL подключения
+            String url = "jdbc:sqlite:" + dbPath + "/donations.db";
+            connection = DriverManager.getConnection(url);
+            System.out.println("Подключение к базе данных SQLite установлено.");
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка при подключении к базе данных: " + e.getMessage());
         }
     }
 
-    public int getTotalDonations(String playerName) {
-        String sql = "SELECT total_donations FROM donations WHERE player_name = ?";
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    private void initializeDatabase() {
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS donations (" +
+                "player_uuid TEXT PRIMARY KEY, " +
+                "player_name TEXT, " +
+                "total_donations INTEGER DEFAULT 0, " +
+                "purchased_donations TEXT DEFAULT ''" +
+                ")";
+        try {
+            connection.createStatement().execute(createTableSQL);
+            System.out.println("Таблица для хранения донатов создана или уже существует.");
+        } catch (SQLException e) {
+            System.err.println("Ошибка при создании таблицы донатов: " + e.getMessage());
+        }
+    }
 
-            stmt.setString(1, playerName);
+    private String getPlayerUUID(String playerName) {
+        OfflinePlayer op = Bukkit.getOfflinePlayer(playerName);
+        return op.getUniqueId().toString();
+    }
+
+    private String getPlayerName(String playerName) {
+        OfflinePlayer op = Bukkit.getOfflinePlayer(playerName);
+        return op.getName();
+    }
+
+    public int getTotalDonations(String playerName) {
+        String uuid = getPlayerUUID(playerName);
+        String sql = "SELECT total_donations FROM donations WHERE player_uuid = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("total_donations");
@@ -72,20 +98,20 @@ public class DonateStorage {
     }
 
     private void updateDonationAmount(String playerName, int newAmount) {
-        String sql = "INSERT INTO donations (player_name, total_donations, purchased_donations) " +
-                "VALUES (?, ?, '') " +
-                "ON CONFLICT(player_name) DO UPDATE SET total_donations = excluded.total_donations";
-
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, playerName);
-            stmt.setInt(2, newAmount);
+        String uuid = getPlayerUUID(playerName);
+        String currentName = getPlayerName(playerName);
+        String sql = "INSERT INTO donations (player_uuid, player_name, total_donations, purchased_donations) " +
+                "VALUES (?, ?, ?, '') " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET total_donations = excluded.total_donations, " +
+                "player_name = excluded.player_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, uuid);
+            stmt.setString(2, currentName);
+            stmt.setInt(3, newAmount);
             stmt.executeUpdate();
-            System.out.println("Сумма донатов для " + playerName + " обновлена: " + newAmount);
+            System.out.println("Сумма донатов для " + currentName + " обновлена: " + newAmount);
 
             updatePlayerGroup(playerName, newAmount);
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -104,13 +130,11 @@ public class DonateStorage {
     }
 
     public Set<String> getPurchasedDonations(String playerName) {
-        String sql = "SELECT purchased_donations FROM donations WHERE player_name = ?";
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, playerName);
+        String uuid = getPlayerUUID(playerName);
+        String sql = "SELECT purchased_donations FROM donations WHERE player_uuid = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, uuid);
             ResultSet rs = stmt.executeQuery();
-
             if (rs.next()) {
                 String purchased = rs.getString("purchased_donations");
                 if (purchased != null && !purchased.isEmpty()) {
@@ -129,17 +153,18 @@ public class DonateStorage {
     }
 
     private void updatePurchasedDonations(String playerName, Set<String> donationSet) {
-        String sql = "INSERT INTO donations (player_name, total_donations, purchased_donations) " +
-                "VALUES (?, 0, ?) " +
-                "ON CONFLICT(player_name) DO UPDATE SET purchased_donations = excluded.purchased_donations";
-
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, playerName);
-            stmt.setString(2, String.join(",", donationSet));
+        String uuid = getPlayerUUID(playerName);
+        String currentName = getPlayerName(playerName);
+        String sql = "INSERT INTO donations (player_uuid, player_name, total_donations, purchased_donations) " +
+                "VALUES (?, ?, 0, ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET purchased_donations = excluded.purchased_donations, " +
+                "player_name = excluded.player_name";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, uuid);
+            stmt.setString(2, currentName);
+            stmt.setString(3, String.join(",", donationSet));
             stmt.executeUpdate();
-            System.out.println("Донаты для " + playerName + " обновлены: " + donationSet);
+            System.out.println("Донаты для " + currentName + " обновлены: " + donationSet);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -147,7 +172,8 @@ public class DonateStorage {
 
     private void updatePlayerGroup(String playerName, int donationAmount) {
         LuckPerms luckPerms = LuckPermsProvider.get();
-        Player player = Bukkit.getPlayerExact(playerName);
+        OfflinePlayer op = Bukkit.getOfflinePlayer(playerName);
+        Player player = Bukkit.getPlayer(op.getUniqueId());
         if (player == null) {
             System.out.println("LuckPerms: Игрок " + playerName + " не найден на сервере!");
             return;
