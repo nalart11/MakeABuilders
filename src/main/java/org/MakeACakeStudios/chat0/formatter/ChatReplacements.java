@@ -12,7 +12,6 @@ import java.util.function.BiFunction;
 import static org.MakeACakeStudios.utils.Formatter.*;
 
 public enum ChatReplacements {
-    // Emojis Scope
     CRY((player, component) -> builder(":cry:", miniMessage("<yellow>☹</yellow><aqua>,</aqua>"))),
     SKULL((player, component) -> builder(":skull:", miniMessage("☠"))),
     SKULLEY((player, component) -> builder(":skulley:", miniMessage("<red>☠'ey</red>"))),
@@ -37,7 +36,6 @@ public enum ChatReplacements {
     SADGE(((player, component) -> builder(":sadge:", miniMessage("<yellow>ⓈⒶⒹⒼⒺ</yellow><aqua>...</aqua>")))),
 
 
-    // Additional
     LOC(((player, component) -> {
         var environment = player.getWorld().getEnvironment();
         var worldName = player.getWorld().getName();
@@ -83,6 +81,7 @@ public enum ChatReplacements {
     }
 
     public static @NotNull TextReplacementConfig builder(@RegExp @NotNull String literal, @NotNull Component replacement) {
-        return TextReplacementConfig.builder().match(literal).replacement(reset(replacement)).build();
+        String processedLiteral = literal.replaceAll("\\\\", "\\\\\\\\");
+        return TextReplacementConfig.builder().match(processedLiteral).replacement(reset(replacement)).build();
     }
 }

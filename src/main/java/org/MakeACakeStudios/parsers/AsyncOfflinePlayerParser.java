@@ -47,7 +47,7 @@ public final class AsyncOfflinePlayerParser<C> implements ArgumentParser<C, Offl
             final @NonNull CommandInput commandInput
     ) {
         final String input = commandInput.readString();
-        if (input.length() > 16) {
+        if (!input.matches("^[a-zA-Z0-9_]{3,16}$")) {
             return ArgumentParseResult.failure(new OfflinePlayerParseException(input, commandContext));
         }
 

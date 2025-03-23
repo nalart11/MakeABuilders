@@ -8,11 +8,21 @@ import java.util.List;
 public class MiniMessageMarkdownTagsTranslator {
 
     public static @NotNull String markdown(@NotNull String s) {
-        var temp = wrapLocationTag(s);
+        // Обработка одиночных обратных слэшей
+        var temp = replaceBackSlashes(s);
+        temp = wrapLocationTag(temp);
         for (MarkdownTag tag : MarkdownTag.entries) {
             temp = tag.stripTags(temp);
         }
         return unwrapLocationTag(temp);
+    }
+
+    /**
+     * Метод для замены одиночного слэша на двойной.
+     * Используем негативные опережающие и отстающие проверки, чтобы не задваивать уже удвоенные слэши.
+     */
+    private static String replaceBackSlashes(String message) {
+        return message.replace("\\", "\\\\");
     }
 
     enum MarkdownTag {
@@ -20,7 +30,7 @@ public class MiniMessageMarkdownTagsTranslator {
         ITALIC("\\*", "<i>", "</i>"),
         ITALIC_US("_", "<i>", "</i>"),
         BOLD_ITALIC_DS("\\*\\*\\*", "<b><i>", "</b></i>"),
-        STRIKETHROUGH("~", "<st>", "</st>"),
+        STRIKETHROUGH("~~", "<st>", "</st>"),
         UNDERLINED("__", "<u>", "</u>"),
         SPOILER("\\|\\|", "<obf>", "</obf>") {
             @Override
