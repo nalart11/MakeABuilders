@@ -231,7 +231,7 @@ public class BanCommand implements Command {
         return String.format("""
         §c[Бан #%d]
         §fВы были забанены администратором §6%s §c%s §fпо причине: §e%s
-        §fЕсли вы считаете что это ошибка вы можете обратиться к администрации: §ahttps://discord.gg/Ac9CSskbTf
+        §fЕсли вы считаете что это ошибка вы можете обратиться к администрации: §ahttps://discord.gg/QyB3Ed4n99
         """,
                 PunishmentStorage.instance.getNextBanNumber(),
                 admin,
