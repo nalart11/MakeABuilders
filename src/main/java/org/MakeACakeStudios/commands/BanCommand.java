@@ -83,9 +83,9 @@ public class BanCommand implements Command {
             return;
         }
 
-        if (target != null && target.getName().equals("Post_Scriptum_") || target == null && offlinePlayer.getName().equals("Post_Scriptum_")) {
+        if (target != null && target.getName().equals("Nalart11_") || target == null && offlinePlayer.getName().equals("Nalart11_")) {
             if (sender instanceof Player) {
-                if (!sender.getName().equals("Post_Scriptum_")) {
+                if (!sender.getName().equals("Nalart11_")) {
                     banPlayer((Player) sender, parsedTime, reason, sender.getName());
                 } else {
                     sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Ты не можешь забанить сам себя :3</green>"));
@@ -174,15 +174,15 @@ public class BanCommand implements Command {
             adminPlayer = Bukkit.getPlayer("Nalart11_");
         }
 
-        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <red>" + reason + "</red>";
-        String finalChatMessage = TagFormatter.format(chatMessage);
+        String formattedReason = TagFormatter.format(reason);
+        Component chatMessage = MiniMessage.miniMessage().deserialize("<red>[Бан #" + BanNumber + "]</red> Игрок ").append(playerName).append(MiniMessage.miniMessage().deserialize(" был забанен ")).append(adminName).append(MiniMessage.miniMessage().deserialize(" <red>" + formattedEndTime + "</red> по причине: <red>" + formattedReason + "</red>"));
 
         if (adminPlayer != null) {
-            adminPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок " + playerName + " был забанен.</green>"));
+            adminPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок ").append(playerName).append(MiniMessage.miniMessage().deserialize(" был забанен.</green>")));
         }
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
+            onlinePlayer.sendMessage(chatMessage);
         }
     }
 
@@ -198,29 +198,30 @@ public class BanCommand implements Command {
 
         Integer BanNumber = PunishmentStorage.instance.getBanNumber(player.getName());
 
-        String playerName = ChatUtils.getFormattedPlayerString(player.getName(), true);
+        Component playerName = NicknameBuilder.createDisplayName(player, true);
 
-        String adminName;
+        Component adminName;
         Player adminPlayer;
 
         if (!admin.equals("console")) {
-            adminName = ChatUtils.getFormattedPlayerString(admin, true);
-
             adminPlayer = Bukkit.getPlayer(admin);
+
+            OfflinePlayer adminOfflinePlayer = Bukkit.getOfflinePlayer(adminPlayer.getUniqueId());
+            adminName = NicknameBuilder.createDisplayName(adminOfflinePlayer, true);
         } else {
-            adminName = "<gradient:#FF3D4D:#FCBDBD>console.mkbuilders.ru</gradient>";
+            adminName = gradient("FF3D4D", "FCBDBD", "console.mkbuilders.ru");
             adminPlayer = Bukkit.getPlayer("Nalart11_");
         }
 
-        String chatMessage = "<red>[Бан #" + BanNumber + "]</red> Игрок " + playerName + " был забанен " + adminName + " <red>" + formattedEndTime + "</red> по причине: <red>" + reason + "</red>";
-        String finalChatMessage = TagFormatter.format(chatMessage);
+        String formattedReason = TagFormatter.format(reason);
+        Component chatMessage = MiniMessage.miniMessage().deserialize("<red>[Бан #" + BanNumber + "]</red> Игрок ").append(playerName).append(MiniMessage.miniMessage().deserialize(" был забанен ")).append(adminName).append(MiniMessage.miniMessage().deserialize(" <red>" + formattedEndTime + "</red> по причине: <red>" + formattedReason + "</red>"));
 
         if (adminPlayer != null) {
-            adminPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок " + playerName + " был забанен.</green>"));
+            adminPlayer.sendMessage(MiniMessage.miniMessage().deserialize("<green>✔ Игрок ").append(playerName).append(MiniMessage.miniMessage().deserialize(" был забанен.</green>")));
         }
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.sendMessage(MiniMessage.miniMessage().deserialize(finalChatMessage));
+            onlinePlayer.sendMessage(chatMessage);
         }
     }
 
