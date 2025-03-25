@@ -68,7 +68,7 @@ public class ItemStorage {
 
         if (donate >= 2000) {
             item = new ItemStack(Material.NETHERITE_INGOT);
-            roleMessage = miniMessage("<!i><gradient:#00A53E:#C8FFD4>Спонсор</gradient>");
+            roleMessage = miniMessage("<!i><gradient:#FFB21E:#FCE2BD>Спонсор</gradient>");
         } else if (donate >= 150) {
             item = new ItemStack(Material.DIAMOND);
             roleMessage = miniMessage("<!i><gradient:#6EFFC9:#F0FFF7>Донатер</gradient>");
@@ -218,13 +218,13 @@ public class ItemStorage {
                     playerRoleText = "<gradient:#FF2323:#FF7878>Администратор</gradient>";
                     break;
                 case "developer":
-                    playerRoleText = "<gradient:#E43A96:#FF0000>Раз`работчик</gradient>";
+                    playerRoleText = "<gradient:#E43A96:#FF0000>Разработчик</gradient>";
                     break;
                 case "moderator":
                     playerRoleText = "<gradient:#23DBFF:#C8E9FF>Модератор</gradient>";
                     break;
                 case "sponsor":
-                    playerRoleText = "<gradient:#00A53E:#C8FFD4>Спонсор</gradient>";
+                    playerRoleText = "<gradient:#FFB21E:#FCE2BD>Спонсор</gradient>";
                     break;
                 case "donator":
                     playerRoleText = "<gradient:#6EFFC9:#F0FFF7>Донатер</gradient>";
@@ -431,6 +431,21 @@ public class ItemStorage {
             }
             return gray_dye;
         }
+    }
+
+    public static ItemStack getBackArrow() {
+        ItemStack arrow = new ItemStack(Material.ARROW, 1);
+        ItemMeta meta = arrow.getItemMeta();
+
+        if (meta != null) {
+            Component backMessage = miniMessage("<!i>Назад в профиль");
+
+            meta.displayName(backMessage);
+
+            arrow.setItemMeta(meta);
+        }
+
+        return arrow;
     }
 
     public static ItemStack getTelegramHead() {

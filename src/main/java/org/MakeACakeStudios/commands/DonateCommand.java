@@ -160,13 +160,14 @@ public class DonateCommand implements Command, @NotNull Listener {
             Bukkit.getScheduler().runTask(MakeABuilders.instance, () -> {
                 Inventory inventory = Bukkit.createInventory(null, 54, "Меню донатов");
 
-                Set<Integer> excludeSlots = new HashSet<>(Set.of(4, 19, 20, 21, 40));
+                Set<Integer> excludeSlots = new HashSet<>(Set.of(4, 8, 19, 20, 21, 40));
                 for (int i = 0; i < 54; i++) {
                     if (!excludeSlots.contains(i)) {
                         inventory.setItem(i, ItemStorage.getPlaceHolderItem());
                     }
                 }
                 inventory.setItem(4, ItemStorage.getDonateCake(sender));
+                inventory.setItem(8, ItemStorage.getBackArrow());
                 inventory.setItem(19, ItemStorage.getSakuraEffect(sender));
                 inventory.setItem(20, ItemStorage.getZeusEffect(sender));
                 inventory.setItem(21, ItemStorage.getStarEffect(sender));
@@ -206,7 +207,11 @@ public class DonateCommand implements Command, @NotNull Listener {
             int slot = event.getRawSlot();
 
             if (event.getClick().isLeftClick() || event.getClick().isRightClick()) {
-                if (slot == 19) {
+                if (slot == 8) {
+                    player.closeInventory();
+                    player.performCommand("profile");
+                }
+                else if (slot == 19) {
                     if (DonateStorage.instance.hasDonation(player.getName(), 3)) {
                         boolean isSakuraEnabled = EffectManager.getEnabledEffectsForPlayer(player.getName()).contains(3);
 

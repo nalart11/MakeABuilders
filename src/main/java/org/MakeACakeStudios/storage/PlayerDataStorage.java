@@ -24,6 +24,7 @@ public class PlayerDataStorage {
         groupWeights.put("iam", 6);
         groupWeights.put("javadper", 5);
         groupWeights.put("lemon", 5);
+        groupWeights.put("stevegreeen", 5);
         groupWeights.put("admin", 4);
         groupWeights.put("developer", 4);
         groupWeights.put("moderator", 3);
@@ -33,6 +34,7 @@ public class PlayerDataStorage {
         groupRoles.put("iam", "owner");
         groupRoles.put("javadper", "custom");
         groupRoles.put("lemon", "custom");
+        groupRoles.put("stevegreeen", "custom");
         groupRoles.put("admin", "admin");
         groupRoles.put("developer", "developer");
         groupRoles.put("moderator", "moderator");
@@ -41,6 +43,7 @@ public class PlayerDataStorage {
 
         groupBadges.put("iam", "<yellow>✦</yellow>");
         groupBadges.put("javadper", "<blue>\uD83D\uDEE0</blue>");
+        groupBadges.put("stevegreeen", "<blue>\uD83D\uDEE0</blue>");
         groupBadges.put("admin", "<blue>⛨</blue>");
         groupBadges.put("developer", "<blue>\uD83D\uDEE0</blue>");
         groupBadges.put("moderator", "<blue>⛨</blue>");
@@ -132,8 +135,12 @@ public class PlayerDataStorage {
                 prefix = "<gradient:#E0E0E0:#808080>";
                 suffix = "</gradient>";
                 break;
+            case "stevegreeen":
+                prefix = "<gradient:#00A53E:#C8FFD4>";
+                suffix = "</gradient>";
+                break;
             case "lemon":
-                prefix = "<gradient:#FFFB3D:#FCF9BD>";
+                prefix = "<gradient:#DF8A01:#72FF2F>";
                 suffix = "</gradient>";
                 break;
             case "admin":
@@ -149,7 +156,7 @@ public class PlayerDataStorage {
                 suffix = "</gradient>";
                 break;
             case "sponsor":
-                prefix = "<gradient:#00A53E:#C8FFD4>";
+                prefix = "<gradient:#FFB21E:#FCE2BD>";
                 suffix = "</gradient>";
                 break;
             default:
